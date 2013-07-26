@@ -18,12 +18,18 @@ package controllers
 
 import play.api.mvc._
 
-object HomeController extends Controller with Authentication {
+trait Authentication {
+  self: Controller =>
 
-  def index() = withAuthenticated { adminId =>
-    Action {
-      Ok(views.html.index())
-    }
+  def withAuthenticated(action: Long => EssentialAction): EssentialAction = {
+    Security.Authenticated(
+      req => {
+        req.session.get(Security.username)
+      },
+      req => {
+        Redirect(routes.SessionController.index()).flashing(
+          "error" -> "unauthorized",
+          "uri" -> req.uri)
+      })(id => action(id.toLong))
   }
-
 }

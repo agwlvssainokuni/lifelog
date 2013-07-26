@@ -19,19 +19,18 @@ package controllers
 import java.util.Date
 
 import play.api.Play.current
-import play.api.data.Form
+import play.api.data._
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import play.api.db.DB
-import play.api.mvc.Action
-import play.api.mvc.Controller
+import play.api.mvc._
 import views.html.{ member => view }
 
 case class Member(email: String, nickname: String, height: Option[BigDecimal], birthday: Option[Date])
 
 case class Passwd(passwd: String, passwdConf: String)
 
-object MemberController extends Controller {
+object MemberController extends Controller with Authentication {
 
   val memberForm: Form[Member] = Form(mapping(
     "email" -> email.verifying(minLength(1), maxLength(256)),
@@ -43,47 +42,57 @@ object MemberController extends Controller {
     "passwd" -> nonEmptyText(1, 32),
     "passwdConf" -> nonEmptyText(1, 32))(Passwd.apply)(Passwd.unapply))
 
-  def list(pn: Long = 0, ps: Long = 5) = Action {
-    Ok(view.list())
-  }
-
-  def add() = Action {
-    Ok(view.add(memberForm))
-  }
-
-  def create() = Action { implicit req =>
-    DB.withTransaction { implicit c =>
-      memberForm.bindFromRequest().fold(
-        error => {
-          Ok(view.add(error))
-        },
-        member => {
-          val id = 1L
-          Redirect(routes.MemberController.edit(id)).flashing(
-            "success" -> "add")
-        })
+  def list(pn: Long = 0, ps: Long = 5) = withAuthenticated { adminId =>
+    Action {
+      Ok(view.list())
     }
   }
 
-  def edit(id: Long) = Action {
-    Ok(view.edit(id, memberForm))
-  }
-
-  def update(id: Long) = Action { implicit req =>
-    DB.withTransaction { implicit c =>
-      memberForm.bindFromRequest().fold(
-        error => {
-          Ok(view.edit(id, error))
-        },
-        member => {
-          Redirect(routes.MemberController.edit(id)).flashing(
-            "success" -> "edit")
-        })
+  def add() = withAuthenticated { adminId =>
+    Action {
+      Ok(view.add(memberForm))
     }
   }
 
-  def editPw(id: Long) = Action {
-    Ok(view.editPw(id, passwdForm))
+  def create() = withAuthenticated { adminId =>
+    Action { implicit req =>
+      DB.withTransaction { implicit c =>
+        memberForm.bindFromRequest().fold(
+          error => {
+            Ok(view.add(error))
+          },
+          member => {
+            val id = 1L
+            Redirect(routes.MemberController.edit(id)).flashing(
+              "success" -> "add")
+          })
+      }
+    }
+  }
+
+  def edit(id: Long) = withAuthenticated { adminId =>
+    Action {
+      Ok(view.edit(id, memberForm))
+    }
+  }
+
+  def update(id: Long) = withAuthenticated { adminId =>
+    Action { implicit req =>
+      DB.withTransaction { implicit c =>
+        memberForm.bindFromRequest().fold(
+          error => Ok(view.edit(id, error)),
+          member => {
+            Redirect(routes.MemberController.edit(id)).flashing(
+              "success" -> "edit")
+          })
+      }
+    }
+  }
+
+  def editPw(id: Long) = withAuthenticated { adminId =>
+    Action {
+      Ok(view.editPw(id, passwdForm))
+    }
   }
 
   def updatePw(id: Long) = TODO

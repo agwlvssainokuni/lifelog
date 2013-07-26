@@ -9,6 +9,11 @@ GET    /                     controllers.HomeController.index()
 GET    /assets/*file         controllers.Assets.at(path="/public", file)
 
 
+# Session
+GET    /login                controllers.SessionController.index()
+POST   /login                controllers.SessionController.login()
+GET    /logout               controllers.SessionController.logout()
+
 # Member
 GET    /members              controllers.MemberController.list(pn: Long = 0, ps: Long = 5)
 GET    /members/add          controllers.MemberController.add()
