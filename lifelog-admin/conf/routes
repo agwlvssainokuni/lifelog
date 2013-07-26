@@ -3,7 +3,18 @@
 # ~~~~
 
 # Home page
-GET   /               controllers.HomeController.index()
+GET    /                     controllers.HomeController.index()
 
 # Map static resources from the /public folder to the /assets URL path
-GET   /assets/*file   controllers.Assets.at(path="/public", file)
+GET    /assets/*file         controllers.Assets.at(path="/public", file)
+
+
+# Member
+GET    /members              controllers.MemberController.list(pn: Long = 0, ps: Long = 5)
+GET    /members/add          controllers.MemberController.add()
+POST   /members/add          controllers.MemberController.create()
+GET    /members/:id          controllers.MemberController.edit(id: Long)
+POST   /members/:id          controllers.MemberController.update(id: Long)
+GET    /members/:id/passwd   controllers.MemberController.editPw(id: Long)
+POST   /members/:id/passwd   controllers.MemberController.updatePw(id: Long)
+GET    /members/:id/delete   controllers.MemberController.delete(id: Long)
