@@ -1,0 +1,12 @@
+@(mform: Form[Member])
+@import views.html.helper._
+@import views.common.custom._
+@main("登録") {
+@form(routes.MemberController.create(), dataajax -> "false") {
+	@inputText(mform("email"), '_label -> "メールアドレス")
+	@inputText(mform("nickname"), '_label -> "ニックネーム")
+	@inputText(mform("birthday"), '_label -> "生年月日(省略可)", 'type -> "date")
+	@inputText(mform("height"), '_label -> "身長(省略可)", 'type -> "number", 'step -> "0.1")
+	<input type="submit" value="登録する" data-theme="a" />
+}
+}

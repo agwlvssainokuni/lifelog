@@ -1,0 +1,10 @@
+@(id: Long, mform: Form[Passwd])
+@import views.html.helper._
+@import views.common.custom._
+@main("パスワード") {
+@form(routes.MemberController.updatePw(id), dataajax -> "false") {
+	@inputPassword(mform("passwd"), '_label -> "パスワード")
+	@inputPassword(mform("passwdConf"), '_label -> "確認")
+	<input type="submit" value="変更する" data-theme="a" />
+}
+}
