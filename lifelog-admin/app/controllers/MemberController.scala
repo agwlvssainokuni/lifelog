@@ -16,30 +16,74 @@
 
 package controllers
 
+import java.util.Date
+
+import play.api.Play.current
+import play.api.data.Form
+import play.api.data.Forms._
+import play.api.data.validation.Constraints._
+import play.api.db.DB
 import play.api.mvc.Action
 import play.api.mvc.Controller
-import views.html.{member => view}
+import views.html.{ member => view }
+
+case class Member(email: String, nickname: String, height: Option[BigDecimal], birthday: Option[Date])
+
+case class Passwd(passwd: String, passwdConf: String)
 
 object MemberController extends Controller {
 
-  def list(pn: Long = 5, ps: Long) = Action {
+  val memberForm: Form[Member] = Form(mapping(
+    "email" -> email.verifying(minLength(1), maxLength(256)),
+    "nickname" -> nonEmptyText(1, 256),
+    "height" -> optional(bigDecimal),
+    "birthday" -> optional(date("yyyy/MM/ddÏÏß")))(Member.apply)(Member.unapply))
+
+  val passwdForm: Form[Passwd] = Form(mapping(
+    "passwd" -> nonEmptyText(1, 32),
+    "passwdConf" -> nonEmptyText(1, 32))(Passwd.apply)(Passwd.unapply))
+
+  def list(pn: Long = 0, ps: Long = 5) = Action {
     Ok(view.list())
   }
 
   def add() = Action {
-    Ok(view.add())
+    Ok(view.add(memberForm))
   }
 
-  def create() = TODO
+  def create() = Action { implicit req =>
+    DB.withTransaction { implicit c =>
+      memberForm.bindFromRequest().fold(
+        error => {
+          Ok(view.add(error))
+        },
+        member => {
+          val id = 1L
+          Redirect(routes.MemberController.edit(id)).flashing(
+            "success" -> "add")
+        })
+    }
+  }
 
   def edit(id: Long) = Action {
-    Ok(view.edit(id))
+    Ok(view.edit(id, memberForm))
   }
 
-  def update(id: Long) = TODO
+  def update(id: Long) = Action { implicit req =>
+    DB.withTransaction { implicit c =>
+      memberForm.bindFromRequest().fold(
+        error => {
+          Ok(view.edit(id, error))
+        },
+        member => {
+          Redirect(routes.MemberController.edit(id)).flashing(
+            "success" -> "edit")
+        })
+    }
+  }
 
   def editPw(id: Long) = Action {
-    Ok(view.editPw(id))
+    Ok(view.editPw(id, passwdForm))
   }
 
   def updatePw(id: Long) = TODO

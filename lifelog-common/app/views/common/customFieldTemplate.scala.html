@@ -1,0 +1,5 @@
+@(elem: helper.FieldElements)
+<div id="@{elem.id}_field" data-role="fieldcontain">
+	<label for="@elem.id" class="@if(elem.hasErrors) {error}">@elem.label</label>
+	@elem.input
+</div>
