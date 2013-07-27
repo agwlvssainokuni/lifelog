@@ -44,10 +44,10 @@ object SessionController extends Controller {
           // TODO 暫定実装
           val result = if (login.loginId == login.passwd) Some(1) else None
           result match {
-            case Some(memberId) =>
+            case Some(adminId) =>
               val redirTo = login.uri.map(Call("GET", _)).getOrElse(
                 routes.HomeController.index())
-              Redirect(redirTo).withSession(Security.username -> memberId.toString)
+              Redirect(redirTo).withSession(Security.username -> adminId.toString)
             case None =>
               Ok(view.index(loginForm.fill(login).withError("login", "login.failed")))
           }
