@@ -1,4 +1,4 @@
-@(frm: Form[Login])
+@(frm: Form[Login])(implicit flash: Flash)
 @import views.html.helper._
 @import views.common.custom._
 <!DOCTYPE html>
@@ -24,12 +24,25 @@
 			<h1>LifeLog/Admin - ログイン</h1>
 		</div>
 		<div data-role="content">
-		@form(routes.SessionController.login(), dataajax -> "false") {
-			@inputText(frm("loginId"), '_label -> "ログインID")
-			@inputPassword(frm("passwd"), '_label -> "パスワード")
-			<input type="hidden" name="uri" value="@frm("uri").value" />
-			<input type="submit" value="ログイン" data-theme="a" />
-		}
+			@{flash.get("success").map {
+				case "logout" => <h3 class="success">ログアウトしました。</h3>
+			}}
+			@{flash.get("error").map {
+				case "unauthorized" => <h3 class="error">ログインし直してください。</h3>
+			}}
+			@if(frm.hasErrors) {
+				@if(frm.error("login").isDefined) {
+					<h3 class="error">ログインIDまたはパスワードが異なっています。</h3>
+				} else {
+					<h3 class="error">値が不適切です。入力し直してください。</h3>
+				}
+			}
+			@form(routes.SessionController.login(), dataajax -> "false") {
+				@inputText(frm("loginId"), '_label -> "ログインID")
+				@inputPassword(frm("passwd"), '_label -> "パスワード")
+				<input type="hidden" name="uri" value="@frm("uri").value" />
+				<input type="submit" value="ログイン" data-theme="a" />
+			}
 		</div>
 		<div data-role="footer" data-theme="a">
 			<h1>Copyright (C), 2013, agwlvssainokuni</h1>
