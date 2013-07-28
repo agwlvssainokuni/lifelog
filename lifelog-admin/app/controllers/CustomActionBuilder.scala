@@ -18,6 +18,8 @@ package controllers
 
 import java.sql.Connection
 
+import scala.reflect.ClassTag
+
 import play.api.Play.current
 import play.api.db.DB
 import play.api.mvc._
@@ -30,27 +32,17 @@ trait CustomActionBuilder extends Authentication {
       block(request)
     }
 
-  def CustomAction(block: (Request[AnyContent], Connection) => Result): EssentialAction =
+  def CustomAction(block: Request[AnyContent] => Connection => Result)(implicit c: ClassTag[Connection]): EssentialAction =
     Action { request =>
       DB.withTransaction { connection =>
-        block(request, connection)
+        block(request)(connection)
       }
     }
 
-  def AuthnCustomAction(block: (Long, Request[AnyContent]) => Result): EssentialAction =
-    withAuthenticated { id =>
-      Action { request =>
-        block(id, request)
-      }
-    }
+  def AuthnCustomAction(block: Long => Request[AnyContent] => Result): EssentialAction =
+    withAuthenticated { id => CustomAction(block(id)) }
 
-  def AuthnCustomAction(block: (Long, Request[AnyContent], Connection) => Result): EssentialAction =
-    withAuthenticated { id =>
-      Action { request =>
-        DB.withTransaction { connection =>
-          block(id, request, connection)
-        }
-      }
-    }
+  def AuthnCustomAction(block: Long => Request[AnyContent] => Connection => Result)(implicit c: ClassTag[Connection]): EssentialAction =
+    withAuthenticated { id => CustomAction(block(id)) }
 
 }

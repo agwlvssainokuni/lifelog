@@ -42,43 +42,47 @@ object MemberController extends Controller with CustomActionBuilder {
     "passwd" -> nonEmptyText(1, 32),
     "passwdConf" -> nonEmptyText(1, 32))(Passwd.apply)(Passwd.unapply))
 
-  def list(pn: Long = 0, ps: Long = 5) = AuthnCustomAction { (adminId, r) =>
-    Ok(view.list())
+  def list(pn: Long = 0, ps: Long = 5) = AuthnCustomAction { adminId =>
+    implicit req => implicit conn =>
+      Ok(view.list())
   }
 
-  def add() = AuthnCustomAction { (adminId, r) =>
-    Ok(view.add(memberForm))
+  def add() = AuthnCustomAction { adminId =>
+    implicit req => implicit conn =>
+      Ok(view.add(memberForm))
   }
 
-  def create() = AuthnCustomAction { (adminId, r, c) =>
-    implicit val req = r
-    memberForm.bindFromRequest().fold(
-      error => {
-        Ok(view.add(error))
-      },
-      member => {
-        val id = 1L
-        Redirect(routes.MemberController.edit(id)).flashing(
-          "success" -> "add")
-      })
+  def create() = AuthnCustomAction { adminId =>
+    implicit req => implicit conn =>
+      memberForm.bindFromRequest().fold(
+        error => {
+          Ok(view.add(error))
+        },
+        member => {
+          val id = 1L
+          Redirect(routes.MemberController.edit(id)).flashing(
+            "success" -> "add")
+        })
   }
 
-  def edit(id: Long) = AuthnCustomAction { (adminId, r) =>
-    Ok(view.edit(id, memberForm))
+  def edit(id: Long) = AuthnCustomAction { adminId =>
+    implicit req => implicit conn =>
+      Ok(view.edit(id, memberForm))
   }
 
-  def update(id: Long) = AuthnCustomAction { (adminId, r, c) =>
-    implicit val req = r
-    memberForm.bindFromRequest().fold(
-      error => Ok(view.edit(id, error)),
-      member => {
-        Redirect(routes.MemberController.edit(id)).flashing(
-          "success" -> "edit")
-      })
+  def update(id: Long) = AuthnCustomAction { adminId =>
+    implicit req => implicit conn =>
+      memberForm.bindFromRequest().fold(
+        error => Ok(view.edit(id, error)),
+        member => {
+          Redirect(routes.MemberController.edit(id)).flashing(
+            "success" -> "edit")
+        })
   }
 
-  def editPw(id: Long) = AuthnCustomAction { (adminId, r) =>
-    Ok(view.editPw(id, passwdForm))
+  def editPw(id: Long) = AuthnCustomAction { adminId =>
+    implicit req => implicit conn =>
+      Ok(view.editPw(id, passwdForm))
   }
 
   def updatePw(id: Long) = TODO
