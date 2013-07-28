@@ -25,74 +25,42 @@ import play.api.mvc._
 import views.html.{ admin => view }
 import routes.{ AdminController => route }
 
-object AdminController extends Controller with Authentication {
+object AdminController extends Controller with CustomActionBuilder {
 
-  def list(pn: Long = 0, ps: Long = 5) = withAuthenticated { adminId =>
-    Action { implicit req =>
-      DB.withTransaction { implicit c =>
-        Ok(view.list())
-      }
-    }
+  def list(pn: Long = 0, ps: Long = 5) = AuthnCustomAction { (adminId, r, c) =>
+    Ok(view.list())
   }
 
-  def add() = withAuthenticated { adminId =>
-    Action { implicit req =>
-      DB.withTransaction { implicit c =>
-        Ok(view.add())
-      }
-    }
+  def add() = AuthnCustomAction { (adminId, r, c) =>
+    Ok(view.add())
   }
 
-  def create() = withAuthenticated { adminId =>
-    Action { implicit req =>
-      DB.withTransaction { implicit c =>
-        Redirect(route.edit(1L)).flashing(
-          "success" -> "create")
-      }
-    }
+  def create() = AuthnCustomAction { (adminId, r, c) =>
+    Redirect(route.edit(1L)).flashing(
+      "success" -> "create")
   }
 
-  def edit(id: Long) = withAuthenticated { adminId =>
-    Action { implicit req =>
-      DB.withTransaction { implicit c =>
-        Ok(view.edit(id))
-      }
-    }
+  def edit(id: Long) = AuthnCustomAction { (adminId, r, c) =>
+    Ok(view.edit(id))
   }
 
-  def update(id: Long) = withAuthenticated { adminId =>
-    Action { implicit req =>
-      DB.withTransaction { implicit c =>
-        Redirect(route.edit(id)).flashing(
-          "success" -> "update")
-      }
-    }
+  def update(id: Long) = AuthnCustomAction { (adminId, r, c) =>
+    Redirect(route.edit(id)).flashing(
+      "success" -> "update")
   }
 
-  def editPw(id: Long) = withAuthenticated { adminId =>
-    Action { implicit req =>
-      DB.withTransaction { implicit c =>
-        Ok(view.editPw(id))
-      }
-    }
+  def editPw(id: Long) = AuthnCustomAction { (adminId, r, c) =>
+    Ok(view.editPw(id))
   }
 
-  def updatePw(id: Long) = withAuthenticated { adminId =>
-    Action { implicit req =>
-      DB.withTransaction { implicit c =>
-        Redirect(route.edit(id)).flashing(
-          "success" -> "updatePw")
-      }
-    }
+  def updatePw(id: Long) = AuthnCustomAction { (adminId, r, c) =>
+    Redirect(route.edit(id)).flashing(
+      "success" -> "updatePw")
   }
 
-  def delete(id: Long) = withAuthenticated { adminId =>
-    Action { implicit req =>
-      DB.withTransaction { implicit c =>
-        Redirect(route.list()).flashing(
-          "success" -> "delete")
-      }
-    }
+  def delete(id: Long) = AuthnCustomAction { (adminId, r, c) =>
+    Redirect(route.list()).flashing(
+      "success" -> "delete")
   }
 
 }
