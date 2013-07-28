@@ -251,6 +251,45 @@ class AdminControllerSpec extends Specification {
   }
 
   "AdminController#update(id)" should {
+
+    "入力値が適正ならば、/admins/:id に転送される。" in new WithApplication {
+      route(FakeRequest(POST, "/admins/1").withSession(session).withFormUrlEncodedBody(
+        "loginId" -> "login000", "nickname" -> "nickname000")) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/admins/1")
+        flash(res).get("success") must beSome.which(_ == "update")
+      }
+    }
+
+    "ログインIDが入力不正(必須NG)ならば、再入力を促す。" in new WithApplication {
+      route(FakeRequest(POST, "/admins/1").withSession(session).withFormUrlEncodedBody(
+        "loginId" -> "", "nickname" -> "nickname000")) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+        content must contain("""<form action="/admins/1" method="POST" data-ajax="false">""")
+        content must contain("""<label for="loginId" class="error">ログインID</label>""")
+        content must contain("""<input type="text" id="loginId" name="loginId" value="" >""")
+        content must contain("""<label for="nickname" class="">ニックネーム</label>""")
+        content must contain("""<input type="text" id="nickname" name="nickname" value="nickname000" >""")
+        content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
+      }
+    }
+
+    "ニックネームが入力不正(必須NG)ならば、再入力を促す。" in new WithApplication {
+      route(FakeRequest(POST, "/admins/1").withSession(session).withFormUrlEncodedBody(
+        "loginId" -> "login000", "nickname" -> "")) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+        content must contain("""<form action="/admins/1" method="POST" data-ajax="false">""")
+        content must contain("""<label for="loginId" class="">ログインID</label>""")
+        content must contain("""<input type="text" id="loginId" name="loginId" value="login000" >""")
+        content must contain("""<label for="nickname" class="error">ニックネーム</label>""")
+        content must contain("""<input type="text" id="nickname" name="nickname" value="" >""")
+        content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
+      }
+    }
   }
 
   "AdminController#editPw(id)" should {

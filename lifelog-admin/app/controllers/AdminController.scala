@@ -53,6 +53,7 @@ object AdminController extends Controller with CustomActionBuilder {
           Ok(view.add(error))
         },
         admin => {
+          // TODO 登録処理を実装。
           val id = 1L
           Redirect(route.edit(id)).flashing(
             "success" -> "create")
@@ -71,8 +72,15 @@ object AdminController extends Controller with CustomActionBuilder {
 
   def update(id: Long) = AuthnCustomAction { adminId =>
     implicit req => implicit conn =>
-      Redirect(route.edit(id)).flashing(
-        "success" -> "update")
+      adminForm.bindFromRequest().fold(
+        error => {
+          Ok(view.edit(id, error))
+        },
+        admin => {
+          // TODO 変更処理を実装する。
+          Redirect(route.edit(id)).flashing(
+            "success" -> "update")
+        })
   }
 
   def editPw(id: Long) = AuthnCustomAction { adminId =>
