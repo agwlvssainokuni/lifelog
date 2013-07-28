@@ -18,12 +18,10 @@ package controllers
 
 import play.api.mvc._
 
-object HomeController extends Controller with Authentication {
+object HomeController extends Controller with CustomActionBuilder {
 
-  def index() = withAuthenticated { adminId =>
-    Action {
-      Ok(views.html.index())
-    }
+  def index() = AuthnCustomAction { (adminId, req) =>
+    Ok(views.html.index())
   }
 
 }

@@ -30,7 +30,7 @@ case class Member(email: String, nickname: String, height: Option[BigDecimal], b
 
 case class Passwd(passwd: String, passwdConf: String)
 
-object MemberController extends Controller with Authentication {
+object MemberController extends Controller with CustomActionBuilder {
 
   val memberForm: Form[Member] = Form(mapping(
     "email" -> email.verifying(minLength(1), maxLength(256)),
@@ -42,57 +42,43 @@ object MemberController extends Controller with Authentication {
     "passwd" -> nonEmptyText(1, 32),
     "passwdConf" -> nonEmptyText(1, 32))(Passwd.apply)(Passwd.unapply))
 
-  def list(pn: Long = 0, ps: Long = 5) = withAuthenticated { adminId =>
-    Action {
-      Ok(view.list())
-    }
+  def list(pn: Long = 0, ps: Long = 5) = AuthnCustomAction { (adminId, r) =>
+    Ok(view.list())
   }
 
-  def add() = withAuthenticated { adminId =>
-    Action {
-      Ok(view.add(memberForm))
-    }
+  def add() = AuthnCustomAction { (adminId, r) =>
+    Ok(view.add(memberForm))
   }
 
-  def create() = withAuthenticated { adminId =>
-    Action { implicit req =>
-      DB.withTransaction { implicit c =>
-        memberForm.bindFromRequest().fold(
-          error => {
-            Ok(view.add(error))
-          },
-          member => {
-            val id = 1L
-            Redirect(routes.MemberController.edit(id)).flashing(
-              "success" -> "add")
-          })
-      }
-    }
+  def create() = AuthnCustomAction { (adminId, r, c) =>
+    implicit val req = r
+    memberForm.bindFromRequest().fold(
+      error => {
+        Ok(view.add(error))
+      },
+      member => {
+        val id = 1L
+        Redirect(routes.MemberController.edit(id)).flashing(
+          "success" -> "add")
+      })
   }
 
-  def edit(id: Long) = withAuthenticated { adminId =>
-    Action {
-      Ok(view.edit(id, memberForm))
-    }
+  def edit(id: Long) = AuthnCustomAction { (adminId, r) =>
+    Ok(view.edit(id, memberForm))
   }
 
-  def update(id: Long) = withAuthenticated { adminId =>
-    Action { implicit req =>
-      DB.withTransaction { implicit c =>
-        memberForm.bindFromRequest().fold(
-          error => Ok(view.edit(id, error)),
-          member => {
-            Redirect(routes.MemberController.edit(id)).flashing(
-              "success" -> "edit")
-          })
-      }
-    }
+  def update(id: Long) = AuthnCustomAction { (adminId, r, c) =>
+    implicit val req = r
+    memberForm.bindFromRequest().fold(
+      error => Ok(view.edit(id, error)),
+      member => {
+        Redirect(routes.MemberController.edit(id)).flashing(
+          "success" -> "edit")
+      })
   }
 
-  def editPw(id: Long) = withAuthenticated { adminId =>
-    Action {
-      Ok(view.editPw(id, passwdForm))
-    }
+  def editPw(id: Long) = AuthnCustomAction { (adminId, r) =>
+    Ok(view.editPw(id, passwdForm))
   }
 
   def updatePw(id: Long) = TODO
