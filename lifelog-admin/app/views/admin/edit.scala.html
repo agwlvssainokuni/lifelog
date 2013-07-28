@@ -1,0 +1,19 @@
+@(id: Long, frm: Form[Admin])(implicit flash: Flash)
+@import models._
+@import views.html.helper._
+@import views.common.custom._
+@main("変更") {
+@{flash.get("success").map {
+	case "create" => <h3 class="success">管理アカウントを登録しました。</h3>
+	case "update" => <h3 class="success">管理アカウントを変更しました。</h3>
+	case "updatePw" => <h3 class="success">パスワードを変更しました。</h3>
+}}
+@if(frm.hasErrors) {
+	<h3 class="error">値が不適切です。入力し直してください。</h3>
+}
+@form(routes.AdminController.update(id), dataajax -> "false") {
+	@inputText(frm("loginId"), '_label -> "ログインID")
+	@inputText(frm("nickname"), '_label -> "ニックネーム")
+	<input type="submit" value="変更する" data-theme="a" />
+}
+}

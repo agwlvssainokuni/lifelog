@@ -1,0 +1,14 @@
+@(frm: Form[Admin])
+@import models._
+@import views.html.helper._
+@import views.common.custom._
+@main("登録") {
+@if(frm.hasErrors) {
+	<h3 class="error">値が不適切です。入力し直してください。</h3>
+}
+@form(routes.AdminController.create(), dataajax -> "false") {
+	@inputText(frm("loginId"), '_label -> "ログインID")
+	@inputText(frm("nickname"), '_label -> "ニックネーム")
+	<input type="submit" value="登録する" data-theme="a" />
+}
+}

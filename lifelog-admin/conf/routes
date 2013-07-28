@@ -14,6 +14,16 @@ GET    /login                controllers.SessionController.index()
 POST   /login                controllers.SessionController.login()
 GET    /logout               controllers.SessionController.logout()
 
+# Admin
+GET    /admins               controllers.AdminController.list(pn: Long = 0, ps: Long = 5)
+GET    /admins/add           controllers.AdminController.add()
+POST   /admins/add           controllers.AdminController.create()
+GET    /admins/:id           controllers.AdminController.edit(id: Long)
+POST   /admins/:id           controllers.AdminController.update(id: Long)
+GET    /admins/:id/passwd    controllers.AdminController.editPw(id: Long)
+POST   /admins/:id/passwd    controllers.AdminController.updatePw(id: Long)
+GET    /admins/:id/delete    controllers.AdminController.delete(id: Long)
+
 # Member
 GET    /members              controllers.MemberController.list(pn: Long = 0, ps: Long = 5)
 GET    /members/add          controllers.MemberController.add()

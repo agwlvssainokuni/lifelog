@@ -1,0 +1,13 @@
+@(title: String)(content: Html)
+@views.html.main("管理アカウント" + title)(content) {
+<div data-role="navbar" data-iconpos="left">
+	<ul>
+		<li><a href="@routes.HomeController.index()" data-ajax="false"
+			data-icon="home">ホーム</a></li>
+		<li><a href="@routes.AdminController.list()" data-ajax="false"
+			data-icon="grid">一覧</a></li>
+		<li><a href="@routes.AdminController.add()" data-ajax="false"
+			data-icon="plus">追加</a></li>
+	</ul>
+</div>
+}
