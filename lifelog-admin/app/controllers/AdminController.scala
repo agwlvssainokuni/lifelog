@@ -43,13 +43,20 @@ object AdminController extends Controller with CustomActionBuilder {
 
   def add() = AuthnCustomAction { adminId =>
     implicit req => implicit conn =>
-      Ok(view.add())
+      Ok(view.add(adminForm))
   }
 
   def create() = AuthnCustomAction { adminId =>
     implicit req => implicit conn =>
-      Redirect(route.edit(1L)).flashing(
-        "success" -> "create")
+      adminForm.bindFromRequest().fold(
+        error => {
+          Ok(view.add(error))
+        },
+        admin => {
+          val id = 1L
+          Redirect(route.edit(id)).flashing(
+            "success" -> "create")
+        })
   }
 
   def edit(id: Long) = AuthnCustomAction { adminId =>
