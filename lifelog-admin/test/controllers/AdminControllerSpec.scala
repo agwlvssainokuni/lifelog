@@ -298,8 +298,19 @@ class AdminControllerSpec extends Specification {
       route(FakeRequest(GET, "/admins/1/passwd").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
+        content must not contain ("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
         content must contain("""<form action="/admins/1/passwd" method="POST" data-ajax="false">""")
+        content must contain("""<label for="passwd" class="">パスワード</label>""")
+        content must contain("""<input type="password" id="passwd" name="passwd" >""")
+        content must contain("""<label for="passwdConf" class="">確認</label>""")
+        content must contain("""<input type="password" id="passwdConf" name="passwdConf" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
+      }
+    }
+
+    "対象の存在しない id を指定すると 404 (Not Found)。" in new WithApplication {
+      route(FakeRequest(GET, "/admins/999/passwd").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(NOT_FOUND)
       }
     }
   }

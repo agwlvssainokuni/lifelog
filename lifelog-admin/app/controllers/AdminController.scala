@@ -85,7 +85,12 @@ object AdminController extends Controller with CustomActionBuilder {
 
   def editPw(id: Long) = AuthnCustomAction { adminId =>
     implicit req => implicit conn =>
-      Ok(view.editPw(id))
+      // TODO DBから管理アカウント情報を取得するようにする。
+      val admin = if (id == 999L) None else Some(Admin("login" + id, "nickname" + id))
+      admin match {
+        case Some(a) => Ok(view.editPw(id, passwdForm.fill(Passwd("", ""))))
+        case None => NotFound
+      }
   }
 
   def updatePw(id: Long) = AuthnCustomAction { adminId =>

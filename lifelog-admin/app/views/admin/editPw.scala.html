@@ -1,9 +1,14 @@
-@(id: Long)
+@(id: Long, frm: Form[Passwd])
 @import models._
 @import views.html.helper._
 @import views.common.custom._
 @main("パスワード") {
+@if(frm.hasErrors) {
+	<h3 class="error">値が不適切です。入力し直してください。</h3>
+}
 @form(routes.AdminController.updatePw(id), dataajax -> "false") {
+	@inputPassword(frm("passwd"), '_label -> "パスワード")
+	@inputPassword(frm("passwdConf"), '_label -> "確認")
 	<input type="submit" value="変更する" data-theme="a" />
 }
 }
