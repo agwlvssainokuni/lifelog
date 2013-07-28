@@ -95,8 +95,20 @@ object AdminController extends Controller with CustomActionBuilder {
 
   def updatePw(id: Long) = AuthnCustomAction { adminId =>
     implicit req => implicit conn =>
-      Redirect(route.edit(id)).flashing(
-        "success" -> "updatePw")
+      passwdForm.bindFromRequest().fold(
+        error => {
+          Ok(view.editPw(id, error))
+        },
+        passwd => {
+          if (passwd.passwd == passwd.passwdConf) {
+            // TODO パスワード変更処理を実装する。
+            Redirect(route.edit(id)).flashing(
+              "success" -> "updatePw")
+          } else {
+            Ok(view.editPw(id, passwdForm.fill(passwd).withError(
+              "unmatch", "passwd.unmatch")))
+          }
+        })
   }
 
   def delete(id: Long) = AuthnCustomAction { adminId =>
