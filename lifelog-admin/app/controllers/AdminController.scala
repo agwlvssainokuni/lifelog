@@ -36,40 +36,48 @@ object AdminController extends Controller with CustomActionBuilder {
     "passwd" -> nonEmptyText(1, 32),
     "passwdConf" -> nonEmptyText(1, 32))(Passwd.apply)(Passwd.unapply))
 
-  def list(pn: Long = 0, ps: Long = 5) = AuthnCustomAction { (adminId, r, c) =>
-    Ok(view.list())
+  def list(pn: Long = 0, ps: Long = 5) = AuthnCustomAction { adminId =>
+    implicit req => implicit conn =>
+      Ok(view.list())
   }
 
-  def add() = AuthnCustomAction { (adminId, r, c) =>
-    Ok(view.add())
+  def add() = AuthnCustomAction { adminId =>
+    implicit req => implicit conn =>
+      Ok(view.add())
   }
 
-  def create() = AuthnCustomAction { (adminId, r, c) =>
-    Redirect(route.edit(1L)).flashing(
-      "success" -> "create")
+  def create() = AuthnCustomAction { adminId =>
+    implicit req => implicit conn =>
+      Redirect(route.edit(1L)).flashing(
+        "success" -> "create")
   }
 
-  def edit(id: Long) = AuthnCustomAction { (adminId, r, c) =>
-    Ok(view.edit(id))
+  def edit(id: Long) = AuthnCustomAction { adminId =>
+    implicit req => implicit conn =>
+      Ok(view.edit(id))
   }
 
-  def update(id: Long) = AuthnCustomAction { (adminId, r, c) =>
-    Redirect(route.edit(id)).flashing(
-      "success" -> "update")
+  def update(id: Long) = AuthnCustomAction { adminId =>
+    implicit req => implicit conn =>
+      Redirect(route.edit(id)).flashing(
+        "success" -> "update")
   }
 
-  def editPw(id: Long) = AuthnCustomAction { (adminId, r, c) =>
-    Ok(view.editPw(id))
+  def editPw(id: Long) = AuthnCustomAction { adminId =>
+    implicit req => implicit conn =>
+      Ok(view.editPw(id))
   }
 
-  def updatePw(id: Long) = AuthnCustomAction { (adminId, r, c) =>
-    Redirect(route.edit(id)).flashing(
-      "success" -> "updatePw")
+  def updatePw(id: Long) = AuthnCustomAction { adminId =>
+    implicit req => implicit conn =>
+      Redirect(route.edit(id)).flashing(
+        "success" -> "updatePw")
   }
 
-  def delete(id: Long) = AuthnCustomAction { (adminId, r, c) =>
-    Redirect(route.list()).flashing(
-      "success" -> "delete")
+  def delete(id: Long) = AuthnCustomAction { adminId =>
+    implicit req => implicit conn =>
+      Redirect(route.list()).flashing(
+        "success" -> "delete")
   }
 
 }
