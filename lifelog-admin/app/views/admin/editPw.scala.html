@@ -2,4 +2,7 @@
 @import views.html.helper._
 @import views.common.custom._
 @main("パスワード") {
+@form(routes.AdminController.updatePw(id), dataajax -> "false") {
+	<input type="submit" value="変更する" data-theme="a" />
+}
 }

@@ -24,9 +24,67 @@ import play.api.test.Helpers._
 
 class AdminControllerSpec extends Specification {
 
-  "タイトル" should {
-    val session = Security.username -> "0"
+  val session = Security.username -> "0"
 
+  "未ログインの場合は、ログイン画面に転送される" should {
+    "/admins" in new WithApplication {
+      val res = route(FakeRequest(GET, "/admins")).get
+      status(res) must equalTo(SEE_OTHER)
+      header(LOCATION, res) must beSome.which(_ == "/login")
+      flash(res).get("uri") must beSome.which(_ == "/admins")
+    }
+    "/admins/add" in new WithApplication {
+      route(FakeRequest(GET, "/admins/add")) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/login")
+        flash(res).get("uri") must beSome.which(_ == "/admins/add")
+      }
+    }
+    "/admins/add" in new WithApplication {
+      route(FakeRequest(POST, "/admins/add")) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/login")
+        flash(res).get("uri") must beSome.which(_ == "/admins/add")
+      }
+    }
+    "/admins/1" in new WithApplication {
+      route(FakeRequest(GET, "/admins/1")) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/login")
+        flash(res).get("uri") must beSome.which(_ == "/admins/1")
+      }
+    }
+    "/admins/1" in new WithApplication {
+      route(FakeRequest(POST, "/admins/1")) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/login")
+        flash(res).get("uri") must beSome.which(_ == "/admins/1")
+      }
+    }
+    "/admins/1/passwd" in new WithApplication {
+      route(FakeRequest(GET, "/admins/1/passwd")) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/login")
+        flash(res).get("uri") must beSome.which(_ == "/admins/1/passwd")
+      }
+    }
+    "/admins/1/passwd" in new WithApplication {
+      route(FakeRequest(POST, "/admins/1/passwd")) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/login")
+        flash(res).get("uri") must beSome.which(_ == "/admins/1/passwd")
+      }
+    }
+    "/admins/1/delete" in new WithApplication {
+      route(FakeRequest(GET, "/admins/1/delete")) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/login")
+        flash(res).get("uri") must beSome.which(_ == "/admins/1/delete")
+      }
+    }
+  }
+
+  "タイトル" should {
     "/admins" in new WithApplication {
       route(FakeRequest(GET, "/admins").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(OK)
@@ -72,18 +130,45 @@ class AdminControllerSpec extends Specification {
   }
 
   "AdminController#add()" should {
+
+    "FORM構造が表示される。" in new WithApplication {
+      route(FakeRequest(GET, "/admins/add").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must contain("""<form action="/admins/add" method="POST" data-ajax="false">""")
+        content must contain("""<input type="submit" value="登録する" data-theme="a" />""")
+      }
+    }
   }
 
   "AdminController#create()" should {
   }
 
   "AdminController#edit(id)" should {
+
+    "FORM構造が表示される。" in new WithApplication {
+      route(FakeRequest(GET, "/admins/1").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must contain("""<form action="/admins/1" method="POST" data-ajax="false">""")
+        content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
+      }
+    }
   }
 
   "AdminController#update(id)" should {
   }
 
   "AdminController#editPw(id)" should {
+
+    "FORM構造が表示される。" in new WithApplication {
+      route(FakeRequest(GET, "/admins/1/passwd").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must contain("""<form action="/admins/1/passwd" method="POST" data-ajax="false">""")
+        content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
+      }
+    }
   }
 
   "AdminController#updatePw(id)" should {
