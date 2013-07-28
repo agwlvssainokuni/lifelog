@@ -25,37 +25,36 @@ import views.html.{ session => view }
 
 case class Login(loginId: String, passwd: String, uri: Option[String])
 
-object SessionController extends Controller {
+object SessionController extends Controller with CustomActionBuilder {
 
   val loginForm: Form[Login] = Form(mapping(
     "loginId" -> nonEmptyText(1, 256),
     "passwd" -> nonEmptyText(1, 256),
     "uri" -> optional(text(1, 256)))(Login.apply)(Login.unapply))
 
-  def index() = Action { implicit req =>
+  def index() = CustomAction { implicit req =>
     Ok(view.index(loginForm.fill(Login("", "", req.flash.get("uri")))))
   }
 
-  def login() = Action { implicit req =>
-    DB.withTransaction { implicit c =>
-      loginForm.bindFromRequest().fold(
-        error => Ok(view.index(error)),
-        login => {
-          // TODO 暫定実装
-          val result = if (login.loginId == login.passwd) Some(1) else None
-          result match {
-            case Some(adminId) =>
-              val redirTo = login.uri.map(Call("GET", _)).getOrElse(
-                routes.HomeController.index())
-              Redirect(redirTo).withSession(Security.username -> adminId.toString)
-            case None =>
-              Ok(view.index(loginForm.fill(login).withError("login", "login.failed")))
-          }
-        })
-    }
+  def login() = CustomAction { (r, c) =>
+    implicit val req = r
+    loginForm.bindFromRequest().fold(
+      error => Ok(view.index(error)),
+      login => {
+        // TODO 暫定実装
+        val result = if (login.loginId == login.passwd) Some(1) else None
+        result match {
+          case Some(adminId) =>
+            val redirTo = login.uri.map(Call("GET", _)).getOrElse(
+              routes.HomeController.index())
+            Redirect(redirTo).withSession(Security.username -> adminId.toString)
+          case None =>
+            Ok(view.index(loginForm.fill(login).withError("login", "login.failed")))
+        }
+      })
   }
 
-  def logout() = Action {
+  def logout() = CustomAction { r =>
     Redirect(routes.SessionController.index()).withNewSession.flashing(
       "success" -> "logout")
   }
