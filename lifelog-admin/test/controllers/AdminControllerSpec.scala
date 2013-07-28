@@ -153,6 +153,7 @@ class AdminControllerSpec extends Specification {
         "loginId" -> "login000", "nickname" -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/admins/1")
+        flash(res).get("success") must beSome.which(_ == "create")
       }
     }
 
@@ -193,8 +194,58 @@ class AdminControllerSpec extends Specification {
       route(FakeRequest(GET, "/admins/1").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
+        content must not contain ("""<h3 class="success">管理アカウントを登録しました。</h3>""")
+        content must not contain ("""<h3 class="success">管理アカウントを変更しました。</h3>""")
+        content must not contain ("""<h3 class="success">パスワードを変更しました。</h3>""")
+        content must not contain ("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
         content must contain("""<form action="/admins/1" method="POST" data-ajax="false">""")
+        content must contain("""<label for="loginId" class="">ログインID</label>""")
+        content must contain("""<input type="text" id="loginId" name="loginId" value="login1" >""")
+        content must contain("""<label for="nickname" class="">ニックネーム</label>""")
+        content must contain("""<input type="text" id="nickname" name="nickname" value="nickname1" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
+      }
+    }
+
+    "flashメッセージ：管理アカウント登録後。" in new WithApplication {
+      route(FakeRequest(GET, "/admins/1").withSession(session).withFlash(
+        "success" -> "create")) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must contain("""<h3 class="success">管理アカウントを登録しました。</h3>""")
+        content must not contain ("""<h3 class="success">管理アカウントを変更しました。</h3>""")
+        content must not contain ("""<h3 class="success">パスワードを変更しました。</h3>""")
+        content must not contain ("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+      }
+    }
+
+    "flashメッセージ：管理アカウント変更後。" in new WithApplication {
+      route(FakeRequest(GET, "/admins/1").withSession(session).withFlash(
+        "success" -> "update")) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must not contain ("""<h3 class="success">管理アカウントを登録しました。</h3>""")
+        content must contain("""<h3 class="success">管理アカウントを変更しました。</h3>""")
+        content must not contain ("""<h3 class="success">パスワードを変更しました。</h3>""")
+        content must not contain ("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+      }
+    }
+
+    "flashメッセージ：パスワード変更後。" in new WithApplication {
+      route(FakeRequest(GET, "/admins/1").withSession(session).withFlash(
+        "success" -> "updatePw")) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must not contain ("""<h3 class="success">管理アカウントを登録しました。</h3>""")
+        content must not contain ("""<h3 class="success">管理アカウントを変更しました。</h3>""")
+        content must contain("""<h3 class="success">パスワードを変更しました。</h3>""")
+        content must not contain ("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+      }
+    }
+
+    "対象の存在しない id を指定すると 404 (Not Found)。" in new WithApplication {
+      route(FakeRequest(GET, "/admins/999").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(NOT_FOUND)
       }
     }
   }
