@@ -84,6 +84,34 @@ class AdminControllerSpec extends Specification {
     }
   }
 
+  "対象の存在しない id を指定すると 404 (Not Found)。" should {
+    "edit(id): GET /admins/999" in new WithApplication {
+      route(FakeRequest(GET, "/admins/999").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(NOT_FOUND)
+      }
+    }
+    "update(id): POST /admins/999" in new WithApplication {
+      route(FakeRequest(POST, "/admins/999").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(NOT_FOUND)
+      }
+    }
+    "editPw(id): GET /admins/999/passwd" in new WithApplication {
+      route(FakeRequest(GET, "/admins/999/passwd").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(NOT_FOUND)
+      }
+    }
+    "updatePw(id): POST /admins/999/passwd" in new WithApplication {
+      route(FakeRequest(POST, "/admins/999/passwd").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(NOT_FOUND)
+      }
+    }
+    "delete(id): GET /admins/999/delete" in new WithApplication {
+      route(FakeRequest(GET, "/admins/999/delete").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(NOT_FOUND)
+      }
+    }
+  }
+
   "タイトル" should {
     "/admins" in new WithApplication {
       route(FakeRequest(GET, "/admins").withSession(session)) must beSome.which { res =>
@@ -242,12 +270,6 @@ class AdminControllerSpec extends Specification {
         content must not contain ("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
       }
     }
-
-    "対象の存在しない id を指定すると 404 (Not Found)。" in new WithApplication {
-      route(FakeRequest(GET, "/admins/999").withSession(session)) must beSome.which { res =>
-        status(res) must equalTo(NOT_FOUND)
-      }
-    }
   }
 
   "AdminController#update(id)" should {
@@ -305,12 +327,6 @@ class AdminControllerSpec extends Specification {
         content must contain("""<label for="passwdConf" class="">確認</label>""")
         content must contain("""<input type="password" id="passwdConf" name="passwdConf" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
-      }
-    }
-
-    "対象の存在しない id を指定すると 404 (Not Found)。" in new WithApplication {
-      route(FakeRequest(GET, "/admins/999/passwd").withSession(session)) must beSome.which { res =>
-        status(res) must equalTo(NOT_FOUND)
       }
     }
   }
@@ -373,6 +389,14 @@ class AdminControllerSpec extends Specification {
   }
 
   "AdminController#delete(id)" should {
+
+    "/admins に転送される。" in new WithApplication {
+      route(FakeRequest(GET, "/admins/1/delete").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/admins")
+        flash(res).get("success") must beSome.which(_ == "delete")
+      }
+    }
   }
 
 }

@@ -72,15 +72,18 @@ object AdminController extends Controller with CustomActionBuilder {
 
   def update(id: Long) = AuthnCustomAction { adminId =>
     implicit req => implicit conn =>
-      adminForm.bindFromRequest().fold(
-        error => {
-          Ok(view.edit(id, error))
-        },
-        admin => {
-          // TODO 変更処理を実装する。
-          Redirect(route.edit(id)).flashing(
-            "success" -> "update")
-        })
+      // TODO 存在確認
+      if (id == 999L) NotFound
+      else
+        adminForm.bindFromRequest().fold(
+          error => {
+            Ok(view.edit(id, error))
+          },
+          admin => {
+            // TODO 変更処理を実装する。
+            Redirect(route.edit(id)).flashing(
+              "success" -> "update")
+          })
   }
 
   def editPw(id: Long) = AuthnCustomAction { adminId =>
@@ -95,26 +98,34 @@ object AdminController extends Controller with CustomActionBuilder {
 
   def updatePw(id: Long) = AuthnCustomAction { adminId =>
     implicit req => implicit conn =>
-      passwdForm.bindFromRequest().fold(
-        error => {
-          Ok(view.editPw(id, error))
-        },
-        passwd => {
-          if (passwd.passwd == passwd.passwdConf) {
-            // TODO パスワード変更処理を実装する。
-            Redirect(route.edit(id)).flashing(
-              "success" -> "updatePw")
-          } else {
-            Ok(view.editPw(id, passwdForm.fill(passwd).withError(
-              "unmatch", "passwd.unmatch")))
-          }
-        })
+      // TODO 存在確認
+      if (id == 999L) NotFound
+      else
+        passwdForm.bindFromRequest().fold(
+          error => {
+            Ok(view.editPw(id, error))
+          },
+          passwd => {
+            if (passwd.passwd == passwd.passwdConf) {
+              // TODO パスワード変更処理を実装する。
+              Redirect(route.edit(id)).flashing(
+                "success" -> "updatePw")
+            } else {
+              Ok(view.editPw(id, passwdForm.fill(passwd).withError(
+                "unmatch", "passwd.unmatch")))
+            }
+          })
   }
 
   def delete(id: Long) = AuthnCustomAction { adminId =>
     implicit req => implicit conn =>
-      Redirect(route.list()).flashing(
-        "success" -> "delete")
+      // TODO 存在確認
+      if (id == 999L) NotFound
+      else {
+        // TODO 削除処理を実装する。
+        Redirect(route.list()).flashing(
+          "success" -> "delete")
+      }
   }
 
 }
