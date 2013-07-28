@@ -16,24 +16,83 @@
 
 package controllers
 
-import play.api.mvc.Controller
+import play.api.Play.current
+import play.api.data._
+import play.api.data.Forms._
+import play.api.data.validation.Constraints._
+import play.api.db.DB
+import play.api.mvc._
+import views.html.{ admin => view }
+import routes.{ AdminController => route }
 
-object AdminController extends Controller {
+object AdminController extends Controller with Authentication {
 
-  def list(pn: Long = 0, ps: Long = 5) = TODO
+  def list(pn: Long = 0, ps: Long = 5) = withAuthenticated { adminId =>
+    Action { implicit req =>
+      DB.withTransaction { implicit c =>
+        Ok(view.list())
+      }
+    }
+  }
 
-  def add() = TODO
+  def add() = withAuthenticated { adminId =>
+    Action { implicit req =>
+      DB.withTransaction { implicit c =>
+        Ok(view.add())
+      }
+    }
+  }
 
-  def create() = TODO
+  def create() = withAuthenticated { adminId =>
+    Action { implicit req =>
+      DB.withTransaction { implicit c =>
+        Redirect(route.edit(1L)).flashing(
+          "success" -> "create")
+      }
+    }
+  }
 
-  def edit(id: Long) = TODO
+  def edit(id: Long) = withAuthenticated { adminId =>
+    Action { implicit req =>
+      DB.withTransaction { implicit c =>
+        Ok(view.edit(id))
+      }
+    }
+  }
 
-  def update(id: Long) = TODO
+  def update(id: Long) = withAuthenticated { adminId =>
+    Action { implicit req =>
+      DB.withTransaction { implicit c =>
+        Redirect(route.edit(id)).flashing(
+          "success" -> "update")
+      }
+    }
+  }
 
-  def editPw(id: Long) = TODO
+  def editPw(id: Long) = withAuthenticated { adminId =>
+    Action { implicit req =>
+      DB.withTransaction { implicit c =>
+        Ok(view.editPw(id))
+      }
+    }
+  }
 
-  def updatePw(id: Long) = TODO
+  def updatePw(id: Long) = withAuthenticated { adminId =>
+    Action { implicit req =>
+      DB.withTransaction { implicit c =>
+        Redirect(route.edit(id)).flashing(
+          "success" -> "updatePw")
+      }
+    }
+  }
 
-  def delete(id: Long) = TODO
+  def delete(id: Long) = withAuthenticated { adminId =>
+    Action { implicit req =>
+      DB.withTransaction { implicit c =>
+        Redirect(route.list()).flashing(
+          "success" -> "delete")
+      }
+    }
+  }
 
 }

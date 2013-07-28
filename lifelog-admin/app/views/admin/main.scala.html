@@ -1,5 +1,5 @@
 @(title: String)(content: Html)
-@views.html.main(title)(content) {
+@views.html.main("管理アカウント" + title)(content) {
 <div data-role="navbar" data-iconpos="left">
 	<ul>
 		<li><a href="@routes.HomeController.index()" data-ajax="false"
