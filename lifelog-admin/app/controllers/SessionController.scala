@@ -28,8 +28,8 @@ case class Login(loginId: String, passwd: String, uri: Option[String])
 object SessionController extends Controller with CustomActionBuilder {
 
   val loginForm: Form[Login] = Form(mapping(
-    "loginId" -> nonEmptyText(1, 256),
-    "passwd" -> nonEmptyText(1, 256),
+    "loginId" -> nonEmptyText(1, 32),
+    "passwd" -> nonEmptyText(1, 32),
     "uri" -> optional(text(1, 256)))(Login.apply)(Login.unapply))
 
   def index() = CustomAction { implicit req =>

@@ -18,6 +18,7 @@ package controllers
 
 import java.util.Date
 
+import models._
 import play.api.Play.current
 import play.api.data._
 import play.api.data.Forms._
@@ -25,10 +26,6 @@ import play.api.data.validation.Constraints._
 import play.api.db.DB
 import play.api.mvc._
 import views.html.{ member => view }
-
-case class Member(email: String, nickname: String, height: Option[BigDecimal], birthday: Option[Date])
-
-case class Passwd(passwd: String, passwdConf: String)
 
 object MemberController extends Controller with CustomActionBuilder {
 

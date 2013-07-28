@@ -16,6 +16,7 @@
 
 package controllers
 
+import models._
 import play.api.Play.current
 import play.api.data._
 import play.api.data.Forms._
@@ -26,6 +27,14 @@ import views.html.{ admin => view }
 import routes.{ AdminController => route }
 
 object AdminController extends Controller with CustomActionBuilder {
+
+  val adminForm: Form[Admin] = Form(mapping(
+    "loginId" -> nonEmptyText(1, 32),
+    "nickname" -> nonEmptyText(1, 255))(Admin.apply)(Admin.unapply))
+
+  val passwdForm: Form[Passwd] = Form(mapping(
+    "passwd" -> nonEmptyText(1, 32),
+    "passwdConf" -> nonEmptyText(1, 32))(Passwd.apply)(Passwd.unapply))
 
   def list(pn: Long = 0, ps: Long = 5) = AuthnCustomAction { (adminId, r, c) =>
     Ok(view.list())
