@@ -33,30 +33,32 @@ object SessionController extends Controller with CustomActionBuilder {
     "uri" -> optional(text(1, 256)))(Login.apply)(Login.unapply))
 
   def index() = CustomAction { implicit req =>
-    Ok(view.index(loginForm.fill(Login("", "", req.flash.get("uri")))))
+    implicit conn =>
+      Ok(view.index(loginForm.fill(Login("", "", flash.get("uri")))))
   }
 
-  def login() = CustomAction { (r, c) =>
-    implicit val req = r
-    loginForm.bindFromRequest().fold(
-      error => Ok(view.index(error)),
-      login => {
-        // TODO 暫定実装
-        val result = if (login.loginId == login.passwd) Some(1) else None
-        result match {
-          case Some(adminId) =>
-            val redirTo = login.uri.map(Call("GET", _)).getOrElse(
-              routes.HomeController.index())
-            Redirect(redirTo).withSession(Security.username -> adminId.toString)
-          case None =>
-            Ok(view.index(loginForm.fill(login).withError("login", "login.failed")))
-        }
-      })
+  def login() = CustomAction { implicit req =>
+    implicit conn =>
+      loginForm.bindFromRequest().fold(
+        error => Ok(view.index(error)),
+        login => {
+          // TODO 暫定実装
+          val result = if (login.loginId == login.passwd) Some(1) else None
+          result match {
+            case Some(adminId) =>
+              val redirTo = login.uri.map(Call("GET", _)).getOrElse(
+                routes.HomeController.index())
+              Redirect(redirTo).withSession(Security.username -> adminId.toString)
+            case None =>
+              Ok(view.index(loginForm.fill(login).withError("login", "login.failed")))
+          }
+        })
   }
 
-  def logout() = CustomAction { r =>
-    Redirect(routes.SessionController.index()).withNewSession.flashing(
-      "success" -> "logout")
+  def logout() = CustomAction { implicit req =>
+    implicit conn =>
+      Redirect(routes.SessionController.index()).withNewSession.flashing(
+        "success" -> "logout")
   }
 
 }
