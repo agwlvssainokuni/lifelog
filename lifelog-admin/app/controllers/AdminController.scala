@@ -17,14 +17,11 @@
 package controllers
 
 import models._
-import play.api.Play.current
 import play.api.data._
 import play.api.data.Forms._
-import play.api.data.validation.Constraints._
-import play.api.db.DB
 import play.api.mvc._
-import views.html.{ admin => view }
 import routes.{ AdminController => route }
+import views.html.{ admin => view }
 
 object AdminController extends Controller with CustomActionBuilder {
 
@@ -37,17 +34,17 @@ object AdminController extends Controller with CustomActionBuilder {
     "passwdConf" -> nonEmptyText(1, 32))(Passwd.apply)(Passwd.unapply))
 
   def list(pn: Long = 0, ps: Long = 5) = AuthnCustomAction { adminId =>
-    implicit req => implicit conn =>
+    implicit conn => implicit req =>
       Ok(view.list())
   }
 
   def add() = AuthnCustomAction { adminId =>
-    implicit req => implicit conn =>
+    implicit conn => implicit req =>
       Ok(view.add(adminForm))
   }
 
   def create() = AuthnCustomAction { adminId =>
-    implicit req => implicit conn =>
+    implicit conn => implicit req =>
       adminForm.bindFromRequest().fold(
         error => {
           Ok(view.add(error))
@@ -61,7 +58,7 @@ object AdminController extends Controller with CustomActionBuilder {
   }
 
   def edit(id: Long) = AuthnCustomAction { adminId =>
-    implicit req => implicit conn =>
+    implicit conn => implicit req =>
       // TODO DBから管理アカウント情報を取得するようにする。
       val admin = if (id == 999L) None else Some(Admin("login" + id, "nickname" + id))
       admin match {
@@ -71,7 +68,7 @@ object AdminController extends Controller with CustomActionBuilder {
   }
 
   def update(id: Long) = AuthnCustomAction { adminId =>
-    implicit req => implicit conn =>
+    implicit conn => implicit req =>
       // TODO 存在確認
       if (id == 999L) NotFound
       else
@@ -87,7 +84,7 @@ object AdminController extends Controller with CustomActionBuilder {
   }
 
   def editPw(id: Long) = AuthnCustomAction { adminId =>
-    implicit req => implicit conn =>
+    implicit conn => implicit req =>
       // TODO DBから管理アカウント情報を取得するようにする。
       val admin = if (id == 999L) None else Some(Admin("login" + id, "nickname" + id))
       admin match {
@@ -97,7 +94,7 @@ object AdminController extends Controller with CustomActionBuilder {
   }
 
   def updatePw(id: Long) = AuthnCustomAction { adminId =>
-    implicit req => implicit conn =>
+    implicit conn => implicit req =>
       // TODO 存在確認
       if (id == 999L) NotFound
       else
@@ -118,7 +115,7 @@ object AdminController extends Controller with CustomActionBuilder {
   }
 
   def delete(id: Long) = AuthnCustomAction { adminId =>
-    implicit req => implicit conn =>
+    implicit conn => implicit req =>
       // TODO 存在確認
       if (id == 999L) NotFound
       else {

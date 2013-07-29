@@ -21,7 +21,7 @@ import play.api.mvc._
 object HomeController extends Controller with CustomActionBuilder {
 
   def index() = AuthnCustomAction { adminId =>
-    implicit req => implicit conn =>
+    implicit conn => implicit req =>
       Ok(views.html.index())
   }
 

@@ -16,14 +16,10 @@
 
 package controllers
 
-import java.util.Date
-
 import models._
-import play.api.Play.current
 import play.api.data._
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
-import play.api.db.DB
 import play.api.mvc._
 import views.html.{ member => view }
 
@@ -40,17 +36,17 @@ object MemberController extends Controller with CustomActionBuilder {
     "passwdConf" -> nonEmptyText(1, 32))(Passwd.apply)(Passwd.unapply))
 
   def list(pn: Long = 0, ps: Long = 5) = AuthnCustomAction { adminId =>
-    implicit req => implicit conn =>
+    implicit conn => implicit req =>
       Ok(view.list())
   }
 
   def add() = AuthnCustomAction { adminId =>
-    implicit req => implicit conn =>
+    implicit conn => implicit req =>
       Ok(view.add(memberForm))
   }
 
   def create() = AuthnCustomAction { adminId =>
-    implicit req => implicit conn =>
+    implicit conn => implicit req =>
       memberForm.bindFromRequest().fold(
         error => {
           Ok(view.add(error))
@@ -63,12 +59,12 @@ object MemberController extends Controller with CustomActionBuilder {
   }
 
   def edit(id: Long) = AuthnCustomAction { adminId =>
-    implicit req => implicit conn =>
+    implicit conn => implicit req =>
       Ok(view.edit(id, memberForm))
   }
 
   def update(id: Long) = AuthnCustomAction { adminId =>
-    implicit req => implicit conn =>
+    implicit conn => implicit req =>
       memberForm.bindFromRequest().fold(
         error => Ok(view.edit(id, error)),
         member => {
@@ -78,7 +74,7 @@ object MemberController extends Controller with CustomActionBuilder {
   }
 
   def editPw(id: Long) = AuthnCustomAction { adminId =>
-    implicit req => implicit conn =>
+    implicit conn => implicit req =>
       Ok(view.editPw(id, passwdForm))
   }
 

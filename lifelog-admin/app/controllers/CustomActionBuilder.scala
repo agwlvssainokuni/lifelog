@@ -24,25 +24,28 @@ import play.api.Play.current
 import play.api.db.DB
 import play.api.mvc._
 
-trait CustomActionBuilder extends Authentication {
+trait CustomActionBuilder {
   self: Controller =>
 
-  def CustomAction(block: Request[AnyContent] => Result): EssentialAction =
-    Action { request =>
-      block(request)
-    }
+  def Authenticated(action: Long => EssentialAction): EssentialAction =
+    Security.Authenticated(
+      req => req.session.get(Security.username).map { id =>
+        id.toLong
+      },
+      req => {
+        Redirect(routes.SessionController.index()).flashing(
+          "error" -> "unauthorized",
+          "uri" -> req.uri)
+      })(id => action(id))
 
-  def CustomAction(block: Request[AnyContent] => Connection => Result)(implicit c: ClassTag[Connection]): EssentialAction =
+  def CustomAction(block: Connection => Request[AnyContent] => Result): EssentialAction =
     Action { request =>
       DB.withTransaction { connection =>
-        block(request)(connection)
+        block(connection)(request)
       }
     }
 
-  def AuthnCustomAction(block: Long => Request[AnyContent] => Result): EssentialAction =
-    withAuthenticated { id => CustomAction(block(id)) }
-
-  def AuthnCustomAction(block: Long => Request[AnyContent] => Connection => Result)(implicit c: ClassTag[Connection]): EssentialAction =
-    withAuthenticated { id => CustomAction(block(id)) }
+  def AuthnCustomAction(block: Long => Connection => Request[AnyContent] => Result): EssentialAction =
+    Authenticated { id => CustomAction(block(id)) }
 
 }

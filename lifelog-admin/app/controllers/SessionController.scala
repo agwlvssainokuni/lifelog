@@ -32,13 +32,13 @@ object SessionController extends Controller with CustomActionBuilder {
     "passwd" -> nonEmptyText(1, 32),
     "uri" -> optional(text(1, 256)))(Login.apply)(Login.unapply))
 
-  def index() = CustomAction { implicit req =>
-    implicit conn =>
+  def index() = CustomAction { implicit conn =>
+    implicit req =>
       Ok(view.index(loginForm.fill(Login("", "", flash.get("uri")))))
   }
 
-  def login() = CustomAction { implicit req =>
-    implicit conn =>
+  def login() = CustomAction { implicit conn =>
+    implicit req =>
       loginForm.bindFromRequest().fold(
         error => Ok(view.index(error)),
         login => {
@@ -55,8 +55,8 @@ object SessionController extends Controller with CustomActionBuilder {
         })
   }
 
-  def logout() = CustomAction { implicit req =>
-    implicit conn =>
+  def logout() = CustomAction { implicit conn =>
+    implicit req =>
       Redirect(routes.SessionController.index()).withNewSession.flashing(
         "success" -> "logout")
   }
