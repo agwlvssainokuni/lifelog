@@ -18,8 +18,6 @@ package models
 
 import java.util.Date
 
-case class Admin(loginId: String, nickname: String)
-
 case class Member(email: String, nickname: String, height: Option[BigDecimal], birthday: Option[Date])
 
 case class Passwd(passwd: String, passwdConf: String)
