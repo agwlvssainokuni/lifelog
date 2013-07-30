@@ -18,6 +18,6 @@ import common.filter.AccessLogFilter
 import common.filter.MDCInsertingFilter
 import play.api.mvc.WithFilters
 
-object Global extends WithFilters(MDCInsertingFilter(), AccessLogFilter) {
+object Global extends WithFilters(MDCInsertingFilter(), AccessLogFilter(Seq("/assets/"))) {
 
 }
