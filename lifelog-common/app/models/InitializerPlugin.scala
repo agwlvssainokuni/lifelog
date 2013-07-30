@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package plugins
+package models
 
 import anorm._
 import anorm.SqlParser._
 import models._
 import play.api._
 import play.api.db.DB
+import scala.annotation.implicitNotFound
 
-class ModelInitializer(implicit app: Application) extends Plugin {
+class InitializerPlugin(implicit app: Application) extends Plugin {
 
   val adminId = 0L
   val adminPwd = "p@ssw0rd"
@@ -33,9 +34,7 @@ class ModelInitializer(implicit app: Application) extends Plugin {
     DB.withTransaction { implicit c =>
       for {
         id <- Admin.tryLock(adminId)
-        passwd <- SQL("""
-            SELECT passwd FROM admins WHERE id = {id}
-            """).on(
+        passwd <- SQL("""SELECT passwd FROM admins WHERE id = {id}""").on(
           'id -> id).singleOpt(scalar[String])
         if (passwd.isEmpty)
       } Admin.updatePw(id, adminPwd)
