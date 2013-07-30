@@ -22,17 +22,18 @@ import play.api.mvc.RequestHeader
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-object AccessLogFilter extends Filter {
+case class AccessLogFilter(excludes: Seq[String] = Seq()) extends Filter {
 
   val loggerBegin = LoggerFactory.getLogger("accessLog.begin")
   val loggerEnd = LoggerFactory.getLogger("accessLog.end")
 
   override def apply(next: RequestHeader => Result)(request: RequestHeader): Result = {
+    val logEnabled = !excludes.exists(request.path.startsWith(_))
     try {
-      logBegin(request)
+      if (logEnabled) logBegin(request)
       next(request)
     } finally {
-      logEnd(request)
+      if (logEnabled) logEnd(request)
     }
   }
 
