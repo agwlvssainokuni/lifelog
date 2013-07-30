@@ -16,10 +16,9 @@
 
 package controllers
 
-import play.api.Play.current
+import models._
 import play.api.data._
 import play.api.data.Forms._
-import play.api.db.DB
 import play.api.mvc._
 import views.html.{ session => view }
 
@@ -42,8 +41,7 @@ object SessionController extends Controller with CustomActionBuilder {
       loginForm.bindFromRequest().fold(
         error => Ok(view.index(error)),
         login => {
-          // TODO 暫定実装
-          val result = if (login.loginId == login.passwd) Some(1) else None
+          val result = Admin.authenticate(login.loginId, login.passwd)
           result match {
             case Some(adminId) =>
               val redirTo = login.uri.map(Call("GET", _)).getOrElse(

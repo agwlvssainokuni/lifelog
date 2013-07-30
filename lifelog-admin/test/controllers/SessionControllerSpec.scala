@@ -82,7 +82,7 @@ class SessionControllerSpec extends Specification {
 
     "ログインできる。ホームに転送される。" in new WithApplication {
       route(FakeRequest(POST, "/login").withFormUrlEncodedBody(
-        "loginId" -> "admin", "passwd" -> "admin")) must beSome.which { res =>
+        "loginId" -> "superadmin", "passwd" -> "p@ssw0rd")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/")
         contentType(res) must beNone
@@ -92,7 +92,7 @@ class SessionControllerSpec extends Specification {
 
     "ログインできる。指定されたログイン後転送先に転送される。" in new WithApplication {
       route(FakeRequest(POST, "/login").withFormUrlEncodedBody(
-        "loginId" -> "admin", "passwd" -> "admin", "uri" -> "/members")) must beSome.which { res =>
+        "loginId" -> "superadmin", "passwd" -> "p@ssw0rd", "uri" -> "/members")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/members")
         contentType(res) must beNone
@@ -102,7 +102,7 @@ class SessionControllerSpec extends Specification {
 
     "ログインID入力不正 (必須違反) でNG。" in new WithApplication {
       route(FakeRequest(POST, "/login").withFormUrlEncodedBody(
-        "loginId" -> "", "passwd" -> "admin")) must beSome.which { res =>
+        "loginId" -> "", "passwd" -> "p@ssw0rd")) must beSome.which { res =>
         status(res) must equalTo(OK)
         header(LOCATION, res) must beNone
         contentType(res) must beSome.which(_ == "text/html")
@@ -116,7 +116,7 @@ class SessionControllerSpec extends Specification {
 
     "パスワード入力不正 (必須違反) でNG。" in new WithApplication {
       route(FakeRequest(POST, "/login").withFormUrlEncodedBody(
-        "loginId" -> "admin", "passwd" -> "")) must beSome.which { res =>
+        "loginId" -> "superadmin", "passwd" -> "")) must beSome.which { res =>
         status(res) must equalTo(OK)
         header(LOCATION, res) must beNone
         contentType(res) must beSome.which(_ == "text/html")
@@ -130,7 +130,7 @@ class SessionControllerSpec extends Specification {
 
     "ログインID/パスワード不適合でNG。" in new WithApplication {
       route(FakeRequest(POST, "/login").withFormUrlEncodedBody(
-        "loginId" -> "admin", "passwd" -> "NOMATCH")) must beSome.which { res =>
+        "loginId" -> "superadmin", "passwd" -> "NOMATCH")) must beSome.which { res =>
         status(res) must equalTo(OK)
         header(LOCATION, res) must beNone
         contentType(res) must beSome.which(_ == "text/html")
