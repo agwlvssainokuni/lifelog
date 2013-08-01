@@ -39,7 +39,7 @@ object AdminController extends Controller with CustomActionBuilder {
       Pager(pn, ps).adjust(totalCount) match {
         case pager =>
           val list = Admin.list(pager.no.get, pager.size)
-          Ok(view.list(totalCount, pager, list))
+          Ok(view.list(adminId, totalCount, pager, list))
       }
   }
 
@@ -68,6 +68,9 @@ object AdminController extends Controller with CustomActionBuilder {
   def edit(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
       Admin.find(id) match {
+        case Some(a) if a.id.get == adminId =>
+          Redirect(route.list(None)).flashing(
+            "error" -> "notPermitted")
         case Some(a) =>
           Ok(view.edit(id, adminForm.fill(a)))
         case None => NotFound
@@ -77,6 +80,9 @@ object AdminController extends Controller with CustomActionBuilder {
   def update(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
       Admin.tryLock(id) match {
+        case Some(i) if i == adminId =>
+          Redirect(route.list(None)).flashing(
+            "error" -> "notPermitted")
         case Some(_) =>
           adminForm.bindFromRequest().fold(
             error => {
@@ -97,6 +103,9 @@ object AdminController extends Controller with CustomActionBuilder {
   def editPw(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
       Admin.find(id) match {
+        case Some(a) if a.id.get == adminId =>
+          Redirect(route.list(None)).flashing(
+            "error" -> "notPermitted")
         case Some(_) =>
           Ok(view.editPw(id, passwdForm.fill(Passwd("", ""))))
         case None => NotFound
@@ -106,6 +115,9 @@ object AdminController extends Controller with CustomActionBuilder {
   def updatePw(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
       Admin.tryLock(id) match {
+        case Some(i) if i == adminId =>
+          Redirect(route.list(None)).flashing(
+            "error" -> "notPermitted")
         case Some(_) =>
           passwdForm.bindFromRequest().fold(
             error => {
@@ -131,6 +143,9 @@ object AdminController extends Controller with CustomActionBuilder {
   def delete(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
       Admin.tryLock(id) match {
+        case Some(i) if i == adminId =>
+          Redirect(route.list(None)).flashing(
+            "error" -> "notPermitted")
         case Some(_) =>
           Admin.delete(id) match {
             case true =>

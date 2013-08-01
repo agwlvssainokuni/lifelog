@@ -129,6 +129,44 @@ class AdminControllerSpec extends Specification {
     }
   }
 
+  "自分と同じ id を指定すると、一覧画面に転送される。" should {
+    "edit(id): GET /admins/0" in new TestApp {
+      route(FakeRequest(GET, "/admins/0").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/admins")
+        flash(res).get("error") must beSome.which(_ == "notPermitted")
+      }
+    }
+    "update(id): POST /admins/0" in new TestApp {
+      route(FakeRequest(POST, "/admins/0").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/admins")
+        flash(res).get("error") must beSome.which(_ == "notPermitted")
+      }
+    }
+    "editPw(id): GET /admins/0/passwd" in new TestApp {
+      route(FakeRequest(GET, "/admins/0/passwd").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/admins")
+        flash(res).get("error") must beSome.which(_ == "notPermitted")
+      }
+    }
+    "updatePw(id): POST /admins/0/passwd" in new TestApp {
+      route(FakeRequest(POST, "/admins/0/passwd").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/admins")
+        flash(res).get("error") must beSome.which(_ == "notPermitted")
+      }
+    }
+    "delete(id): GET /admins/0/delete" in new TestApp {
+      route(FakeRequest(GET, "/admins/0/delete").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/admins")
+        flash(res).get("error") must beSome.which(_ == "notPermitted")
+      }
+    }
+  }
+
   "タイトル" should {
     "/admins" in new TestApp {
       route(FakeRequest(GET, "/admins").withSession(session)) must beSome.which { res =>
