@@ -45,6 +45,8 @@ object Admin {
   def list(pageNo: Long, pageSize: Long)(implicit c: Connection): Seq[Admin] =
     SQL("""
         SELECT id, login_id, nickname FROM admins
+        ORDER BY id
+        LIMIT {limit} OFFSET {offset}
         """).on(
       'limit -> pageSize,
       'offset -> pageSize * pageNo).list(parser)
@@ -63,7 +65,7 @@ object Admin {
             login_id,
             nickname,
             passwd,
-            update_at
+            updated_at
         ) VALUES (
             {loginId},
             {nickname},
@@ -73,7 +75,7 @@ object Admin {
         """).on(
       'loginId -> admin.loginId, 'nickname -> admin.nickname).executeUpdate() match {
         case 1 =>
-          SQL("""SELECT currval('admins_id_seq) FROM dual""").singleOpt(scalar[Long])
+          SQL("""SELECT currval('admins_id_seq') FROM dual""").singleOpt(scalar[Long])
         case _ => None
       }
 
