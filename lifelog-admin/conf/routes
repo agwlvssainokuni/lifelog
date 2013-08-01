@@ -15,7 +15,7 @@ POST   /login                controllers.SessionController.login()
 GET    /logout               controllers.SessionController.logout()
 
 # Admin
-GET    /admins               controllers.AdminController.list(pn: Option[Long] = None, ps: Option[Long] = None)
+GET    /admins               controllers.AdminController.list(pn: Option[Long], ps: Long = 5)
 GET    /admins/add           controllers.AdminController.add()
 POST   /admins/add           controllers.AdminController.create()
 GET    /admins/:id           controllers.AdminController.edit(id: Long)

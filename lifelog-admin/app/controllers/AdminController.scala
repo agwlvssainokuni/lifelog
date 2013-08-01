@@ -33,9 +33,14 @@ object AdminController extends Controller with CustomActionBuilder {
     "passwd" -> nonEmptyText(1, 32),
     "passwdConf" -> nonEmptyText(1, 32))(Passwd.apply)(Passwd.unapply))
 
-  def list(pn: Option[Long] = None, ps: Option[Long] = None) = AuthnCustomAction { adminId =>
+  def list(pn: Option[Long] = None, ps: Long = 5L) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      Ok(view.list())
+      val totalCount = Admin.count()
+      Pager(pn, ps).adjust(totalCount) match {
+        case pager =>
+          val list = Admin.list(pager.no.get, pager.size)
+          Ok(view.list(totalCount, pager, list))
+      }
   }
 
   def add() = AuthnCustomAction { adminId =>
@@ -50,10 +55,13 @@ object AdminController extends Controller with CustomActionBuilder {
           Ok(view.add(error))
         },
         admin => {
-          // TODO 登録処理を実装。
-          val id = 1L
-          Redirect(route.edit(id)).flashing(
-            "success" -> "create")
+          Admin.create(admin) match {
+            case Some(id) =>
+              Redirect(route.edit(id)).flashing(
+                "success" -> "create")
+            case None =>
+              Ok(view.add(adminForm.fill(admin)))
+          }
         })
   }
 
@@ -120,7 +128,7 @@ object AdminController extends Controller with CustomActionBuilder {
       if (id == 999L) NotFound
       else {
         // TODO 削除処理を実装する。
-        Redirect(route.list()).flashing(
+        Redirect(route.list(None)).flashing(
           "success" -> "delete")
       }
   }
