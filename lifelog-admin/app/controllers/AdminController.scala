@@ -33,7 +33,7 @@ object AdminController extends Controller with CustomActionBuilder {
     "passwd" -> nonEmptyText(1, 32),
     "passwdConf" -> nonEmptyText(1, 32))(Passwd.apply)(Passwd.unapply))
 
-  def list(pn: Long = 0, ps: Long = 5) = AuthnCustomAction { adminId =>
+  def list(pn: Option[Long] = None, ps: Option[Long] = None) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
       Ok(view.list())
   }
