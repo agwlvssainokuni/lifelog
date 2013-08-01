@@ -1,3 +1,58 @@
-@()
+@(adminId: Long, totalCount: Long, pager: Pager, list: Seq[Admin])(implicit flash: Flash)
+@import models._
+@import views.html.helper._
+@import views.common.custom._
 @main("一覧") {
+@{flash.get("error").map {
+	case "notPermitted" => <h3 class="error">操作が許可されていません。</h3>
+}}
+@{flash.get("success").map {
+	case "delete" => <h3 class="success">管理アカウントを削除しました。</h3>
+}}
+<table id="measures-list" data-role="table" data-mode="columntoggle"
+	class="ui-body-d ui-shadow table-stripe ui-responsive"
+	data-column-btn-theme="a" data-column-btn-text="表示列選択"
+	data-column-popup-theme="a">
+	<thead>
+		<tr class="ui-bar-d">
+			<th>ログインID</th>
+			<th data-priority="1">ニックネーム</th>
+			<th>操作</th>
+		</tr>
+	</thead>
+	<tbody>
+		@list.map { item =>
+		<tr>
+			<td>@{item.loginId}</td>
+			<td>@{item.nickname}</td>
+			<td>
+				<div data-role="controlgroup" data-type="horizontal">
+					<a href="@routes.AdminController.edit(item.id.get)"
+						class="@if(item.id.get == adminId) { ui-disabled }"
+						data-ajax="false" data-role="button" data-mini="true"
+						data-icon="gear">情報変更</a>
+					<a href="@routes.AdminController.editPw(item.id.get)"
+						class="@if(item.id.get == adminId) { ui-disabled }"
+						data-ajax="false" data-role="button" data-mini="true"
+						data-icon="gear">パスワード</a>
+					<a href="@routes.AdminController.delete(item.id.get)"
+						class="@if(item.id.get == adminId) { ui-disabled }"
+						data-ajax="false" data-role="button" data-mini="true"
+						data-icon="delete">削除</a>
+				</div>
+			</td>
+		</tr>
+		}
+	</tbody>
+</table>
+<div data-role="navbar" data-iconpos="left">
+	<ul>
+		<li><a href="@routes.AdminController.list(pager.no.map(_ - 1))"
+			class="@if((pager.no.get - 1) * pager.size < 0) { ui-disabled }"
+			data-icon="arrow-l">PREV</a></li>
+		<li><a href="@routes.AdminController.list(pager.no.map(_ + 1))"
+			class="@if((pager.no.get + 1) * pager.size >= totalCount) { ui-disabled }"
+			data-icon="arrow-r">NEXT</a></li>
+	</ul>
+</div>
 }

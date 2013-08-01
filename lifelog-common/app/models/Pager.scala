@@ -16,11 +16,10 @@
 
 package models
 
-case class Pager(no: Option[Long] = None, size: Option[Long] = None) {
+case class Pager(no: Option[Long], size: Long) {
   def adjust(totalCount: Long) = {
     val pageNo = no.getOrElse(0L)
-    val pageSize = size.getOrElse(5L)
-    (totalCount / pageSize + (if (totalCount % pageSize == 0L) 0L else 1L)) match {
+    (totalCount / size + (if (totalCount % size <= 0L) 0L else 1L)) match {
       case 0 => Pager(Some(0L), size)
       case totalPage =>
         if (pageNo < totalPage)

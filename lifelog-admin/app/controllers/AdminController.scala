@@ -33,9 +33,14 @@ object AdminController extends Controller with CustomActionBuilder {
     "passwd" -> nonEmptyText(1, 32),
     "passwdConf" -> nonEmptyText(1, 32))(Passwd.apply)(Passwd.unapply))
 
-  def list(pn: Option[Long] = None, ps: Option[Long] = None) = AuthnCustomAction { adminId =>
+  def list(pn: Option[Long] = None, ps: Long = 5L) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      Ok(view.list())
+      val totalCount = Admin.count()
+      Pager(pn, ps).adjust(totalCount) match {
+        case pager =>
+          val list = Admin.list(pager.no.get, pager.size)
+          Ok(view.list(adminId, totalCount, pager, list))
+      }
   }
 
   def add() = AuthnCustomAction { adminId =>
@@ -50,78 +55,105 @@ object AdminController extends Controller with CustomActionBuilder {
           Ok(view.add(error))
         },
         admin => {
-          // TODO 登録処理を実装。
-          val id = 1L
-          Redirect(route.edit(id)).flashing(
-            "success" -> "create")
+          Admin.create(admin) match {
+            case Some(id) =>
+              Redirect(route.edit(id)).flashing(
+                "success" -> "create")
+            case None =>
+              Ok(view.add(adminForm.fill(admin)))
+          }
         })
   }
 
   def edit(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      // TODO DBから管理アカウント情報を取得するようにする。
-      val admin = if (id == 999L) None else Some(Admin("login" + id, "nickname" + id))
-      admin match {
-        case Some(a) => Ok(view.edit(id, adminForm.fill(a)))
+      Admin.find(id) match {
+        case Some(a) if a.id.get == adminId =>
+          Redirect(route.list(None)).flashing(
+            "error" -> "notPermitted")
+        case Some(a) =>
+          Ok(view.edit(id, adminForm.fill(a)))
         case None => NotFound
       }
   }
 
   def update(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      // TODO 存在確認
-      if (id == 999L) NotFound
-      else
-        adminForm.bindFromRequest().fold(
-          error => {
-            Ok(view.edit(id, error))
-          },
-          admin => {
-            // TODO 変更処理を実装する。
-            Redirect(route.edit(id)).flashing(
-              "success" -> "update")
-          })
+      Admin.tryLock(id) match {
+        case Some(i) if i == adminId =>
+          Redirect(route.list(None)).flashing(
+            "error" -> "notPermitted")
+        case Some(_) =>
+          adminForm.bindFromRequest().fold(
+            error => {
+              Ok(view.edit(id, error))
+            },
+            admin => {
+              Admin.update(id, admin) match {
+                case true =>
+                  Redirect(route.edit(id)).flashing(
+                    "success" -> "update")
+                case false => BadRequest
+              }
+            })
+        case None => NotFound
+      }
   }
 
   def editPw(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      // TODO DBから管理アカウント情報を取得するようにする。
-      val admin = if (id == 999L) None else Some(Admin("login" + id, "nickname" + id))
-      admin match {
-        case Some(a) => Ok(view.editPw(id, passwdForm.fill(Passwd("", ""))))
+      Admin.find(id) match {
+        case Some(a) if a.id.get == adminId =>
+          Redirect(route.list(None)).flashing(
+            "error" -> "notPermitted")
+        case Some(_) =>
+          Ok(view.editPw(id, passwdForm.fill(Passwd("", ""))))
         case None => NotFound
       }
   }
 
   def updatePw(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      // TODO 存在確認
-      if (id == 999L) NotFound
-      else
-        passwdForm.bindFromRequest().fold(
-          error => {
-            Ok(view.editPw(id, error))
-          },
-          passwd => {
-            if (passwd.passwd == passwd.passwdConf) {
-              // TODO パスワード変更処理を実装する。
-              Redirect(route.edit(id)).flashing(
-                "success" -> "updatePw")
-            } else {
-              Ok(view.editPw(id, passwdForm.fill(passwd).withError(
-                "unmatch", "passwd.unmatch")))
-            }
-          })
+      Admin.tryLock(id) match {
+        case Some(i) if i == adminId =>
+          Redirect(route.list(None)).flashing(
+            "error" -> "notPermitted")
+        case Some(_) =>
+          passwdForm.bindFromRequest().fold(
+            error => {
+              Ok(view.editPw(id, error))
+            },
+            passwd => {
+              if (passwd.passwd == passwd.passwdConf) {
+                Admin.updatePw(id, passwd.passwd) match {
+                  case true =>
+                    Redirect(route.edit(id)).flashing(
+                      "success" -> "updatePw")
+                  case false => BadRequest
+                }
+              } else {
+                Ok(view.editPw(id, passwdForm.fill(passwd).withError(
+                  "unmatch", "passwd.unmatch")))
+              }
+            })
+        case None => NotFound
+      }
   }
 
   def delete(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      // TODO 存在確認
-      if (id == 999L) NotFound
-      else {
-        // TODO 削除処理を実装する。
-        Redirect(route.list()).flashing(
-          "success" -> "delete")
+      Admin.tryLock(id) match {
+        case Some(i) if i == adminId =>
+          Redirect(route.list(None)).flashing(
+            "error" -> "notPermitted")
+        case Some(_) =>
+          Admin.delete(id) match {
+            case true =>
+              Redirect(route.list(None)).flashing(
+                "success" -> "delete")
+            case false => BadRequest
+          }
+        case None => NotFound
       }
   }
 

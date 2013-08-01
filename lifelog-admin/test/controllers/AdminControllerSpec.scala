@@ -16,8 +16,12 @@
 
 package controllers
 
+import org.specs2.execute.AsResult
+import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
+import models.Admin
+import play.api.db._
 import play.api.mvc._
 import play.api.test._
 import play.api.test.Helpers._
@@ -26,56 +30,69 @@ class AdminControllerSpec extends Specification {
 
   val session = Security.username -> "0"
 
+  abstract class TestApp extends WithApplication {
+    override def around[T: AsResult](t: => T): Result = super.around {
+      DB.withTransaction { implicit c =>
+        for {
+          i <- 1 to 9
+          loginId = "login" + i
+          nickname = "ニックネーム" + i
+        } Admin.create(Admin(loginId, nickname))
+      }
+      t
+    }
+  }
+
   "未ログインの場合は、ログイン画面に転送される" should {
-    "/admins" in new WithApplication {
+    "/admins" in new TestApp {
       val res = route(FakeRequest(GET, "/admins")).get
       status(res) must equalTo(SEE_OTHER)
       header(LOCATION, res) must beSome.which(_ == "/login")
       flash(res).get("uri") must beSome.which(_ == "/admins")
     }
-    "/admins/add" in new WithApplication {
+    "/admins/add" in new TestApp {
       route(FakeRequest(GET, "/admins/add")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
         flash(res).get("uri") must beSome.which(_ == "/admins/add")
       }
     }
-    "/admins/add" in new WithApplication {
+    "/admins/add" in new TestApp {
       route(FakeRequest(POST, "/admins/add")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
         flash(res).get("uri") must beSome.which(_ == "/admins/add")
       }
     }
-    "/admins/1" in new WithApplication {
+    "/admins/1" in new TestApp {
       route(FakeRequest(GET, "/admins/1")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
         flash(res).get("uri") must beSome.which(_ == "/admins/1")
       }
     }
-    "/admins/1" in new WithApplication {
+    "/admins/1" in new TestApp {
       route(FakeRequest(POST, "/admins/1")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
         flash(res).get("uri") must beSome.which(_ == "/admins/1")
       }
     }
-    "/admins/1/passwd" in new WithApplication {
+    "/admins/1/passwd" in new TestApp {
       route(FakeRequest(GET, "/admins/1/passwd")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
         flash(res).get("uri") must beSome.which(_ == "/admins/1/passwd")
       }
     }
-    "/admins/1/passwd" in new WithApplication {
+    "/admins/1/passwd" in new TestApp {
       route(FakeRequest(POST, "/admins/1/passwd")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
         flash(res).get("uri") must beSome.which(_ == "/admins/1/passwd")
       }
     }
-    "/admins/1/delete" in new WithApplication {
+    "/admins/1/delete" in new TestApp {
       route(FakeRequest(GET, "/admins/1/delete")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
@@ -85,35 +102,73 @@ class AdminControllerSpec extends Specification {
   }
 
   "対象の存在しない id を指定すると 404 (Not Found)。" should {
-    "edit(id): GET /admins/999" in new WithApplication {
+    "edit(id): GET /admins/999" in new TestApp {
       route(FakeRequest(GET, "/admins/999").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(NOT_FOUND)
       }
     }
-    "update(id): POST /admins/999" in new WithApplication {
+    "update(id): POST /admins/999" in new TestApp {
       route(FakeRequest(POST, "/admins/999").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(NOT_FOUND)
       }
     }
-    "editPw(id): GET /admins/999/passwd" in new WithApplication {
+    "editPw(id): GET /admins/999/passwd" in new TestApp {
       route(FakeRequest(GET, "/admins/999/passwd").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(NOT_FOUND)
       }
     }
-    "updatePw(id): POST /admins/999/passwd" in new WithApplication {
+    "updatePw(id): POST /admins/999/passwd" in new TestApp {
       route(FakeRequest(POST, "/admins/999/passwd").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(NOT_FOUND)
       }
     }
-    "delete(id): GET /admins/999/delete" in new WithApplication {
+    "delete(id): GET /admins/999/delete" in new TestApp {
       route(FakeRequest(GET, "/admins/999/delete").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(NOT_FOUND)
       }
     }
   }
 
+  "自分と同じ id を指定すると、一覧画面に転送される。" should {
+    "edit(id): GET /admins/0" in new TestApp {
+      route(FakeRequest(GET, "/admins/0").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/admins")
+        flash(res).get("error") must beSome.which(_ == "notPermitted")
+      }
+    }
+    "update(id): POST /admins/0" in new TestApp {
+      route(FakeRequest(POST, "/admins/0").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/admins")
+        flash(res).get("error") must beSome.which(_ == "notPermitted")
+      }
+    }
+    "editPw(id): GET /admins/0/passwd" in new TestApp {
+      route(FakeRequest(GET, "/admins/0/passwd").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/admins")
+        flash(res).get("error") must beSome.which(_ == "notPermitted")
+      }
+    }
+    "updatePw(id): POST /admins/0/passwd" in new TestApp {
+      route(FakeRequest(POST, "/admins/0/passwd").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/admins")
+        flash(res).get("error") must beSome.which(_ == "notPermitted")
+      }
+    }
+    "delete(id): GET /admins/0/delete" in new TestApp {
+      route(FakeRequest(GET, "/admins/0/delete").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/admins")
+        flash(res).get("error") must beSome.which(_ == "notPermitted")
+      }
+    }
+  }
+
   "タイトル" should {
-    "/admins" in new WithApplication {
+    "/admins" in new TestApp {
       route(FakeRequest(GET, "/admins").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(OK)
         contentType(res) must beSome.which(_ == "text/html")
@@ -123,7 +178,7 @@ class AdminControllerSpec extends Specification {
       }
     }
 
-    "/admins/add" in new WithApplication {
+    "/admins/add" in new TestApp {
       route(FakeRequest(GET, "/admins/add").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(OK)
         contentType(res) must beSome.which(_ == "text/html")
@@ -133,7 +188,7 @@ class AdminControllerSpec extends Specification {
       }
     }
 
-    "/admins/:id" in new WithApplication {
+    "/admins/:id" in new TestApp {
       route(FakeRequest(GET, "/admins/1").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(OK)
         contentType(res) must beSome.which(_ == "text/html")
@@ -143,7 +198,7 @@ class AdminControllerSpec extends Specification {
       }
     }
 
-    "/admins/:id/passwd" in new WithApplication {
+    "/admins/:id/passwd" in new TestApp {
       route(FakeRequest(GET, "/admins/1/passwd").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(OK)
         contentType(res) must beSome.which(_ == "text/html")
@@ -159,7 +214,7 @@ class AdminControllerSpec extends Specification {
 
   "AdminController#add()" should {
 
-    "FORM構造が表示される。" in new WithApplication {
+    "FORM構造が表示される。" in new TestApp {
       route(FakeRequest(GET, "/admins/add").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
@@ -176,16 +231,16 @@ class AdminControllerSpec extends Specification {
 
   "AdminController#create()" should {
 
-    "入力値が適正ならば、/admins/:id に転送される。" in new WithApplication {
+    "入力値が適正ならば、/admins/:id に転送される。" in new TestApp {
       route(FakeRequest(POST, "/admins/add").withSession(session).withFormUrlEncodedBody(
         "loginId" -> "login000", "nickname" -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
-        header(LOCATION, res) must beSome.which(_ == "/admins/1")
+        header(LOCATION, res) must beSome.which(_ == "/admins/10")
         flash(res).get("success") must beSome.which(_ == "create")
       }
     }
 
-    "ログインIDが入力不正(必須NG)ならば、再入力を促す。" in new WithApplication {
+    "ログインIDが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/admins/add").withSession(session).withFormUrlEncodedBody(
         "loginId" -> "", "nickname" -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(OK)
@@ -200,7 +255,7 @@ class AdminControllerSpec extends Specification {
       }
     }
 
-    "ニックネームが入力不正(必須NG)ならば、再入力を促す。" in new WithApplication {
+    "ニックネームが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/admins/add").withSession(session).withFormUrlEncodedBody(
         "loginId" -> "login000", "nickname" -> "")) must beSome.which { res =>
         status(res) must equalTo(OK)
@@ -218,7 +273,7 @@ class AdminControllerSpec extends Specification {
 
   "AdminController#edit(id)" should {
 
-    "FORM構造が表示される。" in new WithApplication {
+    "FORM構造が表示される。" in new TestApp {
       route(FakeRequest(GET, "/admins/1").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
@@ -230,12 +285,12 @@ class AdminControllerSpec extends Specification {
         content must contain("""<label for="loginId" class="">ログインID</label>""")
         content must contain("""<input type="text" id="loginId" name="loginId" value="login1" >""")
         content must contain("""<label for="nickname" class="">ニックネーム</label>""")
-        content must contain("""<input type="text" id="nickname" name="nickname" value="nickname1" >""")
+        content must contain("""<input type="text" id="nickname" name="nickname" value="ニックネーム1" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
       }
     }
 
-    "flashメッセージ：管理アカウント登録後。" in new WithApplication {
+    "flashメッセージ：管理アカウント登録後。" in new TestApp {
       route(FakeRequest(GET, "/admins/1").withSession(session).withFlash(
         "success" -> "create")) must beSome.which { res =>
         status(res) must equalTo(OK)
@@ -247,7 +302,7 @@ class AdminControllerSpec extends Specification {
       }
     }
 
-    "flashメッセージ：管理アカウント変更後。" in new WithApplication {
+    "flashメッセージ：管理アカウント変更後。" in new TestApp {
       route(FakeRequest(GET, "/admins/1").withSession(session).withFlash(
         "success" -> "update")) must beSome.which { res =>
         status(res) must equalTo(OK)
@@ -259,7 +314,7 @@ class AdminControllerSpec extends Specification {
       }
     }
 
-    "flashメッセージ：パスワード変更後。" in new WithApplication {
+    "flashメッセージ：パスワード変更後。" in new TestApp {
       route(FakeRequest(GET, "/admins/1").withSession(session).withFlash(
         "success" -> "updatePw")) must beSome.which { res =>
         status(res) must equalTo(OK)
@@ -274,7 +329,7 @@ class AdminControllerSpec extends Specification {
 
   "AdminController#update(id)" should {
 
-    "入力値が適正ならば、/admins/:id に転送される。" in new WithApplication {
+    "入力値が適正ならば、/admins/:id に転送される。" in new TestApp {
       route(FakeRequest(POST, "/admins/1").withSession(session).withFormUrlEncodedBody(
         "loginId" -> "login000", "nickname" -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
@@ -283,7 +338,7 @@ class AdminControllerSpec extends Specification {
       }
     }
 
-    "ログインIDが入力不正(必須NG)ならば、再入力を促す。" in new WithApplication {
+    "ログインIDが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/admins/1").withSession(session).withFormUrlEncodedBody(
         "loginId" -> "", "nickname" -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(OK)
@@ -298,7 +353,7 @@ class AdminControllerSpec extends Specification {
       }
     }
 
-    "ニックネームが入力不正(必須NG)ならば、再入力を促す。" in new WithApplication {
+    "ニックネームが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/admins/1").withSession(session).withFormUrlEncodedBody(
         "loginId" -> "login000", "nickname" -> "")) must beSome.which { res =>
         status(res) must equalTo(OK)
@@ -316,7 +371,7 @@ class AdminControllerSpec extends Specification {
 
   "AdminController#editPw(id)" should {
 
-    "FORM構造が表示される。" in new WithApplication {
+    "FORM構造が表示される。" in new TestApp {
       route(FakeRequest(GET, "/admins/1/passwd").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
@@ -333,7 +388,7 @@ class AdminControllerSpec extends Specification {
 
   "AdminController#updatePw(id)" should {
 
-    "入力値が適正ならば、/admins/:id に転送される。" in new WithApplication {
+    "入力値が適正ならば、/admins/:id に転送される。" in new TestApp {
       route(FakeRequest(POST, "/admins/1/passwd").withSession(session).withFormUrlEncodedBody(
         "passwd" -> "passwd000", "passwdConf" -> "passwd000")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
@@ -342,7 +397,7 @@ class AdminControllerSpec extends Specification {
       }
     }
 
-    "パスワードが入力不正(必須NG)ならば、再入力を促す。" in new WithApplication {
+    "パスワードが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/admins/1/passwd").withSession(session).withFormUrlEncodedBody(
         "passwd" -> "", "passwdConf" -> "passwd000")) must beSome.which { res =>
         status(res) must equalTo(OK)
@@ -357,7 +412,7 @@ class AdminControllerSpec extends Specification {
       }
     }
 
-    "確認が入力不正(必須NG)ならば、再入力を促す。" in new WithApplication {
+    "確認が入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/admins/1/passwd").withSession(session).withFormUrlEncodedBody(
         "passwd" -> "passwd000", "passwdConf" -> "")) must beSome.which { res =>
         status(res) must equalTo(OK)
@@ -372,7 +427,7 @@ class AdminControllerSpec extends Specification {
       }
     }
 
-    "パスワードと確認が同じでなければ、再入力を促す。" in new WithApplication {
+    "パスワードと確認が同じでなければ、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/admins/1/passwd").withSession(session).withFormUrlEncodedBody(
         "passwd" -> "passwd000", "passwdConf" -> "passwd001")) must beSome.which { res =>
         status(res) must equalTo(OK)
@@ -390,7 +445,7 @@ class AdminControllerSpec extends Specification {
 
   "AdminController#delete(id)" should {
 
-    "/admins に転送される。" in new WithApplication {
+    "/admins に転送される。" in new TestApp {
       route(FakeRequest(GET, "/admins/1/delete").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/admins")
