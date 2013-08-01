@@ -16,8 +16,29 @@
 
 package models
 
-import java.util.Date
+import anorm._
+import anorm.SqlParser._
+import models._
+import play.api._
+import play.api.db.DB
+import scala.annotation.implicitNotFound
 
-case class Member(email: String, nickname: String, height: Option[BigDecimal], birthday: Option[Date])
+class InitializerPlugin(implicit app: Application) extends Plugin {
 
-case class Passwd(passwd: String, passwdConf: String)
+  val adminId = 0L
+  val adminPwd = "p@ssw0rd"
+
+  override def enabled: Boolean = true
+
+  override def onStart(): Unit = {
+    DB.withTransaction { implicit c =>
+      for {
+        id <- Admin.tryLock(adminId)
+        passwd <- SQL("""SELECT passwd FROM admins WHERE id = {id}""").on(
+          'id -> id).singleOpt(scalar[String])
+        if (passwd.isEmpty)
+      } Admin.updatePw(id, adminPwd)
+    }
+  }
+
+}
