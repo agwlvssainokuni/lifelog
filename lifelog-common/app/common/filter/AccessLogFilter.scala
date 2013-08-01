@@ -16,16 +16,15 @@
 
 package common.filter
 
+import play.api.Logger
 import play.api.mvc.Filter
-import play.api.mvc.Result
 import play.api.mvc.RequestHeader
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import play.api.mvc.Result
 
 case class AccessLogFilter(excludes: Seq[String] = Seq()) extends Filter {
 
-  val loggerBegin = LoggerFactory.getLogger("accessLog.begin")
-  val loggerEnd = LoggerFactory.getLogger("accessLog.end")
+  val loggerBegin = Logger("accessLog.begin")
+  val loggerEnd = Logger("accessLog.end")
 
   override def apply(next: RequestHeader => Result)(request: RequestHeader): Result = {
     val logEnabled = !excludes.exists(request.path.startsWith(_))
@@ -37,11 +36,10 @@ case class AccessLogFilter(excludes: Seq[String] = Seq()) extends Filter {
     }
   }
 
-  def logBegin(req: RequestHeader) = if (loggerBegin.isInfoEnabled) {
+  def logBegin(req: RequestHeader) =
     loggerBegin.info(req.uri)
-  }
 
-  def logEnd(req: RequestHeader) = if (loggerEnd.isInfoEnabled) {
+  def logEnd(req: RequestHeader) =
     loggerEnd.info(req.uri)
-  }
+
 }

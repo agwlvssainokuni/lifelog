@@ -9,7 +9,8 @@ object ApplicationBuild extends Build {
 
   val commonDeps = Seq(
     jdbc,
-    anorm
+    anorm,
+    "org.fluentd" % "fluent-logger" % "0.2.10"
   )
 
   val adminDeps = Seq(
