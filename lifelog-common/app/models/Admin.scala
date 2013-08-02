@@ -17,10 +17,13 @@
 package models
 
 import java.sql.Connection
+
 import org.apache.commons.codec.digest.DigestUtils
+
 import anorm._
 import anorm.SqlParser._
-import play.api.Logger
+import play.api.Play.current
+import play.api.cache.Cache
 
 case class Admin(loginId: String, nickname: String) {
   var id: Pk[Long] = NotAssigned
@@ -59,6 +62,11 @@ object Admin {
         """).on(
       'id -> id).singleOpt(parser)
 
+  def get(id: Long)(implicit c: Connection): Option[Admin] =
+    Cache.getOrElse("admin." + id, 0) {
+      find(id)
+    }
+
   def create(admin: Admin)(implicit c: Connection): Option[Long] =
     SQL("""
         INSERT INTO admins (
@@ -91,7 +99,9 @@ object Admin {
         """).on(
       'id -> id,
       'loginId -> admin.loginId, 'nickname -> admin.nickname).executeUpdate() match {
-        case 1 => true
+        case 1 =>
+          Cache.remove("admin." + id)
+          true
         case _ => false
       }
 
@@ -106,7 +116,9 @@ object Admin {
         """).on(
       'id -> id,
       'passwd -> DigestUtils.shaHex(passwd)).executeUpdate() match {
-        case 1 => true
+        case 1 =>
+          Cache.remove("admin." + id)
+          true
         case _ => false
       }
 
