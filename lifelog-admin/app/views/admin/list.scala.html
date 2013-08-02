@@ -16,7 +16,7 @@
 	<thead>
 		<tr class="ui-bar-d">
 			<th>ログインID</th>
-			<th data-priority="1">ニックネーム</th>
+			<th data-priority="3">ニックネーム</th>
 			<th>操作</th>
 		</tr>
 	</thead>
@@ -30,11 +30,7 @@
 					<a href="@routes.AdminController.edit(item.id.get)"
 						class="@if(item.id.get == adminId) { ui-disabled }"
 						data-ajax="false" data-role="button" data-mini="true"
-						data-icon="gear">情報変更</a>
-					<a href="@routes.AdminController.editPw(item.id.get)"
-						class="@if(item.id.get == adminId) { ui-disabled }"
-						data-ajax="false" data-role="button" data-mini="true"
-						data-icon="gear">パスワード</a>
+						data-icon="gear">変更</a>
 					<a href="@routes.AdminController.delete(item.id.get)"
 						class="@if(item.id.get == adminId) { ui-disabled }"
 						data-ajax="false" data-role="button" data-mini="true"

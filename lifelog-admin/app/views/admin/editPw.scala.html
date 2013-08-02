@@ -11,4 +11,8 @@
 	@inputPassword(frm("passwdConf"), '_label -> "確認")
 	<input type="submit" value="変更する" data-theme="a" />
 }
+<div>
+	<a href="@routes.AdminController.edit(id)" data-ajax="false"
+		data-role="button">戻る</a>
+</div>
 }

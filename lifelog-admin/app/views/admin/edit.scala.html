@@ -16,4 +16,8 @@
 	@inputText(frm("nickname"), '_label -> "ニックネーム")
 	<input type="submit" value="変更する" data-theme="a" />
 }
+<div>
+	<a href="@routes.AdminController.editPw(id)" data-ajax="false"
+		data-role="button">パスワード</a>
+</div>
 }
