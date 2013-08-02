@@ -17,11 +17,11 @@
 package controllers
 
 import models._
-import play.api.data.Form
+import play.api.data._
 import play.api.data.Forms._
-import play.api.mvc.Controller
-import views.html.{ profile => view }
+import play.api.mvc._
 import routes.{ ProfileController => route }
+import views.html.{ profile => view }
 
 object ProfileController extends Controller with CustomActionBuilder {
 
