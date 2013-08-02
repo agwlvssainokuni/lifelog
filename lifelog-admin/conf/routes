@@ -14,6 +14,12 @@ GET    /login                controllers.SessionController.index()
 POST   /login                controllers.SessionController.login()
 GET    /logout               controllers.SessionController.logout()
 
+# Profile
+GET    /profile              controllers.ProfileController.edit()
+POST   /profile              controllers.ProfileController.update()
+GET    /profile/passwd       controllers.ProfileController.editPw()
+POST   /profile/passwd       controllers.ProfileController.updatePw()
+
 # Admin
 GET    /admins               controllers.AdminController.list(pn: Option[Long], ps: Long = 5)
 GET    /admins/add           controllers.AdminController.add()
