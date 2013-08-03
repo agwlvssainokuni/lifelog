@@ -22,6 +22,7 @@ import org.apache.commons.codec.digest.DigestUtils
 
 import anorm._
 import anorm.SqlParser._
+import play.api.Application
 import play.api.Play.current
 import play.api.cache.Cache
 
@@ -63,7 +64,7 @@ object Admin {
       'id -> id).singleOpt(parser)
 
   def get(id: Long)(implicit c: Connection): Option[Admin] =
-    Cache.getOrElse("admin." + id, 0) {
+    Cache.getOrElse(cacheName(id), 0) {
       find(id)
     }
 
@@ -100,7 +101,7 @@ object Admin {
       'id -> id,
       'loginId -> admin.loginId, 'nickname -> admin.nickname).executeUpdate() match {
         case 1 =>
-          Cache.remove("admin." + id)
+          Cache.remove(cacheName(id))
           true
         case _ => false
       }
@@ -115,19 +116,23 @@ object Admin {
             id = {id}
         """).on(
       'id -> id,
-      'passwd -> DigestUtils.shaHex(passwd)).executeUpdate() match {
+      'passwd -> passwdHash(passwd)).executeUpdate() match {
         case 1 =>
-          Cache.remove("admin." + id)
+          Cache.remove(cacheName(id))
           true
         case _ => false
       }
 
   def delete(id: Long)(implicit c: Connection): Boolean =
     SQL("""
-        DELETE FROM admins WHERE id = {id}
+        DELETE FROM admins
+        WHERE
+            id = {id}
         """).on(
       'id -> id).executeUpdate() match {
-        case 1 => true
+        case 1 =>
+          Cache.remove(cacheName(id))
+          true
         case _ => false
       }
 
@@ -139,12 +144,33 @@ object Admin {
             AND
             passwd = {passwd}
         """).on(
-      'loginId -> loginId, 'passwd -> DigestUtils.shaHex(passwd)).singleOpt(scalar[Long])
+      'loginId -> loginId, 'passwd -> passwdHash(passwd)).singleOpt(scalar[Long])
 
   def tryLock(id: Long)(implicit c: Connection): Option[Long] =
     SQL("""
-        SELECT id FROM admins WHERE id = {id} FOR UPDATE
+        SELECT id FROM admins
+        WHERE
+            id = {id}
+        FOR UPDATE
         """).on(
       'id -> id).singleOpt(scalar[Long])
+
+  def exists(loginId: String)(implicit c: Connection): Option[Long] =
+    SQL("""
+        SELECT id FROM admins
+        WHERE
+            login_id = {loginId}
+        FOR UPDATE
+        """).on('loginId -> loginId).singleOpt(scalar[Long])
+
+  private def cacheName(id: Long): String = "admin." + id
+
+  private def passwdHash(passwd: String)(implicit app: Application): String =
+    app.configuration.getString("application.secret") match {
+      case Some(secret) =>
+        DigestUtils.shaHex(secret + passwd)
+      case None =>
+        DigestUtils.shaHex(passwd)
+    }
 
 }

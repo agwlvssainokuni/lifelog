@@ -178,4 +178,17 @@ class AdminSpec extends Specification {
     }
   }
 
+  "Admin#exists()" should {
+    "login1は存在する" in new TestApp {
+      DB.withTransaction { implicit c =>
+        Admin.exists("login1") must beSome.which(_ == 1)
+      }
+    }
+    "login10は存在しない" in new TestApp {
+      DB.withTransaction { implicit c =>
+        Admin.exists("login10") must beNone
+      }
+    }
+  }
+
 }
