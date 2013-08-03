@@ -56,13 +56,17 @@ object AdminController extends Controller with CustomActionBuilder {
           Ok(view.add(error))
         },
         admin => {
-          Admin.create(admin) match {
-            case Some(id) =>
-              Redirect(route.edit(id)).flashing(
-                "success" -> "create")
-            case None =>
-              Ok(view.add(adminForm.fill(admin)))
-          }
+          if (Admin.exists(admin.loginId).isDefined)
+            Ok(view.add(adminForm.fill(admin).withError(
+              "loginId", "uniqueness")))
+          else
+            Admin.create(admin) match {
+              case Some(id) =>
+                Redirect(route.edit(id)).flashing(
+                  "success" -> "create")
+              case None =>
+                Ok(view.add(adminForm.fill(admin)))
+            }
         })
   }
 
@@ -90,12 +94,16 @@ object AdminController extends Controller with CustomActionBuilder {
               Ok(view.edit(id, error))
             },
             admin => {
-              Admin.update(id, admin) match {
-                case true =>
-                  Redirect(route.edit(id)).flashing(
-                    "success" -> "update")
-                case false => BadRequest
-              }
+              if (Admin.find(id).get.loginId != admin.loginId && Admin.exists(admin.loginId).isDefined)
+                Ok(view.edit(id, adminForm.fill(admin).withError(
+                  "loginId", "uniqueness")))
+              else
+                Admin.update(id, admin) match {
+                  case true =>
+                    Redirect(route.edit(id)).flashing(
+                      "success" -> "update")
+                  case false => BadRequest
+                }
             })
         case None => NotFound
       }
