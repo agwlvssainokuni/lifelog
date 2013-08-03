@@ -1,4 +1,4 @@
-@(title: String)(content: Html)(footer: Html)
+@(title: String)(content: Html)(footer: Html)(implicit pageParam: PageParam)
 <!DOCTYPE html>
 <html>
 <head>
@@ -19,6 +19,7 @@
 <body>
 	<div data-role="page">
 		<div data-role="header" data-theme="a">
+			@pageParam.admin.map{ admin => <span>@{admin.nickname}</span> }
 			<h1>LifeLog/Admin - @title</h1>
 			<a href="@routes.SessionController.logout()" class="ui-btn-right"
 				data-ajax="false" data-theme="a">ログアウト</a>

@@ -16,6 +16,7 @@
 
 package controllers
 
+import PageParam.implicitPageParam
 import models._
 import play.api.data._
 import play.api.data.Forms._

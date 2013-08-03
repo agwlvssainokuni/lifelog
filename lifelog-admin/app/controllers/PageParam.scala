@@ -16,14 +16,22 @@
 
 package controllers
 
-import PageParam.implicitPageParam
-import play.api.mvc._
+import java.sql.Connection
 
-object HomeController extends Controller with CustomActionBuilder {
+import models.Admin
+import play.api.mvc.RequestHeader
+import play.api.mvc.Security
 
-  def index() = AuthnCustomAction { adminId =>
-    implicit conn => implicit req =>
-      Ok(views.html.index())
+case class PageParam(admin: Option[Admin])
+
+object PageParam {
+
+  implicit def implicitPageParam(implicit req: RequestHeader, conn: Connection): PageParam = {
+    PageParam(
+      for {
+        id <- req.session.get(Security.username)
+        admin <- Admin.get(id.toLong)
+      } yield admin)
   }
 
 }
