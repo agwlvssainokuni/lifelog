@@ -1,13 +1,25 @@
-@(id: Long, mform: Form[Member])(implicit pageParam: PageParam)
+@(id: Long, frm: Form[Member])(implicit pageParam: PageParam, flash: Flash)
+@import controllers.FlashUtil._
 @import models._
 @import views.html.helper._
 @import views.common.custom._
 @main("変更") {
+@{flash.get(Success).map {
+	case Create => <h3 class="success">メンバーアカウントを登録しました。</h3>
+	case Update => <h3 class="success">メンバーアカウントを変更しました。</h3>
+	case UpdatePw => <h3 class="success">パスワードを変更しました。</h3>
+}}
+@if(frm.hasErrors) {
+	<h3 class="error">値が不適切です。入力し直してください。</h3>
+}
 @form(routes.MemberController.update(id), dataajax -> "false") {
-	@inputText(mform("email"), '_label -> "メールアドレス")
-	@inputText(mform("nickname"), '_label -> "ニックネーム")
-	@inputText(mform("birthday"), '_label -> "生年月日(省略可)", 'type -> "date")
-	@inputText(mform("height"), '_label -> "身長(省略可)", 'type -> "number", 'step -> "0.1")
+	@inputText(frm("email"), '_label -> "メールアドレス")
+	@inputText(frm("nickname"), '_label -> "ニックネーム")
+	@inputText(frm("birthday"), '_label -> "生年月日(省略可)", 'type -> "date")
 	<input type="submit" value="変更する" data-theme="a" />
 }
+<div>
+	<a href="@routes.MemberController.editPw(id)" data-ajax="false"
+		data-role="button">パスワード</a>
+</div>
 }

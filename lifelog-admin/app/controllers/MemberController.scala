@@ -16,12 +16,14 @@
 
 package controllers
 
+import FlashUtil._
 import PageParam.implicitPageParam
 import models._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._
 import play.api.mvc._
+import routes.{ MemberController => route }
 import views.html.{ member => view }
 
 object MemberController extends Controller with CustomActionBuilder {
@@ -29,16 +31,17 @@ object MemberController extends Controller with CustomActionBuilder {
   val memberForm: Form[Member] = Form(mapping(
     "email" -> email.verifying(minLength(1), maxLength(256)),
     "nickname" -> nonEmptyText(1, 256),
-    "height" -> optional(bigDecimal),
-    "birthday" -> optional(date("yyyy/MM/ddÏÏß")))(Member.apply)(Member.unapply))
+    "birthday" -> optional(date("yyyy/MM/dd")))(Member.apply)(Member.unapply))
 
   val passwdForm: Form[Passwd] = Form(mapping(
     "passwd" -> nonEmptyText(1, 32),
     "passwdConf" -> nonEmptyText(1, 32))(Passwd.apply)(Passwd.unapply))
 
-  def list(pn: Long = 0, ps: Long = 5) = AuthnCustomAction { adminId =>
+  def list(pn: Option[Long] = None, ps: Long = 5L) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      Ok(view.list())
+      val totalCount = 0L
+      val pager = Pager(pn, ps).adjust(totalCount)
+      Ok(view.list(totalCount, pager, Seq()))
   }
 
   def add() = AuthnCustomAction { adminId =>
@@ -54,8 +57,8 @@ object MemberController extends Controller with CustomActionBuilder {
         },
         member => {
           val id = 1L
-          Redirect(routes.MemberController.edit(id)).flashing(
-            "success" -> "add")
+          Redirect(route.edit(id)).flashing(
+            Success -> Create)
         })
   }
 
@@ -67,10 +70,12 @@ object MemberController extends Controller with CustomActionBuilder {
   def update(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
       memberForm.bindFromRequest().fold(
-        error => Ok(view.edit(id, error)),
+        error => {
+          Ok(view.edit(id, error))
+        },
         member => {
-          Redirect(routes.MemberController.edit(id)).flashing(
-            "success" -> "edit")
+          Redirect(route.edit(id)).flashing(
+            Success -> Update)
         })
   }
 
@@ -79,8 +84,22 @@ object MemberController extends Controller with CustomActionBuilder {
       Ok(view.editPw(id, passwdForm))
   }
 
-  def updatePw(id: Long) = TODO
+  def updatePw(id: Long) = AuthnCustomAction { adminId =>
+    implicit conn => implicit req =>
+      passwdForm.bindFromRequest().fold(
+        error => {
+          Ok(view.editPw(id, error))
+        },
+        passwd => {
+          Redirect(route.edit(id)).flashing(
+            Success -> UpdatePw)
+        })
+  }
 
-  def delete(id: Long) = TODO
+  def delete(id: Long) = AuthnCustomAction { adminId =>
+    implicit conn => implicit req =>
+      Redirect(route.list(None)).flashing(
+        Success -> Delete)
+  }
 
 }

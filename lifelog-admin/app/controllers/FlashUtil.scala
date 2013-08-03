@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package models
+package controllers
 
-import java.util.Date
+object FlashUtil {
 
-import anorm._
+  val Success = "success"
+  val Error = "error"
 
-case class Member(email: String, nickname: String, birthday: Option[Date]) {
-  var id: Pk[Long] = NotAssigned
+  val Create = "create"
+  val Update = "update"
+  val UpdatePw = "updatePw"
+  val Delete = "delete"
+  val Permission = "permission"
+
 }
-
-case class Passwd(passwd: String, passwdConf: String)
