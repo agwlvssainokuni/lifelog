@@ -155,6 +155,14 @@ object Admin {
         """).on(
       'id -> id).singleOpt(scalar[Long])
 
+  def exists(loginId: String)(implicit c: Connection): Option[Long] =
+    SQL("""
+        SELECT id FROM admins
+        WHERE
+            login_id = {loginId}
+        FOR UPDATE
+        """).on('loginId -> loginId).singleOpt(scalar[Long])
+
   private def cacheName(id: Long): String = "admin." + id
 
   private def passwdHash(passwd: String)(implicit app: Application): String =
