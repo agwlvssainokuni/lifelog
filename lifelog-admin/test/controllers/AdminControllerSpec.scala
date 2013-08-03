@@ -20,6 +20,7 @@ import org.specs2.execute.AsResult
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
+import FlashUtil._
 import models.Admin
 import play.api.db._
 import play.api.mvc._
@@ -134,35 +135,35 @@ class AdminControllerSpec extends Specification {
       route(FakeRequest(GET, "/admins/0").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/admins")
-        flash(res).get("error") must beSome.which(_ == "notPermitted")
+        flash(res).get(Error) must beSome.which(_ == Permission)
       }
     }
     "update(id): POST /admins/0" in new TestApp {
       route(FakeRequest(POST, "/admins/0").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/admins")
-        flash(res).get("error") must beSome.which(_ == "notPermitted")
+        flash(res).get(Error) must beSome.which(_ == Permission)
       }
     }
     "editPw(id): GET /admins/0/passwd" in new TestApp {
       route(FakeRequest(GET, "/admins/0/passwd").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/admins")
-        flash(res).get("error") must beSome.which(_ == "notPermitted")
+        flash(res).get(Error) must beSome.which(_ == Permission)
       }
     }
     "updatePw(id): POST /admins/0/passwd" in new TestApp {
       route(FakeRequest(POST, "/admins/0/passwd").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/admins")
-        flash(res).get("error") must beSome.which(_ == "notPermitted")
+        flash(res).get(Error) must beSome.which(_ == Permission)
       }
     }
     "delete(id): GET /admins/0/delete" in new TestApp {
       route(FakeRequest(GET, "/admins/0/delete").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/admins")
-        flash(res).get("error") must beSome.which(_ == "notPermitted")
+        flash(res).get(Error) must beSome.which(_ == Permission)
       }
     }
   }
@@ -236,7 +237,7 @@ class AdminControllerSpec extends Specification {
         "loginId" -> "login000", "nickname" -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/admins/10")
-        flash(res).get("success") must beSome.which(_ == "create")
+        flash(res).get(Success) must beSome.which(_ == Create)
       }
       DB.withTransaction { implicit c =>
         Admin.exists("login000") must beSome
@@ -310,7 +311,7 @@ class AdminControllerSpec extends Specification {
 
     "flashメッセージ：管理アカウント登録後。" in new TestApp {
       route(FakeRequest(GET, "/admins/1").withSession(session).withFlash(
-        "success" -> "create")) must beSome.which { res =>
+        Success -> Create)) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="success">管理アカウントを登録しました。</h3>""")
@@ -322,7 +323,7 @@ class AdminControllerSpec extends Specification {
 
     "flashメッセージ：管理アカウント変更後。" in new TestApp {
       route(FakeRequest(GET, "/admins/1").withSession(session).withFlash(
-        "success" -> "update")) must beSome.which { res =>
+        Success -> Update)) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must not contain ("""<h3 class="success">管理アカウントを登録しました。</h3>""")
@@ -334,7 +335,7 @@ class AdminControllerSpec extends Specification {
 
     "flashメッセージ：パスワード変更後。" in new TestApp {
       route(FakeRequest(GET, "/admins/1").withSession(session).withFlash(
-        "success" -> "updatePw")) must beSome.which { res =>
+        Success -> UpdatePw)) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must not contain ("""<h3 class="success">管理アカウントを登録しました。</h3>""")
@@ -352,7 +353,7 @@ class AdminControllerSpec extends Specification {
         "loginId" -> "login1", "nickname" -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/admins/1")
-        flash(res).get("success") must beSome.which(_ == "update")
+        flash(res).get(Success) must beSome.which(_ == Update)
       }
       DB.withTransaction { implicit c =>
         Admin.find(1) must beSome.which { admin =>
@@ -367,7 +368,7 @@ class AdminControllerSpec extends Specification {
         "loginId" -> "login000", "nickname" -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/admins/1")
-        flash(res).get("success") must beSome.which(_ == "update")
+        flash(res).get(Success) must beSome.which(_ == Update)
       }
       DB.withTransaction { implicit c =>
         Admin.find(1) must beSome.which { admin =>
@@ -447,7 +448,7 @@ class AdminControllerSpec extends Specification {
         "passwd" -> "passwd000", "passwdConf" -> "passwd000")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/admins/1")
-        flash(res).get("success") must beSome.which(_ == "updatePw")
+        flash(res).get(Success) must beSome.which(_ == UpdatePw)
       }
     }
 
@@ -503,7 +504,7 @@ class AdminControllerSpec extends Specification {
       route(FakeRequest(GET, "/admins/1/delete").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/admins")
-        flash(res).get("success") must beSome.which(_ == "delete")
+        flash(res).get(Success) must beSome.which(_ == Delete)
       }
     }
   }

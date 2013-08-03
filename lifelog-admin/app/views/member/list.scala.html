@@ -1,3 +1,58 @@
-@()(implicit pageParam: PageParam)
+@(totalCount: Long, pager: Pager, list: Seq[Member])(implicit pageParam: PageParam, flash: Flash)
+@import controllers.FlashUtil._
+@import models._
+@import views.html.helper._
+@import views.common.custom._
+@import views.member.fmt._
 @main("一覧") {
+@{flash.get(Error).map {
+	case Permission => <h3 class="error">操作が許可されていません。</h3>
+}}
+@{flash.get(Success).map {
+	case Delete => <h3 class="success">メンバーアカウントを削除しました。</h3>
+}}
+<table id="members-list" data-role="table" data-mode="columntoggle"
+	class="ui-body-d ui-shadow table-stripe ui-responsive"
+	data-column-btn-theme="a" data-column-btn-text="表示列選択"
+	data-column-popup-theme="a">
+	<thead>
+		<tr class="ui-bar-d">
+			<th>メールアドレス</th>
+			<th data-priority="3">ニックネーム</th>
+			<th data-priority="6">誕生日</th>
+			<th data-priority="5">年齢</th>
+			<th>操作</th>
+		</tr>
+	</thead>
+	<tbody>
+		@list.map { item =>
+		<tr>
+			<td>@{item.email}</td>
+			<td>@{item.nickname}</td>
+			<td>@{birthday(item)}</td>
+			<td>@{age(item)}</td>
+			<td>
+				<div data-role="controlgroup" data-type="horizontal">
+					<a href="@routes.MemberController.edit(item.id.get)"
+						data-ajax="false" data-role="button" data-mini="true"
+						data-icon="gear">変更</a>
+					<a href="@routes.MemberController.delete(item.id.get)"
+						data-ajax="false" data-role="button" data-mini="true"
+						data-icon="delete">削除</a>
+				</div>
+			</td>
+		</tr>
+		}
+	</tbody>
+</table>
+<div data-role="navbar" data-iconpos="left">
+	<ul>
+		<li><a href="@routes.MemberController.list(pager.no.map(_ - 1))"
+			class="@if((pager.no.get - 1) * pager.size < 0) { ui-disabled }"
+			data-icon="arrow-l">PREV</a></li>
+		<li><a href="@routes.MemberController.list(pager.no.map(_ + 1))"
+			class="@if((pager.no.get + 1) * pager.size >= totalCount) { ui-disabled }"
+			data-icon="arrow-r">NEXT</a></li>
+	</ul>
+</div>
 }

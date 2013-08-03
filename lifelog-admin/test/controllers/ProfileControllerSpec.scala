@@ -20,25 +20,12 @@ import org.specs2.execute.AsResult
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
-import models.Admin
+import controllers.FlashUtil._
+import models._
 import play.api.db.DB
-import play.api.mvc.Security
-import play.api.test.FakeRequest
-import play.api.test.Helpers.GET
-import play.api.test.Helpers.LOCATION
-import play.api.test.Helpers.NOT_FOUND
-import play.api.test.Helpers.OK
-import play.api.test.Helpers.POST
-import play.api.test.Helpers.SEE_OTHER
-import play.api.test.Helpers.contentAsString
-import play.api.test.Helpers.contentType
-import play.api.test.Helpers.flash
-import play.api.test.Helpers.header
-import play.api.test.Helpers.route
-import play.api.test.Helpers.status
-import play.api.test.Helpers.writeableOf_AnyContentAsEmpty
-import play.api.test.Helpers.writeableOf_AnyContentAsFormUrlEncoded
-import play.api.test.WithApplication
+import play.api.mvc._
+import play.api.test._
+import play.api.test.Helpers._
 
 class ProfileControllerSpec extends Specification {
 
@@ -151,7 +138,7 @@ class ProfileControllerSpec extends Specification {
 
     "flashメッセージ：プロファイル変更後。" in new TestApp {
       route(FakeRequest(GET, "/profile").withSession(session).withFlash(
-        "success" -> "update")) must beSome.which { res =>
+        Success -> Update)) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="success">プロファイルを変更しました。</h3>""")
@@ -162,7 +149,7 @@ class ProfileControllerSpec extends Specification {
 
     "flashメッセージ：パスワード変更後。" in new TestApp {
       route(FakeRequest(GET, "/profile").withSession(session).withFlash(
-        "success" -> "updatePw")) must beSome.which { res =>
+        Success -> UpdatePw)) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must not contain ("""<h3 class="success">プロファイルを変更しました。</h3>""")
@@ -179,7 +166,7 @@ class ProfileControllerSpec extends Specification {
         "loginId" -> "login000", "nickname" -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/profile")
-        flash(res).get("success") must beSome.which(_ == "update")
+        flash(res).get(Success) must beSome.which(_ == Update)
       }
     }
 
@@ -223,7 +210,7 @@ class ProfileControllerSpec extends Specification {
         "passwd" -> "passwd000", "passwdConf" -> "passwd000")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/profile")
-        flash(res).get("success") must beSome.which(_ == "updatePw")
+        flash(res).get(Success) must beSome.which(_ == UpdatePw)
       }
     }
 

@@ -16,6 +16,7 @@
 
 package controllers
 
+import controllers.FlashUtil._
 import PageParam.implicitPageParam
 import models._
 import play.api.data._
@@ -55,7 +56,7 @@ object ProfileController extends Controller with CustomActionBuilder {
               Admin.update(adminId, Admin(prof.loginId, prof.nickname)) match {
                 case true =>
                   Redirect(route.edit()).flashing(
-                    "success" -> "update")
+                    Success -> Update)
                 case false => BadRequest
               }
             })
@@ -85,7 +86,7 @@ object ProfileController extends Controller with CustomActionBuilder {
                 Admin.updatePw(adminId, passwd.passwd) match {
                   case true =>
                     Redirect(route.edit()).flashing(
-                      "success" -> "updatePw")
+                      Success -> UpdatePw)
                   case false => BadRequest
                 }
               } else {

@@ -1,11 +1,18 @@
-@(id: Long, mform: Form[Passwd])(implicit pageParam: PageParam)
+@(id: Long, frm: Form[Passwd])(implicit pageParam: PageParam)
 @import models._
 @import views.html.helper._
 @import views.common.custom._
 @main("パスワード") {
+@if(frm.hasErrors) {
+	<h3 class="error">値が不適切です。入力し直してください。</h3>
+}
 @form(routes.MemberController.updatePw(id), dataajax -> "false") {
-	@inputPassword(mform("passwd"), '_label -> "パスワード")
-	@inputPassword(mform("passwdConf"), '_label -> "確認")
+	@inputPassword(frm("passwd"), '_label -> "パスワード")
+	@inputPassword(frm("passwdConf"), '_label -> "確認")
 	<input type="submit" value="変更する" data-theme="a" />
 }
+<div>
+	<a href="@routes.MemberController.edit(id)" data-ajax="false"
+		data-role="button">戻る</a>
+</div>
 }

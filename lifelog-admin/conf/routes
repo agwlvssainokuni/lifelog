@@ -31,7 +31,7 @@ POST   /admins/:id/passwd    controllers.AdminController.updatePw(id: Long)
 GET    /admins/:id/delete    controllers.AdminController.delete(id: Long)
 
 # Member
-GET    /members              controllers.MemberController.list(pn: Long = 0, ps: Long = 5)
+GET    /members              controllers.MemberController.list(pn: Option[Long], ps: Long = 5)
 GET    /members/add          controllers.MemberController.add()
 POST   /members/add          controllers.MemberController.create()
 GET    /members/:id          controllers.MemberController.edit(id: Long)

@@ -16,6 +16,7 @@
 
 package controllers
 
+import controllers.FlashUtil._
 import models._
 import play.api.data._
 import play.api.data.Forms._
@@ -56,7 +57,7 @@ object SessionController extends Controller with CustomActionBuilder {
   def logout() = CustomAction { implicit conn =>
     implicit req =>
       Redirect(routes.SessionController.index()).withNewSession.flashing(
-        "success" -> "logout")
+        Success -> Logout)
   }
 
 }

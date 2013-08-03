@@ -16,4 +16,11 @@
 
 package models
 
-case class Passwd(passwd: String, passwdConf: String)
+import java.util.Date
+
+import anorm.NotAssigned
+import anorm.Pk
+
+case class Member(email: String, nickname: String, birthday: Option[Date]) {
+  var id: Pk[Long] = NotAssigned
+}

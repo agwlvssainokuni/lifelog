@@ -1,4 +1,5 @@
 @(frm: Form[Login])(implicit flash: Flash)
+@import controllers.FlashUtil._
 @import views.html.helper._
 @import views.common.custom._
 <!DOCTYPE html>
@@ -24,11 +25,11 @@
 			<h1>LifeLog/Admin - ログイン</h1>
 		</div>
 		<div data-role="content">
-			@{flash.get("success").map {
-				case "logout" => <h3 class="success">ログアウトしました。</h3>
+			@{flash.get(Success).map {
+				case Logout => <h3 class="success">ログアウトしました。</h3>
 			}}
-			@{flash.get("error").map {
-				case "unauthorized" => <h3 class="error">ログインし直してください。</h3>
+			@{flash.get(Error).map {
+				case Unauthorized => <h3 class="error">ログインし直してください。</h3>
 			}}
 			@if(frm.hasErrors) {
 				@if(frm.error("login").isDefined) {

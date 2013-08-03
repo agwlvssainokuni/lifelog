@@ -1,10 +1,10 @@
 @(title: String)(content: Html)(implicit pageParam: PageParam)
-@views.html.main(title)(content) {
+@views.html.main("メンバーアカウント" + title)(content) {
 <div data-role="navbar" data-iconpos="left">
 	<ul>
 		<li><a href="@routes.HomeController.index()" data-ajax="false"
 			data-icon="home">ホーム</a></li>
-		<li><a href="@routes.MemberController.list()" data-ajax="false"
+		<li><a href="@routes.MemberController.list(None)" data-ajax="false"
 			data-icon="grid">一覧</a></li>
 		<li><a href="@routes.MemberController.add()" data-ajax="false"
 			data-icon="plus">追加</a></li>
