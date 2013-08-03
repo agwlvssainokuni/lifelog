@@ -37,11 +37,11 @@ object MemberController extends Controller with CustomActionBuilder {
     "passwd" -> nonEmptyText(1, 32),
     "passwdConf" -> nonEmptyText(1, 32))(Passwd.apply)(Passwd.unapply))
 
-  def list(pn: Option[Long] = None, ps: Long = 5L) = AuthnCustomAction { adminId =>
+  def list(pn: Option[Long], ps: Option[Long]) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      val totalCount = 0L
-      val pager = Pager(pn, ps).adjust(totalCount)
-      Ok(view.list(totalCount, pager, Seq()))
+      val pager = Pager(pn, ps, 0L)
+      val list = Seq()
+      Ok(view.list(pager, list))
   }
 
   def add() = AuthnCustomAction { adminId =>
@@ -98,7 +98,7 @@ object MemberController extends Controller with CustomActionBuilder {
 
   def delete(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      Redirect(route.list(None)).flashing(
+      Redirect(route.list(None, None)).flashing(
         Success -> Delete)
   }
 

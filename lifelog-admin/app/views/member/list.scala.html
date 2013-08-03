@@ -1,4 +1,4 @@
-@(totalCount: Long, pager: Pager, list: Seq[Member])(implicit pageParam: PageParam, flash: Flash)
+@(pager: Pager, list: Seq[Member])(implicit pageParam: PageParam, flash: Flash)
 @import controllers.FlashUtil._
 @import models._
 @import views.html.helper._
@@ -47,11 +47,11 @@
 </table>
 <div data-role="navbar" data-iconpos="left">
 	<ul>
-		<li><a href="@routes.MemberController.list(pager.no.map(_ - 1))"
-			class="@if((pager.no.get - 1) * pager.size < 0) { ui-disabled }"
+		<li><a href="@routes.MemberController.list(pager.no.map(_ - 1), pager.size)"
+			class="@if(!pager.hasPrev) { ui-disabled }"
 			data-icon="arrow-l">PREV</a></li>
-		<li><a href="@routes.MemberController.list(pager.no.map(_ + 1))"
-			class="@if((pager.no.get + 1) * pager.size >= totalCount) { ui-disabled }"
+		<li><a href="@routes.MemberController.list(pager.no.map(_ + 1), pager.size)"
+			class="@if(!pager.hasNext) { ui-disabled }"
 			data-icon="arrow-r">NEXT</a></li>
 	</ul>
 </div>

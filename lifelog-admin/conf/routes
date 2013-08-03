@@ -21,7 +21,7 @@ GET    /profile/passwd       controllers.ProfileController.editPw()
 POST   /profile/passwd       controllers.ProfileController.updatePw()
 
 # Admin
-GET    /admins               controllers.AdminController.list(pn: Option[Long], ps: Long = 5)
+GET    /admins               controllers.AdminController.list(pn: Option[Long], ps: Option[Long])
 GET    /admins/add           controllers.AdminController.add()
 POST   /admins/add           controllers.AdminController.create()
 GET    /admins/:id           controllers.AdminController.edit(id: Long)
@@ -31,7 +31,7 @@ POST   /admins/:id/passwd    controllers.AdminController.updatePw(id: Long)
 GET    /admins/:id/delete    controllers.AdminController.delete(id: Long)
 
 # Member
-GET    /members              controllers.MemberController.list(pn: Option[Long], ps: Long = 5)
+GET    /members              controllers.MemberController.list(pn: Option[Long], ps: Option[Long])
 GET    /members/add          controllers.MemberController.add()
 POST   /members/add          controllers.MemberController.create()
 GET    /members/:id          controllers.MemberController.edit(id: Long)

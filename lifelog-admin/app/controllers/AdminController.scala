@@ -35,14 +35,11 @@ object AdminController extends Controller with CustomActionBuilder {
     "passwd" -> nonEmptyText(1, 32),
     "passwdConf" -> nonEmptyText(1, 32))(Passwd.apply)(Passwd.unapply))
 
-  def list(pn: Option[Long] = None, ps: Long = 5L) = AuthnCustomAction { adminId =>
+  def list(pn: Option[Long], ps: Option[Long]) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      val totalCount = Admin.count()
-      Pager(pn, ps).adjust(totalCount) match {
-        case pager =>
-          val list = Admin.list(pager.no.get, pager.size)
-          Ok(view.list(adminId, totalCount, pager, list))
-      }
+      val pager = Pager(pn, ps, Admin.count())
+      val list = Admin.list(pager.pageNo, pager.pageSize)
+      Ok(view.list(adminId, pager, list))
   }
 
   def add() = AuthnCustomAction { adminId =>
@@ -75,7 +72,7 @@ object AdminController extends Controller with CustomActionBuilder {
     implicit conn => implicit req =>
       Admin.find(id) match {
         case Some(a) if a.id.get == adminId =>
-          Redirect(route.list(None)).flashing(
+          Redirect(route.list(None, None)).flashing(
             Error -> Permission)
         case Some(a) =>
           Ok(view.edit(id, adminForm.fill(a)))
@@ -87,7 +84,7 @@ object AdminController extends Controller with CustomActionBuilder {
     implicit conn => implicit req =>
       Admin.tryLock(id) match {
         case Some(i) if i == adminId =>
-          Redirect(route.list(None)).flashing(
+          Redirect(route.list(None, None)).flashing(
             Error -> Permission)
         case Some(_) =>
           adminForm.bindFromRequest().fold(
@@ -114,7 +111,7 @@ object AdminController extends Controller with CustomActionBuilder {
     implicit conn => implicit req =>
       Admin.find(id) match {
         case Some(a) if a.id.get == adminId =>
-          Redirect(route.list(None)).flashing(
+          Redirect(route.list(None, None)).flashing(
             Error -> Permission)
         case Some(_) =>
           Ok(view.editPw(id, passwdForm.fill(Passwd("", ""))))
@@ -126,7 +123,7 @@ object AdminController extends Controller with CustomActionBuilder {
     implicit conn => implicit req =>
       Admin.tryLock(id) match {
         case Some(i) if i == adminId =>
-          Redirect(route.list(None)).flashing(
+          Redirect(route.list(None, None)).flashing(
             Error -> Permission)
         case Some(_) =>
           passwdForm.bindFromRequest().fold(
@@ -154,12 +151,12 @@ object AdminController extends Controller with CustomActionBuilder {
     implicit conn => implicit req =>
       Admin.tryLock(id) match {
         case Some(i) if i == adminId =>
-          Redirect(route.list(None)).flashing(
+          Redirect(route.list(None, None)).flashing(
             Error -> Permission)
         case Some(_) =>
           Admin.delete(id) match {
             case true =>
-              Redirect(route.list(None)).flashing(
+              Redirect(route.list(None, None)).flashing(
                 Success -> Delete)
             case false => BadRequest
           }

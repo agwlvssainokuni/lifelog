@@ -16,16 +16,29 @@
 
 package models
 
-case class Pager(no: Option[Long], size: Long) {
-  def adjust(totalCount: Long) = {
-    val pageNo = no.getOrElse(0L)
-    (totalCount / size + (if (totalCount % size <= 0L) 0L else 1L)) match {
-      case 0 => Pager(Some(0L), size)
-      case totalPage =>
-        if (pageNo < totalPage)
-          Pager(Some(pageNo), size)
-        else
-          Pager(Some(totalPage - 1L), size)
+case class Pager(no: Option[Long], size: Option[Long], itemCount: Long, pageCount: Long) {
+  val pageNo = Pager.pageNo(no)
+  val pageSize = Pager.pageSize(size)
+  def hasPrev = pageNo - 1 >= 0
+  def hasNext = pageNo + 1 < pageCount
+}
+
+object Pager {
+
+  def pageNo(no: Option[Long]) = no.getOrElse(0L)
+  def pageSize(size: Option[Long]) = size.getOrElse(5L)
+
+  def apply(no: Option[Long], size: Option[Long], itemCount: Long): Pager = {
+    val ps = pageSize(size)
+    (pageNo(no), itemCount / ps + (if (itemCount % ps == 0L) 0L else 1L)) match {
+      case (_, pc) if pc <= 0L =>
+        Pager(Some(0L), size, itemCount, 0L)
+      case (pn, pc) if pn <= 0L =>
+        Pager(Some(0L), size, itemCount, pc)
+      case (pn, pc) if (pc <= pn) =>
+        Pager(Some(pc - 1L), size, itemCount, pc)
+      case (pn, pc) =>
+        Pager(Some(pn), size, itemCount, pc)
     }
   }
 }
