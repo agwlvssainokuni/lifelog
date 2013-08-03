@@ -16,6 +16,7 @@
 
 package controllers
 
+import FlashUtil._
 import PageParam.implicitPageParam
 import models._
 import play.api.data._
@@ -63,7 +64,7 @@ object AdminController extends Controller with CustomActionBuilder {
             Admin.create(admin) match {
               case Some(id) =>
                 Redirect(route.edit(id)).flashing(
-                  "success" -> "create")
+                  Success -> Create)
               case None =>
                 Ok(view.add(adminForm.fill(admin)))
             }
@@ -75,7 +76,7 @@ object AdminController extends Controller with CustomActionBuilder {
       Admin.find(id) match {
         case Some(a) if a.id.get == adminId =>
           Redirect(route.list(None)).flashing(
-            "error" -> "notPermitted")
+            Error -> Permission)
         case Some(a) =>
           Ok(view.edit(id, adminForm.fill(a)))
         case None => NotFound
@@ -87,7 +88,7 @@ object AdminController extends Controller with CustomActionBuilder {
       Admin.tryLock(id) match {
         case Some(i) if i == adminId =>
           Redirect(route.list(None)).flashing(
-            "error" -> "notPermitted")
+            Error -> Permission)
         case Some(_) =>
           adminForm.bindFromRequest().fold(
             error => {
@@ -101,7 +102,7 @@ object AdminController extends Controller with CustomActionBuilder {
                 Admin.update(id, admin) match {
                   case true =>
                     Redirect(route.edit(id)).flashing(
-                      "success" -> "update")
+                      Success -> Update)
                   case false => BadRequest
                 }
             })
@@ -114,7 +115,7 @@ object AdminController extends Controller with CustomActionBuilder {
       Admin.find(id) match {
         case Some(a) if a.id.get == adminId =>
           Redirect(route.list(None)).flashing(
-            "error" -> "notPermitted")
+            Error -> Permission)
         case Some(_) =>
           Ok(view.editPw(id, passwdForm.fill(Passwd("", ""))))
         case None => NotFound
@@ -126,7 +127,7 @@ object AdminController extends Controller with CustomActionBuilder {
       Admin.tryLock(id) match {
         case Some(i) if i == adminId =>
           Redirect(route.list(None)).flashing(
-            "error" -> "notPermitted")
+            Error -> Permission)
         case Some(_) =>
           passwdForm.bindFromRequest().fold(
             error => {
@@ -137,7 +138,7 @@ object AdminController extends Controller with CustomActionBuilder {
                 Admin.updatePw(id, passwd.passwd) match {
                   case true =>
                     Redirect(route.edit(id)).flashing(
-                      "success" -> "updatePw")
+                      Success -> UpdatePw)
                   case false => BadRequest
                 }
               } else {
@@ -154,12 +155,12 @@ object AdminController extends Controller with CustomActionBuilder {
       Admin.tryLock(id) match {
         case Some(i) if i == adminId =>
           Redirect(route.list(None)).flashing(
-            "error" -> "notPermitted")
+            Error -> Permission)
         case Some(_) =>
           Admin.delete(id) match {
             case true =>
               Redirect(route.list(None)).flashing(
-                "success" -> "delete")
+                Success -> Delete)
             case false => BadRequest
           }
         case None => NotFound

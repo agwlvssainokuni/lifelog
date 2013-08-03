@@ -1,15 +1,16 @@
 @(adminId: Long, totalCount: Long, pager: Pager, list: Seq[Admin])(implicit pageParam: PageParam, flash: Flash)
+@import controllers.FlashUtil._
 @import models._
 @import views.html.helper._
 @import views.common.custom._
 @main("一覧") {
-@{flash.get("error").map {
-	case "notPermitted" => <h3 class="error">操作が許可されていません。</h3>
+@{flash.get(Error).map {
+	case Permission => <h3 class="error">操作が許可されていません。</h3>
 }}
-@{flash.get("success").map {
-	case "delete" => <h3 class="success">管理アカウントを削除しました。</h3>
+@{flash.get(Success).map {
+	case Delete => <h3 class="success">管理アカウントを削除しました。</h3>
 }}
-<table id="measures-list" data-role="table" data-mode="columntoggle"
+<table id="admins-list" data-role="table" data-mode="columntoggle"
 	class="ui-body-d ui-shadow table-stripe ui-responsive"
 	data-column-btn-theme="a" data-column-btn-text="表示列選択"
 	data-column-popup-theme="a">
