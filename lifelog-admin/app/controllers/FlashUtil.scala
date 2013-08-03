@@ -21,6 +21,8 @@ object FlashUtil {
   val Success = "success"
   val Error = "error"
 
+  val Logout = "logout"
+  val Unauthorized = "unauthorized"
   val Create = "create"
   val Update = "update"
   val UpdatePw = "updatePw"

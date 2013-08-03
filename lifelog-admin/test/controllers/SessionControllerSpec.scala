@@ -18,6 +18,7 @@ package controllers
 
 import org.specs2.mutable.Specification
 
+import controllers.FlashUtil._
 import play.api.test._
 import play.api.test.Helpers._
 
@@ -39,7 +40,7 @@ class SessionControllerSpec extends Specification {
     }
 
     "ログアウトから転送されて、ログイン画面が表示される。" in new WithApplication {
-      route(FakeRequest(GET, "/login").withFlash("success" -> "logout")) must beSome.which { res =>
+      route(FakeRequest(GET, "/login").withFlash(Success -> Logout)) must beSome.which { res =>
         status(res) must equalTo(OK)
         contentType(res) must beSome.which(_ == "text/html")
         val content = contentAsString(res)
@@ -52,7 +53,7 @@ class SessionControllerSpec extends Specification {
     }
 
     "セッション切れから転送されて、ログイン画面が表示される。" in new WithApplication {
-      route(FakeRequest(GET, "/login").withFlash("error" -> "unauthorized")) must beSome.which { res =>
+      route(FakeRequest(GET, "/login").withFlash(Error -> Unauthorized)) must beSome.which { res =>
         status(res) must equalTo(OK)
         contentType(res) must beSome.which(_ == "text/html")
         val content = contentAsString(res)
@@ -149,7 +150,7 @@ class SessionControllerSpec extends Specification {
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
         contentType(res) must beEmpty
-        flash(res).get("success") must beSome.which(_ == "logout")
+        flash(res).get(Success) must beSome.which(_ == Logout)
       }
     }
   }

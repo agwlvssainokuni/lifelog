@@ -1,11 +1,12 @@
 @(frm: Form[Profile])(implicit pageParam: PageParam, flash: Flash)
+@import controllers.FlashUtil._
 @import models._
 @import views.html.helper._
 @import views.common.custom._
 @main("プロファイル変更") {
-@{flash.get("success").map {
-	case "update" => <h3 class="success">プロファイルを変更しました。</h3>
-	case "updatePw" => <h3 class="success">パスワードを変更しました。</h3>
+@{flash.get(Success).map {
+	case Update => <h3 class="success">プロファイルを変更しました。</h3>
+	case UpdatePw => <h3 class="success">パスワードを変更しました。</h3>
 }}
 @if(frm.hasErrors) {
 	<h3 class="error">値が不適切です。入力し直してください。</h3>
