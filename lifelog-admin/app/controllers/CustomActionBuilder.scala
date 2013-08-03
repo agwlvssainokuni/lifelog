@@ -18,8 +18,6 @@ package controllers
 
 import java.sql.Connection
 
-import scala.reflect.ClassTag
-
 import play.api.Play.current
 import play.api.db.DB
 import play.api.mvc._

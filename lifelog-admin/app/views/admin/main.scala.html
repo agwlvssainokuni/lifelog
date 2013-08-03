@@ -1,4 +1,4 @@
-@(title: String)(content: Html)
+@(title: String)(content: Html)(implicit pageParam: PageParam)
 @views.html.main("管理アカウント" + title)(content) {
 <div data-role="navbar" data-iconpos="left">
 	<ul>

@@ -1,4 +1,4 @@
-@(adminId: Long, totalCount: Long, pager: Pager, list: Seq[Admin])(implicit flash: Flash)
+@(adminId: Long, totalCount: Long, pager: Pager, list: Seq[Admin])(implicit pageParam: PageParam, flash: Flash)
 @import models._
 @import views.html.helper._
 @import views.common.custom._
