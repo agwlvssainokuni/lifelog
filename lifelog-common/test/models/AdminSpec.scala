@@ -29,16 +29,9 @@ class AdminSpec extends Specification {
     override def around[T: AsResult](t: => T): Result = super.around {
       DB.withTransaction { implicit c =>
         for {
-          (loginId, nickname) <- Seq(
-            ("login1", "ニックネーム１"),
-            ("login2", "ニックネーム２"),
-            ("login3", "ニックネーム３"),
-            ("login4", "ニックネーム４"),
-            ("login5", "ニックネーム５"),
-            ("login6", "ニックネーム６"),
-            ("login7", "ニックネーム７"),
-            ("login8", "ニックネーム８"),
-            ("login9", "ニックネーム９"))
+          id <- 1 to 9
+          loginId = "login" + id
+          nickname = "ニックネーム" + id
         } Admin.create(Admin(loginId, nickname))
       }
       t
