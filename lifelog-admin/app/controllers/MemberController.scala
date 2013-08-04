@@ -88,8 +88,16 @@ object MemberController extends Controller with CustomActionBuilder {
               Ok(view.edit(id, error))
             },
             member => {
-              Redirect(route.edit(id)).flashing(
-                Success -> Update)
+              if (Member.find(id).get.email != member.email && Member.exists(member.email).isDefined)
+                Ok(view.edit(id, memberForm.fill(member).withError(
+                  "email", "uniqueness")))
+              else
+                Member.update(id, member) match {
+                  case true =>
+                    Redirect(route.edit(id)).flashing(
+                      Success -> Update)
+                  case false => BadRequest
+                }
             })
         case None => NotFound
       }
