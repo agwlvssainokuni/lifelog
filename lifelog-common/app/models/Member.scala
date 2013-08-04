@@ -17,10 +17,160 @@
 package models
 
 import java.util.Date
+import java.sql.Connection
 
-import anorm.NotAssigned
-import anorm.Pk
+import org.apache.commons.codec.digest.DigestUtils
+
+import anorm._
+import anorm.SqlParser._
+import play.api.Application
+import play.api.Play.current
+import play.api.cache.Cache
 
 case class Member(email: String, nickname: String, birthday: Option[Date]) {
   var id: Pk[Long] = NotAssigned
+}
+
+object Member {
+
+  val parser = {
+    long("members.id") ~ str("members.email") ~ str("members.nickname") ~ (date("members.birthday")?) map {
+      case id ~ email ~ nickname ~ birthday =>
+        val entity = Member(email, nickname, birthday)
+        entity.id = Id(id)
+        entity
+    }
+  }
+
+  def count()(implicit c: Connection): Long =
+    SQL("""
+        SELECT COUNT(*) FROM members
+        """).single(scalar[Long])
+
+  def list(pageNo: Long, pageSize: Long)(implicit c: Connection): Seq[Member] =
+    SQL("""
+        SELECT id, email, nickname, birthday FROM members
+        ORDER BY id
+        LIMIT {limit} OFFSET {offset}
+        """).on(
+      'limit -> pageSize, 'offset -> pageSize * pageNo).list(parser)
+
+  def find(id: Long)(implicit c: Connection): Option[Member] =
+    SQL("""
+        SELECT id, email, nickname, birthday FROM members
+        WHERE
+            id = {id}
+        """).on(
+      'id -> id).singleOpt(parser)
+
+  def get(id: Long)(implicit c: Connection): Option[Member] =
+    Cache.getOrElse(cacheName(id)) {
+      find(id)
+    }
+
+  def create(member: Member)(implicit c: Connection): Option[Long] =
+    SQL("""
+        INSERT INTO members (
+            email,
+            nickname,
+            birthday,
+            passwd,
+            updated_at
+        ) VALUE (
+            {email},
+            {nickname},
+            {birthday},
+            '',
+            CURRENT_TIMESTAMP
+        )
+        """).on(
+      'email -> member.email, 'nickname -> member.nickname, 'birthday -> member.birthday).executeUpdate() match {
+        case 1 =>
+          SQL("""SELECT currval('members_id_seq') FROM dual""").singleOpt(scalar[Long])
+        case _ => None
+      }
+
+  def update(id: Long, member: Member)(implicit c: Connection): Boolean =
+    SQL("""
+        UPDATE members
+        SET
+            email = {email},
+            nickname = {nickname},
+            birthday = {birthday},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE
+            id = {id}
+        """).on(
+      'id -> id,
+      'email -> member.email, 'nickname -> member.nickname, 'birthday -> member.birthday).executeUpdate() match {
+        case 1 =>
+          Cache.remove(cacheName(id))
+          true
+        case _ => false
+      }
+
+  def updatePw(id: Long, passwd: String)(implicit c: Connection): Boolean =
+    SQL("""
+        UPDATE members
+        SET
+            passwd = {passwd}
+        WHERE
+            id = {id}
+        """).on(
+      'id -> id,
+      'passwd -> passwdHash(passwd)).executeUpdate() match {
+        case 1 => true
+        case _ => false
+      }
+
+  def delete(id: Long)(implicit c: Connection): Boolean =
+    SQL("""
+        DELETE FROM members
+        WHERE
+            id = {id}
+        """).on(
+      'id -> id).executeUpdate() match {
+        case 1 =>
+          Cache.remove(cacheName(id))
+          true
+        case _ => false
+      }
+
+  def authenticate(email: String, passwd: String)(implicit c: Connection): Option[Long] =
+    SQL("""
+        SELECT id FROM members
+        WHERE
+            email = {email}
+            AND
+            passwd = {passwd}
+        """).on(
+      'email -> email, 'passwd -> passwdHash(passwd)).singleOpt(scalar[Long])
+
+  def tryLock(id: Long)(implicit c: Connection): Option[Long] =
+    SQL("""
+        SELECT id FROM members
+        WHERE
+            id = {id}
+        FOR UPDATE
+        """).on(
+      'id -> id).singleOpt(scalar[Long])
+
+  def exists(email: String)(implicit c: Connection): Option[Long] =
+    SQL("""
+        SELECT id FROM members
+        WHERE
+            email = {email}
+        """).on(
+      'email -> email).singleOpt(scalar[Long])
+
+  private def cacheName(id: Long): String = "member." + id
+
+  private def passwdHash(passwd: String)(implicit app: Application): String =
+    app.configuration.getString("application.secret") match {
+      case Some(secret) =>
+        DigestUtils.shaHex(secret + passwd)
+      case None =>
+        DigestUtils.shaHex(passwd)
+    }
+
 }
