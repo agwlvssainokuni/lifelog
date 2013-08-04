@@ -514,4 +514,78 @@ class MemberControllerSpec extends Specification {
     }
   }
 
+  "MemberController#editPw(id)" should {
+
+    "FORM構造が表示される。" in new TestApp {
+      route(FakeRequest(GET, "/members/1/passwd").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must not contain ("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+        content must contain("""<form action="/members/1/passwd" method="POST" data-ajax="false">""")
+        content must contain("""<label for="passwd" class="">パスワード</label>""")
+        content must contain("""<input type="password" id="passwd" name="passwd" >""")
+        content must contain("""<label for="passwdConf" class="">確認</label>""")
+        content must contain("""<input type="password" id="passwdConf" name="passwdConf" >""")
+        content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
+      }
+    }
+  }
+
+  "MemberController#updatePw(id)" should {
+
+    "入力値が適正ならば、/members/:id に転送される。" in new TestApp {
+      route(FakeRequest(POST, "/members/1/passwd").withSession(session).withFormUrlEncodedBody(
+        "passwd" -> "passwd000", "passwdConf" -> "passwd000")) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/members/1")
+        flash(res).get(Success) must beSome.which(_ == UpdatePw)
+      }
+    }
+
+    "パスワードが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
+      route(FakeRequest(POST, "/members/1/passwd").withSession(session).withFormUrlEncodedBody(
+        "passwd" -> "", "passwdConf" -> "passwd000")) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+        content must contain("""<form action="/members/1/passwd" method="POST" data-ajax="false">""")
+        content must contain("""<label for="passwd" class="error">パスワード</label>""")
+        content must contain("""<input type="password" id="passwd" name="passwd" >""")
+        content must contain("""<label for="passwdConf" class="">確認</label>""")
+        content must contain("""<input type="password" id="passwdConf" name="passwdConf" >""")
+        content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
+      }
+    }
+
+    "確認が入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
+      route(FakeRequest(POST, "/members/1/passwd").withSession(session).withFormUrlEncodedBody(
+        "passwd" -> "passwd000", "passwdConf" -> "")) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+        content must contain("""<form action="/members/1/passwd" method="POST" data-ajax="false">""")
+        content must contain("""<label for="passwd" class="">パスワード</label>""")
+        content must contain("""<input type="password" id="passwd" name="passwd" >""")
+        content must contain("""<label for="passwdConf" class="error">確認</label>""")
+        content must contain("""<input type="password" id="passwdConf" name="passwdConf" >""")
+        content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
+      }
+    }
+
+    "パスワードと確認が同じでなければ、再入力を促す。" in new TestApp {
+      route(FakeRequest(POST, "/members/1/passwd").withSession(session).withFormUrlEncodedBody(
+        "passwd" -> "passwd000", "passwdConf" -> "passwd001")) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+        content must contain("""<form action="/members/1/passwd" method="POST" data-ajax="false">""")
+        content must contain("""<label for="passwd" class="">パスワード</label>""")
+        content must contain("""<input type="password" id="passwd" name="passwd" >""")
+        content must contain("""<label for="passwdConf" class="">確認</label>""")
+        content must contain("""<input type="password" id="passwdConf" name="passwdConf" >""")
+        content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
+      }
+    }
+  }
+
 }

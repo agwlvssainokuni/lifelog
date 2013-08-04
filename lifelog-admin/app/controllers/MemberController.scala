@@ -121,8 +121,16 @@ object MemberController extends Controller with CustomActionBuilder {
               Ok(view.editPw(id, error))
             },
             passwd => {
-              Redirect(route.edit(id)).flashing(
-                Success -> UpdatePw)
+              if (passwd.passwd == passwd.passwdConf)
+                Member.updatePw(id, passwd.passwd) match {
+                  case true =>
+                    Redirect(route.edit(id)).flashing(
+                      Success -> UpdatePw)
+                  case false => BadRequest
+                }
+              else
+                Ok(view.editPw(id, passwdForm.fill(passwd).withError(
+                  "unmatch", "passwd.unmatch")))
             })
         case None => NotFound
       }
