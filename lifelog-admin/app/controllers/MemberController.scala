@@ -64,42 +64,62 @@ object MemberController extends Controller with CustomActionBuilder {
 
   def edit(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      Ok(view.edit(id, memberForm))
+      Member.find(id) match {
+        case Some(member) =>
+          Ok(view.edit(id, memberForm))
+        case None => NotFound
+      }
   }
 
   def update(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      memberForm.bindFromRequest().fold(
-        error => {
-          Ok(view.edit(id, error))
-        },
-        member => {
-          Redirect(route.edit(id)).flashing(
-            Success -> Update)
-        })
+      Member.tryLock(id) match {
+        case Some(_) =>
+          memberForm.bindFromRequest().fold(
+            error => {
+              Ok(view.edit(id, error))
+            },
+            member => {
+              Redirect(route.edit(id)).flashing(
+                Success -> Update)
+            })
+        case None => NotFound
+      }
   }
 
   def editPw(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      Ok(view.editPw(id, passwdForm))
+      Member.find(id) match {
+        case Some(_) =>
+          Ok(view.editPw(id, passwdForm))
+        case None => NotFound
+      }
   }
 
   def updatePw(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      passwdForm.bindFromRequest().fold(
-        error => {
-          Ok(view.editPw(id, error))
-        },
-        passwd => {
-          Redirect(route.edit(id)).flashing(
-            Success -> UpdatePw)
-        })
+      Member.tryLock(id) match {
+        case Some(_) =>
+          passwdForm.bindFromRequest().fold(
+            error => {
+              Ok(view.editPw(id, error))
+            },
+            passwd => {
+              Redirect(route.edit(id)).flashing(
+                Success -> UpdatePw)
+            })
+        case None => NotFound
+      }
   }
 
   def delete(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      Redirect(route.list(None, None)).flashing(
-        Success -> Delete)
+      Member.tryLock(id) match {
+        case Some(_) =>
+          Redirect(route.list(None, None)).flashing(
+            Success -> Delete)
+        case None => NotFound
+      }
   }
 
 }
