@@ -144,4 +144,46 @@ class MemberControllerSpec extends Specification {
     }
   }
 
+  "タイトル" should {
+    "/members" in new TestApp {
+      route(FakeRequest(GET, "/members").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        contentType(res) must beSome.which(_ == "text/html")
+        val content = contentAsString(res)
+        content must contain("""<title>LifeLog/Admin - メンバーアカウント一覧</title>""")
+        content must contain("""<h1>LifeLog/Admin - メンバーアカウント一覧</h1>""")
+      }
+    }
+
+    "/members/add" in new TestApp {
+      route(FakeRequest(GET, "/members/add").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        contentType(res) must beSome.which(_ == "text/html")
+        val content = contentAsString(res)
+        content must contain("""<title>LifeLog/Admin - メンバーアカウント登録</title>""")
+        content must contain("""<h1>LifeLog/Admin - メンバーアカウント登録</h1>""")
+      }
+    }
+
+    "/members/:id" in new TestApp {
+      route(FakeRequest(GET, "/members/1").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        contentType(res) must beSome.which(_ == "text/html")
+        val content = contentAsString(res)
+        content must contain("""<title>LifeLog/Admin - メンバーアカウント変更</title>""")
+        content must contain("""<h1>LifeLog/Admin - メンバーアカウント変更</h1>""")
+      }
+    }
+
+    "/members/:id/passwd" in new TestApp {
+      route(FakeRequest(GET, "/members/1/passwd").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        contentType(res) must beSome.which(_ == "text/html")
+        val content = contentAsString(res)
+        content must contain("""<title>LifeLog/Admin - メンバーアカウントパスワード</title>""")
+        content must contain("""<h1>LifeLog/Admin - メンバーアカウントパスワード</h1>""")
+      }
+    }
+  }
+
 }
