@@ -56,50 +56,98 @@ object MemberController extends Controller with CustomActionBuilder {
           Ok(view.add(error))
         },
         member => {
-          val id = 1L
-          Redirect(route.edit(id)).flashing(
-            Success -> Create)
+          if (Member.exists(member.email).isDefined)
+            Ok(view.add(memberForm.fill(member).withError(
+              "email", "uniqueness")))
+          else
+            Member.create(member) match {
+              case Some(id) =>
+                Redirect(route.edit(id)).flashing(
+                  Success -> Create)
+              case None =>
+                Ok(view.add(memberForm.fill(member)))
+            }
         })
   }
 
   def edit(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      Ok(view.edit(id, memberForm))
+      Member.find(id) match {
+        case Some(m) =>
+          Ok(view.edit(id, memberForm.fill(m)))
+        case None => NotFound
+      }
   }
 
   def update(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      memberForm.bindFromRequest().fold(
-        error => {
-          Ok(view.edit(id, error))
-        },
-        member => {
-          Redirect(route.edit(id)).flashing(
-            Success -> Update)
-        })
+      Member.tryLock(id) match {
+        case Some(_) =>
+          memberForm.bindFromRequest().fold(
+            error => {
+              Ok(view.edit(id, error))
+            },
+            member => {
+              if (Member.find(id).get.email != member.email && Member.exists(member.email).isDefined)
+                Ok(view.edit(id, memberForm.fill(member).withError(
+                  "email", "uniqueness")))
+              else
+                Member.update(id, member) match {
+                  case true =>
+                    Redirect(route.edit(id)).flashing(
+                      Success -> Update)
+                  case false => BadRequest
+                }
+            })
+        case None => NotFound
+      }
   }
 
   def editPw(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      Ok(view.editPw(id, passwdForm))
+      Member.find(id) match {
+        case Some(_) =>
+          Ok(view.editPw(id, passwdForm))
+        case None => NotFound
+      }
   }
 
   def updatePw(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      passwdForm.bindFromRequest().fold(
-        error => {
-          Ok(view.editPw(id, error))
-        },
-        passwd => {
-          Redirect(route.edit(id)).flashing(
-            Success -> UpdatePw)
-        })
+      Member.tryLock(id) match {
+        case Some(_) =>
+          passwdForm.bindFromRequest().fold(
+            error => {
+              Ok(view.editPw(id, error))
+            },
+            passwd => {
+              if (passwd.passwd == passwd.passwdConf)
+                Member.updatePw(id, passwd.passwd) match {
+                  case true =>
+                    Redirect(route.edit(id)).flashing(
+                      Success -> UpdatePw)
+                  case false => BadRequest
+                }
+              else
+                Ok(view.editPw(id, passwdForm.fill(passwd).withError(
+                  "unmatch", "passwd.unmatch")))
+            })
+        case None => NotFound
+      }
   }
 
   def delete(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      Redirect(route.list(None, None)).flashing(
-        Success -> Delete)
+      Member.tryLock(id) match {
+        case Some(_) =>
+          Member.delete(id) match {
+            case true =>
+              Redirect(route.list(None, None)).flashing(
+                Success -> Delete)
+            case false => BadRequest
+          }
+        case None => NotFound
+      }
   }
 
 }

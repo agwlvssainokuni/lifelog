@@ -131,17 +131,16 @@ object AdminController extends Controller with CustomActionBuilder {
               Ok(view.editPw(id, error))
             },
             passwd => {
-              if (passwd.passwd == passwd.passwdConf) {
+              if (passwd.passwd == passwd.passwdConf)
                 Admin.updatePw(id, passwd.passwd) match {
                   case true =>
                     Redirect(route.edit(id)).flashing(
                       Success -> UpdatePw)
                   case false => BadRequest
                 }
-              } else {
+              else
                 Ok(view.editPw(id, passwdForm.fill(passwd).withError(
                   "unmatch", "passwd.unmatch")))
-              }
             })
         case None => NotFound
       }
