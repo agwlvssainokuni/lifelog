@@ -76,7 +76,7 @@ object Member {
             birthday,
             passwd,
             updated_at
-        ) VALUE (
+        ) VALUES (
             {email},
             {nickname},
             {birthday},
