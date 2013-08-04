@@ -39,8 +39,8 @@ object MemberController extends Controller with CustomActionBuilder {
 
   def list(pn: Option[Long], ps: Option[Long]) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
-      val pager = Pager(pn, ps, 0L)
-      val list = Seq()
+      val pager = Pager(pn, ps, Member.count())
+      val list = Member.list(pager.pageNo, pager.pageSize)
       Ok(view.list(pager, list))
   }
 

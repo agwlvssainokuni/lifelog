@@ -43,7 +43,7 @@ object fmt {
     } yield f.format(ag)
 
   def computeAge(from: Calendar)(to: Calendar) = {
-    def interval(field: Int) = from.get(field) - to.get(field)
+    def interval(field: Int) = to.get(field) - from.get(field)
     (interval(YEAR) - 1) + (
       interval(MONTH) match {
         case m if (m > 0) => 1
