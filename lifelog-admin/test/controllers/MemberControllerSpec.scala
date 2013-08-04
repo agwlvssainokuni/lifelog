@@ -320,4 +320,62 @@ class MemberControllerSpec extends Specification {
     }
   }
 
+  "MemberController#edit(id)" should {
+
+    "FORM構造が表示される。" in new TestApp {
+      route(FakeRequest(GET, "/members/1").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must not contain ("""<h3 class="success">メンバーアカウントを登録しました。</h3>""")
+        content must not contain ("""<h3 class="success">メンバーアカウントを変更しました。</h3>""")
+        content must not contain ("""<h3 class="success">パスワードを変更しました。</h3>""")
+        content must not contain ("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+        content must contain("""<form action="/members/1" method="POST" data-ajax="false">""")
+        content must contain("""<label for="email" class="">メールアドレス</label>""")
+        content must contain("""<input type="text" id="email" name="email" value="name1@domain1" >""")
+        content must contain("""<label for="nickname" class="">ニックネーム</label>""")
+        content must contain("""<input type="text" id="nickname" name="nickname" value="ニックネーム1" >""")
+        content must contain("""<label for="birthday" class="">生年月日(省略可)</label>""")
+        content must contain("""<input type="date" id="birthday" name="birthday" value="1981/01/01" >""")
+        content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
+      }
+    }
+
+    "flashメッセージ：メンバーアカウント登録後。" in new TestApp {
+      route(FakeRequest(GET, "/members/1").withSession(session).withFlash(
+        Success -> Create)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must contain("""<h3 class="success">メンバーアカウントを登録しました。</h3>""")
+        content must not contain ("""<h3 class="success">メンバーアカウントを変更しました。</h3>""")
+        content must not contain ("""<h3 class="success">パスワードを変更しました。</h3>""")
+        content must not contain ("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+      }
+    }
+
+    "flashメッセージ：メンバーアカウント変更後。" in new TestApp {
+      route(FakeRequest(GET, "/members/1").withSession(session).withFlash(
+        Success -> Update)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must not contain ("""<h3 class="success">メンバーアカウントを登録しました。</h3>""")
+        content must contain("""<h3 class="success">メンバーアカウントを変更しました。</h3>""")
+        content must not contain ("""<h3 class="success">パスワードを変更しました。</h3>""")
+        content must not contain ("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+      }
+    }
+
+    "flashメッセージ：パスワード変更後。" in new TestApp {
+      route(FakeRequest(GET, "/members/1").withSession(session).withFlash(
+        Success -> UpdatePw)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must not contain ("""<h3 class="success">メンバーアカウントを登録しました。</h3>""")
+        content must not contain ("""<h3 class="success">メンバーアカウントを変更しました。</h3>""")
+        content must contain("""<h3 class="success">パスワードを変更しました。</h3>""")
+        content must not contain ("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+      }
+    }
+  }
+
 }

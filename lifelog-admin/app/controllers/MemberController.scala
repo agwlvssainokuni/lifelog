@@ -73,8 +73,8 @@ object MemberController extends Controller with CustomActionBuilder {
   def edit(id: Long) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
       Member.find(id) match {
-        case Some(member) =>
-          Ok(view.edit(id, memberForm))
+        case Some(m) =>
+          Ok(view.edit(id, memberForm.fill(m)))
         case None => NotFound
       }
   }
