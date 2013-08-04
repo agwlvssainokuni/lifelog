@@ -186,4 +186,138 @@ class MemberControllerSpec extends Specification {
     }
   }
 
+  "MemberController#list()" should {
+  }
+
+  "MemberController#add()" should {
+
+    "FORM構造が表示される。" in new TestApp {
+      route(FakeRequest(GET, "/members/add").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must not contain ("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+        content must contain("""<form action="/members/add" method="POST" data-ajax="false">""")
+        content must contain("""<label for="email" class="">メールアドレス</label>""")
+        content must contain("""<input type="text" id="email" name="email" value="" >""")
+        content must contain("""<label for="nickname" class="">ニックネーム</label>""")
+        content must contain("""<input type="text" id="nickname" name="nickname" value="" >""")
+        content must contain("""<label for="birthday" class="">生年月日(省略可)</label>""")
+        content must contain("""<input type="date" id="birthday" name="birthday" value="" >""")
+        content must contain("""<input type="submit" value="登録する" data-theme="a" />""")
+      }
+    }
+  }
+
+  "MemberController#create()" should {
+
+    "入力値が適正ならば、/members/:id に転送される。データが作成される。" in new TestApp {
+      route(FakeRequest(POST, "/members/add").withSession(session).withFormUrlEncodedBody(
+        "email" -> "name0@domain0", "nickname" -> "nickname000", "birthday" -> "1980/01/01")) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/members/11")
+        flash(res).get(Success) must beSome.which(_ == Create)
+      }
+      DB.withTransaction { implicit c =>
+        Member.exists("name0@domain0") must beSome
+      }
+    }
+
+    "入力値が適正ならば、/members/:id に転送される。データが作成される。(生年月日は省略可)" in new TestApp {
+      route(FakeRequest(POST, "/members/add").withSession(session).withFormUrlEncodedBody(
+        "email" -> "name0@domain0", "nickname" -> "nickname000", "birthday" -> "")) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/members/11")
+        flash(res).get(Success) must beSome.which(_ == Create)
+      }
+      DB.withTransaction { implicit c =>
+        Member.exists("name0@domain0") must beSome
+      }
+    }
+
+    "メールアドレスが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
+      route(FakeRequest(POST, "/members/add").withSession(session).withFormUrlEncodedBody(
+        "email" -> "", "nickname" -> "nickname000", "birthday" -> "1980/01/01")) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+        content must contain("""<form action="/members/add" method="POST" data-ajax="false">""")
+        content must contain("""<label for="email" class="error">メールアドレス</label>""")
+        content must contain("""<input type="text" id="email" name="email" value="" >""")
+        content must contain("""<label for="nickname" class="">ニックネーム</label>""")
+        content must contain("""<input type="text" id="nickname" name="nickname" value="nickname000" >""")
+        content must contain("""<label for="birthday" class="">生年月日(省略可)</label>""")
+        content must contain("""<input type="date" id="birthday" name="birthday" value="1980/01/01" >""")
+        content must contain("""<input type="submit" value="登録する" data-theme="a" />""")
+      }
+    }
+
+    "ニックネームが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
+      route(FakeRequest(POST, "/members/add").withSession(session).withFormUrlEncodedBody(
+        "email" -> "name0@domain0", "nickname" -> "", "birthday" -> "1980/01/01")) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+        content must contain("""<form action="/members/add" method="POST" data-ajax="false">""")
+        content must contain("""<label for="email" class="">メールアドレス</label>""")
+        content must contain("""<input type="text" id="email" name="email" value="name0@domain0" >""")
+        content must contain("""<label for="nickname" class="error">ニックネーム</label>""")
+        content must contain("""<input type="text" id="nickname" name="nickname" value="" >""")
+        content must contain("""<label for="birthday" class="">生年月日(省略可)</label>""")
+        content must contain("""<input type="date" id="birthday" name="birthday" value="1980/01/01" >""")
+        content must contain("""<input type="submit" value="登録する" data-theme="a" />""")
+      }
+    }
+
+    "メールアドレスが入力不正(形式不正)ならば、再入力を促す。" in new TestApp {
+      route(FakeRequest(POST, "/members/add").withSession(session).withFormUrlEncodedBody(
+        "email" -> "localpartonly", "nickname" -> "nickname000", "birthday" -> "1980/01/01")) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+        content must contain("""<form action="/members/add" method="POST" data-ajax="false">""")
+        content must contain("""<label for="email" class="error">メールアドレス</label>""")
+        content must contain("""<input type="text" id="email" name="email" value="localpartonly" >""")
+        content must contain("""<label for="nickname" class="">ニックネーム</label>""")
+        content must contain("""<input type="text" id="nickname" name="nickname" value="nickname000" >""")
+        content must contain("""<label for="birthday" class="">生年月日(省略可)</label>""")
+        content must contain("""<input type="date" id="birthday" name="birthday" value="1980/01/01" >""")
+        content must contain("""<input type="submit" value="登録する" data-theme="a" />""")
+      }
+    }
+
+    "生年月日が入力不正(形式不正)ならば、再入力を促す。" in new TestApp {
+      route(FakeRequest(POST, "/members/add").withSession(session).withFormUrlEncodedBody(
+        "email" -> "name0@domain0", "nickname" -> "nickname000", "birthday" -> "invalid")) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+        content must contain("""<form action="/members/add" method="POST" data-ajax="false">""")
+        content must contain("""<label for="email" class="">メールアドレス</label>""")
+        content must contain("""<input type="text" id="email" name="email" value="name0@domain0" >""")
+        content must contain("""<label for="nickname" class="">ニックネーム</label>""")
+        content must contain("""<input type="text" id="nickname" name="nickname" value="nickname000" >""")
+        content must contain("""<label for="birthday" class="error">生年月日(省略可)</label>""")
+        content must contain("""<input type="date" id="birthday" name="birthday" value="invalid" >""")
+        content must contain("""<input type="submit" value="登録する" data-theme="a" />""")
+      }
+    }
+
+    "メールアドレスが入力不正(一意性NG)ならば、再入力を促す。" in new TestApp {
+      route(FakeRequest(POST, "/members/add").withSession(session).withFormUrlEncodedBody(
+        "email" -> "name1@domain1", "nickname" -> "nickname000", "birthday" -> "1980/01/01")) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        val content = contentAsString(res)
+        content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
+        content must contain("""<form action="/members/add" method="POST" data-ajax="false">""")
+        content must contain("""<label for="email" class="error">メールアドレス</label>""")
+        content must contain("""<input type="text" id="email" name="email" value="name1@domain1" >""")
+        content must contain("""<label for="nickname" class="">ニックネーム</label>""")
+        content must contain("""<input type="text" id="nickname" name="nickname" value="nickname000" >""")
+        content must contain("""<label for="birthday" class="">生年月日(省略可)</label>""")
+        content must contain("""<input type="date" id="birthday" name="birthday" value="1980/01/01" >""")
+        content must contain("""<input type="submit" value="登録する" data-theme="a" />""")
+      }
+    }
+  }
+
 }

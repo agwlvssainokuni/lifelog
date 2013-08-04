@@ -56,9 +56,17 @@ object MemberController extends Controller with CustomActionBuilder {
           Ok(view.add(error))
         },
         member => {
-          val id = 1L
-          Redirect(route.edit(id)).flashing(
-            Success -> Create)
+          if (Member.exists(member.email).isDefined)
+            Ok(view.add(memberForm.fill(member).withError(
+              "email", "uniqueness")))
+          else
+            Member.create(member) match {
+              case Some(id) =>
+                Redirect(route.edit(id)).flashing(
+                  Success -> Create)
+              case None =>
+                Ok(view.add(memberForm.fill(member)))
+            }
         })
   }
 
