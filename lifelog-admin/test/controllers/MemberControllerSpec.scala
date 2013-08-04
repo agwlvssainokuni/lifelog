@@ -588,4 +588,15 @@ class MemberControllerSpec extends Specification {
     }
   }
 
+  "MemberController#delete(id)" should {
+
+    "/members に転送される。" in new TestApp {
+      route(FakeRequest(GET, "/members/1/delete").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(SEE_OTHER)
+        header(LOCATION, res) must beSome.which(_ == "/members")
+        flash(res).get(Success) must beSome.which(_ == Delete)
+      }
+    }
+  }
+
 }

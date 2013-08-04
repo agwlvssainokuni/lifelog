@@ -140,8 +140,12 @@ object MemberController extends Controller with CustomActionBuilder {
     implicit conn => implicit req =>
       Member.tryLock(id) match {
         case Some(_) =>
-          Redirect(route.list(None, None)).flashing(
-            Success -> Delete)
+          Member.delete(id) match {
+            case true =>
+              Redirect(route.list(None, None)).flashing(
+                Success -> Delete)
+            case false => BadRequest
+          }
         case None => NotFound
       }
   }
