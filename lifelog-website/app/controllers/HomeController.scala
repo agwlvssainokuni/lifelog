@@ -17,16 +17,13 @@
 package controllers
 
 import PageParam.implicitPageParam
-import play.api.Play.current
-import play.api.db.DB
 import play.api.mvc._
 
-object HomeController extends Controller {
+object HomeController extends Controller with ActionBuilder {
 
-  def index() = Action { implicit req =>
-    DB.withTransaction { implicit c =>
+  def index() = AuthnCustomAction { memberId =>
+    implicit conn => implicit req =>
       Ok(views.html.index())
-    }
   }
 
 }

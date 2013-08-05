@@ -21,7 +21,7 @@
 		<div data-role="header" data-theme="b">
 			@pageParam.member.map{ member => <span>@{member.nickname}</span> }
 			<h1>LifeLog - @title</h1>
-			<a href="#" class="ui-btn-right"
+			<a href="@routes.SessionController.logout()" class="ui-btn-right"
 				data-ajax="false" data-theme="b">ログアウト</a>
 		</div>
 		<div data-role="content">
