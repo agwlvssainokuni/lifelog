@@ -1,8 +1,11 @@
-@(title: String)(content: Html)(footer: Html)(implicit pageParam: PageParam)
+@(frm: Form[Login])(implicit flash: Flash)
+@import controllers.common.FlashName._
+@import views.html.helper._
+@import views.common.custom._
 <!DOCTYPE html>
 <html>
 <head>
-<title>LifeLog - @title</title>
+<title>LifeLog - ログイン</title>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
 <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")" />
@@ -19,16 +22,30 @@
 <body>
 	<div data-role="page">
 		<div data-role="header" data-theme="b">
-			@pageParam.member.map{ member => <span>@{member.nickname}</span> }
-			<h1>LifeLog - @title</h1>
-			<a href="#" class="ui-btn-right"
-				data-ajax="false" data-theme="b">ログアウト</a>
+			<h1>LifeLog - ログイン</h1>
 		</div>
 		<div data-role="content">
-@content
+			@{flash.get(Success).map {
+				case Logout => <h3 class="success">ログアウトしました。</h3>
+			}}
+			@{flash.get(Error).map {
+				case Unauthorized => <h3 class="error">ログインし直してください。</h3>
+			}}
+			@if(frm.hasErrors) {
+				@if(frm.error("login").isDefined) {
+					<h3 class="error">ログインIDまたはパスワードが異なっています。</h3>
+				} else {
+					<h3 class="error">値が不適切です。入力し直してください。</h3>
+				}
+			}
+			@form(routes.SessionController.login(), dataajax -> "false") {
+				@inputText(frm("loginId"), '_label -> "ログインID")
+				@inputPassword(frm("passwd"), '_label -> "パスワード")
+				<input type="hidden" name="uri" value="@frm("uri").value" />
+				<input type="submit" value="ログイン" data-theme="b" />
+			}
 		</div>
 		<div data-role="footer" data-theme="b">
-@footer
 			<h1>Copyright (C), 2013, agwlvssainokuni</h1>
 		</div>
 	</div>

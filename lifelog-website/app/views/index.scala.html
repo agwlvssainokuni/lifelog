@@ -1,7 +1,9 @@
-@(message: String)
-
-@main("Welcome to Play 2.1") {
-    
-    @play20.welcome(message)
-    
-}
+@()(implicit pageParam: PageParam)
+@main("メニュー") {
+<ul data-role="listview">
+	<li><a href="#">ダイエット記録</a></li>
+	<li><a href="#">ドライブ記録</a></li>
+	<li><a href="#">お茶調達記録</a></li>
+	<li><a href="#">プロファイル</a></li>
+</ul>
+} { }
