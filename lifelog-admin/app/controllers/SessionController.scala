@@ -16,7 +16,7 @@
 
 package controllers
 
-import controllers.FlashUtil._
+import common.FlashName._
 import models._
 import play.api.data._
 import play.api.data.Forms._
