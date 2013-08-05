@@ -26,7 +26,7 @@ import play.api.mvc._
 import routes.{ MemberController => route }
 import views.html.{ member => view }
 
-object MemberController extends Controller with CustomActionBuilder {
+object MemberController extends Controller with ActionBuilder {
 
   val memberForm: Form[Member] = Form(mapping(
     "email" -> email.verifying(minLength(1), maxLength(256)),

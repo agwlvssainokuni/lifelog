@@ -25,7 +25,7 @@ import play.api.mvc._
 import routes.{ ProfileController => route }
 import views.html.{ profile => view }
 
-object ProfileController extends Controller with CustomActionBuilder {
+object ProfileController extends Controller with ActionBuilder {
 
   val profileForm: Form[Profile] = Form(mapping(
     "loginId" -> nonEmptyText(1, 32),

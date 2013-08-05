@@ -19,7 +19,7 @@ package controllers
 import PageParam.implicitPageParam
 import play.api.mvc._
 
-object HomeController extends Controller with CustomActionBuilder {
+object HomeController extends Controller with ActionBuilder {
 
   def index() = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>

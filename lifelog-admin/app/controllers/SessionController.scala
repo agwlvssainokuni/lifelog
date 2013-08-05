@@ -25,7 +25,7 @@ import views.html.{ session => view }
 
 case class Login(loginId: String, passwd: String, uri: Option[String])
 
-object SessionController extends Controller with CustomActionBuilder {
+object SessionController extends Controller with ActionBuilder {
 
   val loginForm: Form[Login] = Form(mapping(
     "loginId" -> nonEmptyText(1, 32),

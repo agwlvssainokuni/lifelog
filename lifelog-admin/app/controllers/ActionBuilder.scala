@@ -22,7 +22,7 @@ import play.api.Play.current
 import play.api.db.DB
 import play.api.mvc._
 
-trait CustomActionBuilder {
+trait ActionBuilder extends common.ActionBuilder {
   self: Controller =>
 
   def Authenticated(action: Long => EssentialAction): EssentialAction =
@@ -35,15 +35,5 @@ trait CustomActionBuilder {
           "error" -> "unauthorized",
           "uri" -> req.uri)
       })(id => action(id))
-
-  def CustomAction(block: Connection => Request[AnyContent] => Result): EssentialAction =
-    Action { request =>
-      DB.withTransaction { connection =>
-        block(connection)(request)
-      }
-    }
-
-  def AuthnCustomAction(block: Long => Connection => Request[AnyContent] => Result): EssentialAction =
-    Authenticated { id => CustomAction(block(id)) }
 
 }
