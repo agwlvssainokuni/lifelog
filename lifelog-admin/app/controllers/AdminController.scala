@@ -16,8 +16,8 @@
 
 package controllers
 
-import FlashUtil._
 import PageParam.implicitPageParam
+import common.FlashName._
 import models._
 import play.api.data._
 import play.api.data.Forms._
@@ -25,7 +25,7 @@ import play.api.mvc._
 import routes.{ AdminController => route }
 import views.html.{ admin => view }
 
-object AdminController extends Controller with CustomActionBuilder {
+object AdminController extends Controller with ActionBuilder {
 
   val adminForm: Form[Admin] = Form(mapping(
     "loginId" -> nonEmptyText(1, 32),

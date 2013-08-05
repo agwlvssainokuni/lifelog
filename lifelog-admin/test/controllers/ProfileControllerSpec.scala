@@ -20,9 +20,9 @@ import org.specs2.execute.AsResult
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
-import controllers.FlashUtil._
+import common.FlashName._
 import models._
-import play.api.db.DB
+import play.api.db._
 import play.api.mvc._
 import play.api.test._
 import play.api.test.Helpers._

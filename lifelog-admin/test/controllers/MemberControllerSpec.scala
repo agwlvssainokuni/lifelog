@@ -24,7 +24,7 @@ import org.specs2.execute.AsResult
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
-import FlashUtil._
+import common.FlashName._
 import models._
 import play.api.db._
 import play.api.mvc._

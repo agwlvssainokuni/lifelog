@@ -18,7 +18,7 @@ package controllers
 
 import org.specs2.mutable.Specification
 
-import controllers.FlashUtil._
+import common.FlashName._
 import play.api.test._
 import play.api.test.Helpers._
 

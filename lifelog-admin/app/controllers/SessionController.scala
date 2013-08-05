@@ -16,7 +16,7 @@
 
 package controllers
 
-import controllers.FlashUtil._
+import common.FlashName._
 import models._
 import play.api.data._
 import play.api.data.Forms._
@@ -25,7 +25,7 @@ import views.html.{ session => view }
 
 case class Login(loginId: String, passwd: String, uri: Option[String])
 
-object SessionController extends Controller with CustomActionBuilder {
+object SessionController extends Controller with ActionBuilder {
 
   val loginForm: Form[Login] = Form(mapping(
     "loginId" -> nonEmptyText(1, 32),

@@ -16,17 +16,24 @@
 
 package controllers
 
-object FlashUtil {
+import java.sql.Connection
 
-  val Success = "success"
-  val Error = "error"
+import play.api.Play.current
+import play.api.db.DB
+import play.api.mvc._
 
-  val Logout = "logout"
-  val Unauthorized = "unauthorized"
-  val Create = "create"
-  val Update = "update"
-  val UpdatePw = "updatePw"
-  val Delete = "delete"
-  val Permission = "permission"
+trait ActionBuilder extends common.ActionBuilder {
+  self: Controller =>
+
+  def Authenticated(action: Long => EssentialAction): EssentialAction =
+    Security.Authenticated(
+      req => req.session.get(Security.username).map { id =>
+        id.toLong
+      },
+      req => {
+        Redirect(routes.SessionController.index()).flashing(
+          "error" -> "unauthorized",
+          "uri" -> req.uri)
+      })(id => action(id))
 
 }
