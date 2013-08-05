@@ -1,0 +1,24 @@
+@(frm: Form[Profile])(implicit pageParam: PageParam, flash: Flash)
+@import controllers.common.FlashName._
+@import models._
+@import views.html.helper._
+@import views.common.custom._
+@main("プロファイル変更") {
+@{flash.get(Success).map {
+	case Update => <h3 class="success">プロファイルを変更しました。</h3>
+	case UpdatePw => <h3 class="success">パスワードを変更しました。</h3>
+}}
+@if(frm.hasErrors) {
+	<h3 class="error">値が不適切です。入力し直してください。</h3>
+}
+@form(routes.ProfileController.update(), dataajax -> "false") {
+	@inputText(frm("email"), '_label -> "メールアドレス", 'readonly -> "true")
+	@inputText(frm("nickname"), '_label -> "ニックネーム")
+	@inputDate(frm("birthday"), '_label -> "生年月日(省略可)")
+	<input type="submit" value="変更する" data-theme="a" />
+}
+<div>
+	<a href="@routes.ProfileController.editPw()" data-ajax="false"
+		data-role="button">パスワード</a>
+</div>
+}

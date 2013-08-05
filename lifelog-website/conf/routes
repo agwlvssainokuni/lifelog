@@ -3,13 +3,19 @@
 # ~~~~
 
 # Home page
-GET   /               controllers.HomeController.index()
+GET    /                 controllers.HomeController.index()
 
 # Map static resources from the /public folder to the /assets URL path
-GET   /assets/*file   controllers.Assets.at(path="/public", file)
+GET    /assets/*file     controllers.Assets.at(path="/public", file)
 
 
 # Session
-GET    /login                controllers.SessionController.index()
-POST   /login                controllers.SessionController.login()
-GET    /logout               controllers.SessionController.logout()
+GET    /login            controllers.SessionController.index()
+POST   /login            controllers.SessionController.login()
+GET    /logout           controllers.SessionController.logout()
+
+# Profile
+GET    /profile          controllers.ProfileController.edit()
+POST   /profile          controllers.ProfileController.update()
+GET    /profile/passwd   controllers.ProfileController.editPw()
+POST   /profile/passwd   controllers.ProfileController.updatePw()

@@ -1,0 +1,9 @@
+@(title: String)(content: Html)(implicit pageParam: PageParam)
+@views.html.main(title)(content) {
+<div data-role="navbar" data-iconpos="left">
+	<ul>
+		<li><a href="@routes.HomeController.index()" data-ajax="false"
+			data-icon="home">ホーム</a></li>
+	</ul>
+</div>
+}
