@@ -33,9 +33,9 @@ object ProfileController extends Controller with ActionBuilder {
     "nickname" -> nonEmptyText(1, 256),
     "birthday" -> optional(date("yyyy/MM/dd")))(Profile.apply)(Profile.unapply))
 
-  val passwdForm: Form[Passwd] = Form(mapping(
+  val passwdForm: Form[(String, String)] = Form(tuple(
     "passwd" -> nonEmptyText(1, 32),
-    "passwdConf" -> nonEmptyText(1, 32))(Passwd.apply)(Passwd.unapply))
+    "passwdConf" -> nonEmptyText(1, 32)))
 
   def edit() = AuthnCustomAction { memberId =>
     implicit conn => implicit req =>
@@ -84,8 +84,9 @@ object ProfileController extends Controller with ActionBuilder {
               Ok(view.editPw(error))
             },
             passwd => {
-              if (passwd.passwd == passwd.passwdConf) {
-                Member.updatePw(memberId, passwd.passwd) match {
+              val (pass, conf) = passwd
+              if (pass == conf) {
+                Member.updatePw(memberId, pass) match {
                   case true =>
                     Redirect(route.edit()).flashing(
                       Success -> UpdatePw)
