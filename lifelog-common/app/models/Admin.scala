@@ -18,13 +18,11 @@ package models
 
 import java.sql.Connection
 
-import org.apache.commons.codec.digest.DigestUtils
-
 import anorm._
 import anorm.SqlParser._
-import play.api.Application
 import play.api.Play.current
 import play.api.cache.Cache
+import play.api.libs.Crypto
 
 case class Admin(loginId: String, nickname: String) {
   var id: Pk[Long] = NotAssigned
@@ -161,16 +159,11 @@ object Admin {
         WHERE
             login_id = {loginId}
         FOR UPDATE
-        """).on('loginId -> loginId).singleOpt(scalar[Long])
+        """).on(
+      'loginId -> loginId).singleOpt(scalar[Long])
 
   private def cacheName(id: Long): String = "admin." + id
 
-  private def passwdHash(passwd: String)(implicit app: Application): String =
-    app.configuration.getString("application.secret") match {
-      case Some(secret) =>
-        DigestUtils.shaHex(secret + passwd)
-      case None =>
-        DigestUtils.shaHex(passwd)
-    }
+  private def passwdHash(passwd: String): String = Crypto.sign(passwd)
 
 }

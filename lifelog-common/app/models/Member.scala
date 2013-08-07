@@ -16,16 +16,14 @@
 
 package models
 
-import java.util.Date
 import java.sql.Connection
-
-import org.apache.commons.codec.digest.DigestUtils
+import java.util.Date
 
 import anorm._
 import anorm.SqlParser._
-import play.api.Application
 import play.api.Play.current
 import play.api.cache.Cache
+import play.api.libs.Crypto
 
 case class Member(email: String, nickname: String, birthday: Option[Date]) {
   var id: Pk[Long] = NotAssigned
@@ -53,7 +51,8 @@ object Member {
         ORDER BY id
         LIMIT {limit} OFFSET {offset}
         """).on(
-      'limit -> pageSize, 'offset -> pageSize * pageNo).list(parser)
+      'limit -> pageSize,
+      'offset -> pageSize * pageNo).list(parser)
 
   def find(id: Long)(implicit c: Connection): Option[Member] =
     SQL("""
@@ -119,7 +118,9 @@ object Member {
         """).on(
       'id -> id,
       'passwd -> passwdHash(passwd)).executeUpdate() match {
-        case 1 => true
+        case 1 =>
+          Cache.remove(cacheName(id))
+          true
         case _ => false
       }
 
@@ -165,12 +166,6 @@ object Member {
 
   private def cacheName(id: Long): String = "member." + id
 
-  private def passwdHash(passwd: String)(implicit app: Application): String =
-    app.configuration.getString("application.secret") match {
-      case Some(secret) =>
-        DigestUtils.shaHex(secret + passwd)
-      case None =>
-        DigestUtils.shaHex(passwd)
-    }
+  private def passwdHash(passwd: String): String = Crypto.sign(passwd)
 
 }
