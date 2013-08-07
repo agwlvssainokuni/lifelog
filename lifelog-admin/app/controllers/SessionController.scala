@@ -23,18 +23,16 @@ import play.api.data.Forms._
 import play.api.mvc._
 import views.html.{ session => view }
 
-case class Login(loginId: String, passwd: String, uri: Option[String])
-
 object SessionController extends Controller with ActionBuilder {
 
-  val loginForm: Form[Login] = Form(mapping(
+  val loginForm: Form[(String, String, Option[String])] = Form(tuple(
     "loginId" -> nonEmptyText(1, 32),
     "passwd" -> nonEmptyText(1, 32),
-    "uri" -> optional(text(1, 256)))(Login.apply)(Login.unapply))
+    "uri" -> optional(text(1, 256))))
 
   def index() = CustomAction { implicit conn =>
     implicit req =>
-      Ok(view.index(loginForm.fill(Login("", "", flash.get("uri")))))
+      Ok(view.index(loginForm.fill(("", "", flash.get("uri")))))
   }
 
   def login() = CustomAction { implicit conn =>
@@ -42,10 +40,11 @@ object SessionController extends Controller with ActionBuilder {
       loginForm.bindFromRequest().fold(
         error => Ok(view.index(error)),
         login => {
-          val result = Admin.authenticate(login.loginId, login.passwd)
+          val (loginId, passwd, uri) = login
+          val result = Admin.authenticate(loginId, passwd)
           result match {
             case Some(adminId) =>
-              val redirTo = login.uri.map(Call("GET", _)).getOrElse(
+              val redirTo = uri.map(Call("GET", _)).getOrElse(
                 routes.HomeController.index())
               Redirect(redirTo).withSession(Security.username -> adminId.toString)
             case None =>
