@@ -33,9 +33,9 @@ object MemberController extends Controller with ActionBuilder {
     "nickname" -> nonEmptyText(1, 256),
     "birthday" -> optional(date("yyyy/MM/dd")))(Member.apply)(Member.unapply))
 
-  val passwdForm: Form[Passwd] = Form(mapping(
+  val passwdForm: Form[(String, String)] = Form(tuple(
     "passwd" -> nonEmptyText(1, 32),
-    "passwdConf" -> nonEmptyText(1, 32))(Passwd.apply)(Passwd.unapply))
+    "passwdConf" -> nonEmptyText(1, 32)))
 
   def list(pn: Option[Long], ps: Option[Long]) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
@@ -121,8 +121,9 @@ object MemberController extends Controller with ActionBuilder {
               Ok(view.editPw(id, error))
             },
             passwd => {
-              if (passwd.passwd == passwd.passwdConf)
-                Member.updatePw(id, passwd.passwd) match {
+              val (pass, conf) = passwd
+              if (pass == conf)
+                Member.updatePw(id, pass) match {
                   case true =>
                     Redirect(route.edit(id)).flashing(
                       Success -> UpdatePw)

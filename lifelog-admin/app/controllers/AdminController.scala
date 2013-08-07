@@ -31,9 +31,9 @@ object AdminController extends Controller with ActionBuilder {
     "loginId" -> nonEmptyText(1, 32),
     "nickname" -> nonEmptyText(1, 255))(Admin.apply)(Admin.unapply))
 
-  val passwdForm: Form[Passwd] = Form(mapping(
+  val passwdForm: Form[(String, String)] = Form(tuple(
     "passwd" -> nonEmptyText(1, 32),
-    "passwdConf" -> nonEmptyText(1, 32))(Passwd.apply)(Passwd.unapply))
+    "passwdConf" -> nonEmptyText(1, 32)))
 
   def list(pn: Option[Long], ps: Option[Long]) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
@@ -114,7 +114,7 @@ object AdminController extends Controller with ActionBuilder {
           Redirect(route.list(None, None)).flashing(
             Error -> Permission)
         case Some(_) =>
-          Ok(view.editPw(id, passwdForm.fill(Passwd("", ""))))
+          Ok(view.editPw(id, passwdForm.fill(("", ""))))
         case None => NotFound
       }
   }
@@ -131,8 +131,9 @@ object AdminController extends Controller with ActionBuilder {
               Ok(view.editPw(id, error))
             },
             passwd => {
-              if (passwd.passwd == passwd.passwdConf)
-                Admin.updatePw(id, passwd.passwd) match {
+              val (pass, conf) = passwd
+              if (pass == conf)
+                Admin.updatePw(id, pass) match {
                   case true =>
                     Redirect(route.edit(id)).flashing(
                       Success -> UpdatePw)
