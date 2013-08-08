@@ -28,7 +28,7 @@ import views.html.{ session => view }
 object SessionController extends Controller with ActionBuilder {
 
   val loginForm: Form[(String, String, Option[String])] = Form(tuple(
-    "loginId" -> nonEmptyText(1, 32),
+    "email" -> nonEmptyText(1, 32),
     "passwd" -> nonEmptyText(1, 32),
     "uri" -> optional(text(1, 256))))
 
@@ -42,8 +42,8 @@ object SessionController extends Controller with ActionBuilder {
       loginForm.bindFromRequest().fold(
         error => Ok(view.index(error)),
         login => {
-          val (loginId, passwd, uri) = login
-          Member.authenticate(loginId, passwd) match {
+          val (email, passwd, uri) = login
+          Member.authenticate(email, passwd) match {
             case Some(memberId) =>
               val redirTo = uri.fold(home())(Call("GET", _))
               Redirect(redirTo).withSession(Security.username -> memberId.toString)
