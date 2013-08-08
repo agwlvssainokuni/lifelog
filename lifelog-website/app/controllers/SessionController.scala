@@ -21,6 +21,8 @@ import models._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.mvc._
+import routes.HomeController.{ index => home }
+import routes.{ SessionController => route }
 import views.html.{ session => view }
 
 object SessionController extends Controller with ActionBuilder {
@@ -32,7 +34,7 @@ object SessionController extends Controller with ActionBuilder {
 
   def index() = CustomAction { implicit conn =>
     implicit req =>
-      Ok(view.index(loginForm.fill(("", "", flash.get("uri")))))
+      Ok(view.index(loginForm.fill(("", "", flash.get(Uri)))))
   }
 
   def login() = CustomAction { implicit conn =>
@@ -41,21 +43,19 @@ object SessionController extends Controller with ActionBuilder {
         error => Ok(view.index(error)),
         login => {
           val (loginId, passwd, uri) = login
-          val result = Member.authenticate(loginId, passwd)
-          result match {
+          Member.authenticate(loginId, passwd) match {
             case Some(memberId) =>
-              val redirTo = uri.map(Call("GET", _)).getOrElse(
-                routes.HomeController.index())
+              val redirTo = uri.fold(home())(Call("GET", _))
               Redirect(redirTo).withSession(Security.username -> memberId.toString)
             case None =>
-              Ok(view.index(loginForm.fill(login).withError("login", "login.failed")))
+              Ok(view.index(loginForm.fill(login).withGlobalError("login.failed")))
           }
         })
   }
 
   def logout() = CustomAction { implicit conn =>
     implicit req =>
-      Redirect(routes.SessionController.index()).withNewSession.flashing(
+      Redirect(route.index()).withNewSession.flashing(
         Success -> Logout)
   }
 
