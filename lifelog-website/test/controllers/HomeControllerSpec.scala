@@ -34,8 +34,8 @@ class HomeControllerSpec extends Specification {
         status(res) must equalTo(OK)
         contentType(res) must beSome.which(_ == "text/html")
         val content = contentAsString(res)
-        content must contain("""<title>LifeLog/Admin - メニュー</title>""")
-        content must contain("""<h1>LifeLog/Admin - メニュー</h1>""")
+        content must contain("""<title>LifeLog - メニュー</title>""")
+        content must contain("""<h1>LifeLog - メニュー</h1>""")
       }
     }
 

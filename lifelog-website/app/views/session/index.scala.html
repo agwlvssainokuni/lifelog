@@ -33,13 +33,13 @@
 			}}
 			@if(frm.hasErrors) {
 				@if(frm.hasGlobalErrors) {
-					<h3 class="error">ログインIDまたはパスワードが異なっています。</h3>
+					<h3 class="error">メールアドレスまたはパスワードが異なっています。</h3>
 				} else {
 					<h3 class="error">値が不適切です。入力し直してください。</h3>
 				}
 			}
 			@form(routes.SessionController.login(), dataajax -> "false") {
-				@inputText(frm("loginId"), '_label -> "ログインID")
+				@inputText(frm("email"), '_label -> "メールアドレス")
 				@inputPassword(frm("passwd"), '_label -> "パスワード")
 				<input type="hidden" name="uri" value="@frm("uri").value" />
 				<input type="submit" value="ログイン" data-theme="b" />

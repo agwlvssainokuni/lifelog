@@ -36,9 +36,10 @@ class ProfileControllerSpec extends Specification {
       DB.withTransaction { implicit c =>
         for {
           i <- 1 to 9
-          loginId = "login" + i
+          email = "user" + i + "@domain" + i
           nickname = "ニックネーム" + i
-        } Admin.create(Admin(loginId, nickname))
+          id <- Member.create(Member(email, nickname, None))
+        } Member.updatePw(id, "password")
       }
       t
     }
@@ -79,8 +80,8 @@ class ProfileControllerSpec extends Specification {
         status(res) must equalTo(OK)
         contentType(res) must beSome.which(_ == "text/html")
         val content = contentAsString(res)
-        content must contain("""<title>LifeLog/Admin - プロファイル変更</title>""")
-        content must contain("""<h1>LifeLog/Admin - プロファイル変更</h1>""")
+        content must contain("""<title>LifeLog - プロファイル変更</title>""")
+        content must contain("""<h1>LifeLog - プロファイル変更</h1>""")
       }
     }
     "/profile/passwd" in new TestApp {
@@ -88,8 +89,8 @@ class ProfileControllerSpec extends Specification {
         status(res) must equalTo(OK)
         contentType(res) must beSome.which(_ == "text/html")
         val content = contentAsString(res)
-        content must contain("""<title>LifeLog/Admin - パスワード変更</title>""")
-        content must contain("""<h1>LifeLog/Admin - パスワード変更</h1>""")
+        content must contain("""<title>LifeLog - パスワード変更</title>""")
+        content must contain("""<h1>LifeLog - パスワード変更</h1>""")
       }
     }
   }
@@ -128,8 +129,8 @@ class ProfileControllerSpec extends Specification {
         content must not contain ("""<h3 class="success">パスワードを変更しました。</h3>""")
         content must not contain ("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
         content must contain("""<form action="/profile" method="POST" data-ajax="false">""")
-        content must contain("""<label for="loginId" class="">ログインID</label>""")
-        content must contain("""<input type="text" id="loginId" name="loginId" value="login1" readonly="true">""")
+        content must contain("""<label for="email" class="">メールアドレス</label>""")
+        content must contain("""<input type="text" id="email" name="email" value="user1@domain1" readonly="true">""")
         content must contain("""<label for="nickname" class="">ニックネーム</label>""")
         content must contain("""<input type="text" id="nickname" name="nickname" value="ニックネーム1" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
@@ -163,7 +164,7 @@ class ProfileControllerSpec extends Specification {
 
     "入力値が適正ならば、/profile に転送される。" in new TestApp {
       route(FakeRequest(POST, "/profile").withSession(session).withFormUrlEncodedBody(
-        "loginId" -> "login000", "nickname" -> "nickname000")) must beSome.which { res =>
+        "email" -> "user1@domain1", "nickname" -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/profile")
         flash(res).get(Success) must beSome.which(_ == Update)
@@ -172,13 +173,13 @@ class ProfileControllerSpec extends Specification {
 
     "ニックネームが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/profile").withSession(session).withFormUrlEncodedBody(
-        "loginId" -> "login000", "nickname" -> "")) must beSome.which { res =>
+        "email" -> "user1@domain1", "nickname" -> "")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
         content must contain("""<form action="/profile" method="POST" data-ajax="false">""")
-        content must contain("""<label for="loginId" class="">ログインID</label>""")
-        content must contain("""<input type="text" id="loginId" name="loginId" value="login000" readonly="true">""")
+        content must contain("""<label for="email" class="">メールアドレス</label>""")
+        content must contain("""<input type="text" id="email" name="email" value="user1@domain1" readonly="true">""")
         content must contain("""<label for="nickname" class="error">ニックネーム</label>""")
         content must contain("""<input type="text" id="nickname" name="nickname" value="" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")

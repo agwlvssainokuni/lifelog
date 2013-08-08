@@ -63,55 +63,55 @@ class MemberControllerSpec extends Specification {
       val res = route(FakeRequest(GET, "/members")).get
       status(res) must equalTo(SEE_OTHER)
       header(LOCATION, res) must beSome.which(_ == "/login")
-      flash(res).get("uri") must beSome.which(_ == "/members")
+      flash(res).get(Uri) must beSome.which(_ == "/members")
     }
     "/members/add" in new TestApp {
       route(FakeRequest(GET, "/members/add")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get("uri") must beSome.which(_ == "/members/add")
+        flash(res).get(Uri) must beSome.which(_ == "/members/add")
       }
     }
     "/members/add" in new TestApp {
       route(FakeRequest(POST, "/members/add")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get("uri") must beSome.which(_ == "/members/add")
+        flash(res).get(Uri) must beSome.which(_ == "/members/add")
       }
     }
     "/members/1" in new TestApp {
       route(FakeRequest(GET, "/members/1")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get("uri") must beSome.which(_ == "/members/1")
+        flash(res).get(Uri) must beSome.which(_ == "/members/1")
       }
     }
     "/members/1" in new TestApp {
       route(FakeRequest(POST, "/members/1")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get("uri") must beSome.which(_ == "/members/1")
+        flash(res).get(Uri) must beSome.which(_ == "/members/1")
       }
     }
     "/members/1/passwd" in new TestApp {
       route(FakeRequest(GET, "/members/1/passwd")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get("uri") must beSome.which(_ == "/members/1/passwd")
+        flash(res).get(Uri) must beSome.which(_ == "/members/1/passwd")
       }
     }
     "/members/1/passwd" in new TestApp {
       route(FakeRequest(POST, "/members/1/passwd")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get("uri") must beSome.which(_ == "/members/1/passwd")
+        flash(res).get(Uri) must beSome.which(_ == "/members/1/passwd")
       }
     }
     "/members/1/delete" in new TestApp {
       route(FakeRequest(GET, "/members/1/delete")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get("uri") must beSome.which(_ == "/members/1/delete")
+        flash(res).get(Uri) must beSome.which(_ == "/members/1/delete")
       }
     }
   }

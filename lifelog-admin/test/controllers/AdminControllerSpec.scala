@@ -49,55 +49,55 @@ class AdminControllerSpec extends Specification {
       val res = route(FakeRequest(GET, "/admins")).get
       status(res) must equalTo(SEE_OTHER)
       header(LOCATION, res) must beSome.which(_ == "/login")
-      flash(res).get("uri") must beSome.which(_ == "/admins")
+      flash(res).get(Uri) must beSome.which(_ == "/admins")
     }
     "/admins/add" in new TestApp {
       route(FakeRequest(GET, "/admins/add")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get("uri") must beSome.which(_ == "/admins/add")
+        flash(res).get(Uri) must beSome.which(_ == "/admins/add")
       }
     }
     "/admins/add" in new TestApp {
       route(FakeRequest(POST, "/admins/add")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get("uri") must beSome.which(_ == "/admins/add")
+        flash(res).get(Uri) must beSome.which(_ == "/admins/add")
       }
     }
     "/admins/1" in new TestApp {
       route(FakeRequest(GET, "/admins/1")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get("uri") must beSome.which(_ == "/admins/1")
+        flash(res).get(Uri) must beSome.which(_ == "/admins/1")
       }
     }
     "/admins/1" in new TestApp {
       route(FakeRequest(POST, "/admins/1")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get("uri") must beSome.which(_ == "/admins/1")
+        flash(res).get(Uri) must beSome.which(_ == "/admins/1")
       }
     }
     "/admins/1/passwd" in new TestApp {
       route(FakeRequest(GET, "/admins/1/passwd")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get("uri") must beSome.which(_ == "/admins/1/passwd")
+        flash(res).get(Uri) must beSome.which(_ == "/admins/1/passwd")
       }
     }
     "/admins/1/passwd" in new TestApp {
       route(FakeRequest(POST, "/admins/1/passwd")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get("uri") must beSome.which(_ == "/admins/1/passwd")
+        flash(res).get(Uri) must beSome.which(_ == "/admins/1/passwd")
       }
     }
     "/admins/1/delete" in new TestApp {
       route(FakeRequest(GET, "/admins/1/delete")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get("uri") must beSome.which(_ == "/admins/1/delete")
+        flash(res).get(Uri) must beSome.which(_ == "/admins/1/delete")
       }
     }
   }
