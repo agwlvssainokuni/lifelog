@@ -49,26 +49,26 @@ class ProfileControllerSpec extends Specification {
       val res = route(FakeRequest(GET, "/profile")).get
       status(res) must equalTo(SEE_OTHER)
       header(LOCATION, res) must beSome.which(_ == "/login")
-      flash(res).get("uri") must beSome.which(_ == "/profile")
+      flash(res).get(Uri) must beSome.which(_ == "/profile")
     }
     "/profile" in new TestApp {
       val res = route(FakeRequest(POST, "/profile")).get
       status(res) must equalTo(SEE_OTHER)
       header(LOCATION, res) must beSome.which(_ == "/login")
-      flash(res).get("uri") must beSome.which(_ == "/profile")
+      flash(res).get(Uri) must beSome.which(_ == "/profile")
     }
     "/profile/passwd" in new TestApp {
       route(FakeRequest(GET, "/profile/passwd")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get("uri") must beSome.which(_ == "/profile/passwd")
+        flash(res).get(Uri) must beSome.which(_ == "/profile/passwd")
       }
     }
     "/profile/passwd" in new TestApp {
       route(FakeRequest(POST, "/profile/passwd")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get("uri") must beSome.which(_ == "/profile/passwd")
+        flash(res).get(Uri) must beSome.which(_ == "/profile/passwd")
       }
     }
   }

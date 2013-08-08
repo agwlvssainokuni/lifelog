@@ -18,6 +18,7 @@ package controllers
 
 import org.specs2.mutable.Specification
 
+import common.FlashName._
 import play.api.mvc._
 import play.api.test._
 import play.api.test.Helpers._
@@ -42,7 +43,7 @@ class HomeControllerSpec extends Specification {
       route(FakeRequest(GET, "/")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get("uri") must beSome.which(_ == "/")
+        flash(res).get(Uri) must beSome.which(_ == "/")
         contentType(res) must beNone
         contentAsString(res) must beEmpty
       }
