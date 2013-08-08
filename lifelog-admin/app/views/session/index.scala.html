@@ -32,7 +32,7 @@
 				case Unauthorized => <h3 class="error">ログインし直してください。</h3>
 			}}
 			@if(frm.hasErrors) {
-				@if(frm.error("login").isDefined) {
+				@if(frm.hasGlobalErrors) {
 					<h3 class="error">ログインIDまたはパスワードが異なっています。</h3>
 				} else {
 					<h3 class="error">値が不適切です。入力し直してください。</h3>
