@@ -20,6 +20,7 @@ object FlashName {
 
   val Success = "success"
   val Error = "error"
+  val Uri = "uri"
 
   val Logout = "logout"
   val Unauthorized = "unauthorized"

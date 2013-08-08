@@ -16,10 +16,7 @@
 
 package controllers
 
-import java.sql.Connection
-
-import play.api.Play.current
-import play.api.db.DB
+import common.FlashName._
 import play.api.mvc._
 
 trait ActionBuilder extends common.ActionBuilder {
@@ -32,8 +29,8 @@ trait ActionBuilder extends common.ActionBuilder {
       },
       req => {
         Redirect(routes.SessionController.index()).flashing(
-          "error" -> "unauthorized",
-          "uri" -> req.uri)
+          Error -> common.FlashName.Unauthorized,
+          Uri -> req.uri)
       })(id => action(id))
 
 }
