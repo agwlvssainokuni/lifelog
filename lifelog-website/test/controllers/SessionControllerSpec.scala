@@ -102,7 +102,6 @@ class SessionControllerSpec extends Specification {
     "ログインできる。ホームに転送される。" in new TestApp {
       route(FakeRequest(POST, "/login").withFormUrlEncodedBody(
         "email" -> "name1@domain1", "passwd" -> "password")) must beSome.which { res =>
-        contentAsString(res) must beEmpty
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/")
         contentType(res) must beNone
