@@ -31,12 +31,11 @@
 			@{flash.get(Error).map {
 				case Unauthorized => <h3 class="error">ログインし直してください。</h3>
 			}}
+			@if(frm.hasGlobalErrors) {
+				<h3 class="error">ログインIDまたはパスワードが異なっています。</h3>
+			}
 			@if(frm.hasErrors) {
-				@if(frm.error("login").isDefined) {
-					<h3 class="error">ログインIDまたはパスワードが異なっています。</h3>
-				} else {
-					<h3 class="error">値が不適切です。入力し直してください。</h3>
-				}
+				<h3 class="error">値が不適切です。入力し直してください。</h3>
 			}
 			@form(routes.SessionController.login(), dataajax -> "false") {
 				@inputText(frm("loginId"), '_label -> "ログインID")
