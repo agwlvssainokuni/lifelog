@@ -16,6 +16,7 @@
 
 package controllers
 
+import SessionFormDef._
 import common.FlashName._
 import models._
 import play.api.data._
@@ -25,12 +26,27 @@ import routes.HomeController.{ index => home }
 import routes.{ SessionController => route }
 import views.html.{ session => view }
 
+object SessionFormDef {
+
+  val EMAIL = "email"
+  val EMAIL_MIN = 1
+  val EMAIL_MAX = 256
+
+  val PASSWORD = "password"
+  val PASSWORD_MIN = 1
+  val PASSWORD_MAX = 32
+
+  val URI = "uri"
+  val URI_MIN = 1
+  val URI_MAX = 256
+}
+
 object SessionController extends Controller with ActionBuilder {
 
   val loginForm: Form[(String, String, Option[String])] = Form(tuple(
-    "email" -> nonEmptyText(1, 32),
-    "passwd" -> nonEmptyText(1, 32),
-    "uri" -> optional(text(1, 256))))
+    EMAIL -> nonEmptyText(EMAIL_MIN, EMAIL_MAX),
+    PASSWORD -> nonEmptyText(PASSWORD_MIN, PASSWORD_MAX),
+    URI -> optional(text(URI_MIN, URI_MAX))))
 
   def index() = CustomAction { implicit conn =>
     implicit req =>

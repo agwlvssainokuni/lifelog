@@ -1,4 +1,5 @@
 @(frm: Form[Profile])(implicit pageParam: PageParam, flash: Flash)
+@import controllers.ProfileFormDef._
 @import controllers.common.FlashName._
 @import models._
 @import views.html.helper._
@@ -12,9 +13,9 @@
 	<h3 class="error">値が不適切です。入力し直してください。</h3>
 }
 @form(routes.ProfileController.update(), dataajax -> "false") {
-	@inputText(frm("email"), '_label -> "メールアドレス", 'readonly -> "true")
-	@inputText(frm("nickname"), '_label -> "ニックネーム")
-	@inputDate(frm("birthday"), '_label -> "生年月日(省略可)")
+	@inputText(frm(EMAIL), '_label -> "メールアドレス", 'readonly -> "true")
+	@inputText(frm(NICKNAME), '_label -> "ニックネーム")
+	@inputDate(frm(BIRTHDAY), '_label -> "生年月日(省略可)")
 	<input type="submit" value="変更する" data-theme="b" />
 }
 <div>

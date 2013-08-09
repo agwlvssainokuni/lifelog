@@ -1,4 +1,5 @@
 @(frm: Form[(String, String, Option[String])])(implicit flash: Flash)
+@import controllers.SessionFormDef._
 @import controllers.common.FlashName._
 @import views.html.helper._
 @import views.common.custom._
@@ -39,9 +40,9 @@
 				}
 			}
 			@form(routes.SessionController.login(), dataajax -> "false") {
-				@inputText(frm("email"), '_label -> "メールアドレス")
-				@inputPassword(frm("passwd"), '_label -> "パスワード")
-				<input type="hidden" name="uri" value="@frm("uri").value" />
+				@inputText(frm(EMAIL), '_label -> "メールアドレス")
+				@inputPassword(frm(PASSWORD), '_label -> "パスワード")
+				<input type="hidden" name="uri" value="@frm(URI).value" />
 				<input type="submit" value="ログイン" data-theme="b" />
 			}
 		</div>

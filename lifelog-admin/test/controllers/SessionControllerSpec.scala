@@ -94,7 +94,7 @@ class SessionControllerSpec extends Specification {
 
     "ログインできる。指定されたログイン後転送先に転送される。" in new WithApplication {
       route(FakeRequest(POST, "/login").withFormUrlEncodedBody(
-        LOGIN_ID -> "superadmin", PASSWORD -> "p@ssw0rd", "uri" -> "/members")) must beSome.which { res =>
+        LOGIN_ID -> "superadmin", PASSWORD -> "p@ssw0rd", URI -> "/members")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/members")
         contentType(res) must beNone
