@@ -153,8 +153,8 @@ object MemberController extends Controller with ActionBuilder {
                   case false => BadRequest
                 }
               else
-                Ok(view.editPw(id, passwdForm.fill(passwd).withError(
-                  "unmatch", "passwd.unmatch")))
+                Ok(view.editPw(id, passwdForm.fill(passwd).withGlobalError(
+                  "error.password.unmatch")))
             })
         case None => NotFound
       }

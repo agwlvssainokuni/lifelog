@@ -32,8 +32,8 @@ import play.api.data.Forms.mapping
 import play.api.data.Forms.nonEmptyText
 import play.api.data.Forms.tuple
 import play.api.mvc.Controller
-import routes.{AdminController => route}
-import views.html.{admin => view}
+import routes.{ AdminController => route }
+import views.html.{ admin => view }
 
 object AdminFormDef {
 
@@ -169,8 +169,8 @@ object AdminController extends Controller with ActionBuilder {
                   case false => BadRequest
                 }
               else
-                Ok(view.editPw(id, passwdForm.fill(passwd).withError(
-                  "unmatch", "passwd.unmatch")))
+                Ok(view.editPw(id, passwdForm.fill(passwd).withGlobalError(
+                  "error.password.unmatch")))
             })
         case None => NotFound
       }

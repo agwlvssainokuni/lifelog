@@ -111,8 +111,8 @@ object ProfileController extends Controller with ActionBuilder {
                   case false => BadRequest
                 }
               } else {
-                Ok(view.editPw(passwdForm.fill(passwd).withError(
-                  "unmatch", "passwd.unmatch")))
+                Ok(view.editPw(passwdForm.fill(passwd).withGlobalError(
+                  "error.password.unmatch")))
               }
             })
         case None => NotFound
