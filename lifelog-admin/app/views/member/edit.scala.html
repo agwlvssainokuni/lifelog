@@ -1,4 +1,5 @@
 @(id: Long, frm: Form[Member])(implicit pageParam: PageParam, flash: Flash)
+@import controllers.MemberFormDef._
 @import controllers.common.FlashName._
 @import models._
 @import views.html.helper._
@@ -13,9 +14,9 @@
 	<h3 class="error">値が不適切です。入力し直してください。</h3>
 }
 @form(routes.MemberController.update(id), dataajax -> "false") {
-	@inputText(frm("email"), '_label -> "メールアドレス")
-	@inputText(frm("nickname"), '_label -> "ニックネーム")
-	@inputText(frm("birthday"), '_label -> "生年月日(省略可)", 'type -> "date")
+	@inputText(frm(EMAIL), '_label -> "メールアドレス")
+	@inputText(frm(NICKNAME), '_label -> "ニックネーム")
+	@inputText(frm(BIRTHDAY), '_label -> "生年月日(省略可)", 'type -> "date")
 	<input type="submit" value="変更する" data-theme="a" />
 }
 <div>

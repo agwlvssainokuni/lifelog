@@ -20,6 +20,7 @@ import org.specs2.execute.AsResult
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
+import ProfileFormDef._
 import common.FlashName._
 import models._
 import play.api.db._
@@ -163,7 +164,7 @@ class ProfileControllerSpec extends Specification {
 
     "入力値が適正ならば、/profile に転送される。" in new TestApp {
       route(FakeRequest(POST, "/profile").withSession(session).withFormUrlEncodedBody(
-        "loginId" -> "login000", "nickname" -> "nickname000")) must beSome.which { res =>
+        LOGIN_ID -> "login000", NICKNAME -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/profile")
         flash(res).get(Success) must beSome.which(_ == Update)
@@ -172,7 +173,7 @@ class ProfileControllerSpec extends Specification {
 
     "ニックネームが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/profile").withSession(session).withFormUrlEncodedBody(
-        "loginId" -> "login000", "nickname" -> "")) must beSome.which { res =>
+        LOGIN_ID -> "login000", NICKNAME -> "")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
@@ -194,10 +195,10 @@ class ProfileControllerSpec extends Specification {
         val content = contentAsString(res)
         content must not contain ("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
         content must contain("""<form action="/profile/passwd" method="POST" data-ajax="false">""")
-        content must contain("""<label for="passwd" class="">パスワード</label>""")
-        content must contain("""<input type="password" id="passwd" name="passwd" >""")
-        content must contain("""<label for="passwdConf" class="">確認</label>""")
-        content must contain("""<input type="password" id="passwdConf" name="passwdConf" >""")
+        content must contain("""<label for="password" class="">パスワード</label>""")
+        content must contain("""<input type="password" id="password" name="password" >""")
+        content must contain("""<label for="confirm" class="">確認</label>""")
+        content must contain("""<input type="password" id="confirm" name="confirm" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
       }
     }
@@ -207,7 +208,7 @@ class ProfileControllerSpec extends Specification {
 
     "入力値が適正ならば、/profile に転送される。" in new TestApp {
       route(FakeRequest(POST, "/profile/passwd").withSession(session).withFormUrlEncodedBody(
-        "passwd" -> "passwd000", "passwdConf" -> "passwd000")) must beSome.which { res =>
+        PASSWORD -> "passwd000", CONFIRM -> "passwd000")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/profile")
         flash(res).get(Success) must beSome.which(_ == UpdatePw)
@@ -216,45 +217,45 @@ class ProfileControllerSpec extends Specification {
 
     "パスワードが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/profile/passwd").withSession(session).withFormUrlEncodedBody(
-        "passwd" -> "", "passwdConf" -> "passwd000")) must beSome.which { res =>
+        PASSWORD -> "", CONFIRM -> "passwd000")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
         content must contain("""<form action="/profile/passwd" method="POST" data-ajax="false">""")
-        content must contain("""<label for="passwd" class="error">パスワード</label>""")
-        content must contain("""<input type="password" id="passwd" name="passwd" >""")
-        content must contain("""<label for="passwdConf" class="">確認</label>""")
-        content must contain("""<input type="password" id="passwdConf" name="passwdConf" >""")
+        content must contain("""<label for="password" class="error">パスワード</label>""")
+        content must contain("""<input type="password" id="password" name="password" >""")
+        content must contain("""<label for="confirm" class="">確認</label>""")
+        content must contain("""<input type="password" id="confirm" name="confirm" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
       }
     }
 
     "確認が入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/profile/passwd").withSession(session).withFormUrlEncodedBody(
-        "passwd" -> "passwd000", "passwdConf" -> "")) must beSome.which { res =>
+        PASSWORD -> "passwd000", CONFIRM -> "")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
         content must contain("""<form action="/profile/passwd" method="POST" data-ajax="false">""")
-        content must contain("""<label for="passwd" class="">パスワード</label>""")
-        content must contain("""<input type="password" id="passwd" name="passwd" >""")
-        content must contain("""<label for="passwdConf" class="error">確認</label>""")
-        content must contain("""<input type="password" id="passwdConf" name="passwdConf" >""")
+        content must contain("""<label for="password" class="">パスワード</label>""")
+        content must contain("""<input type="password" id="password" name="password" >""")
+        content must contain("""<label for="confirm" class="error">確認</label>""")
+        content must contain("""<input type="password" id="confirm" name="confirm" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
       }
     }
 
     "パスワードと確認が同じでなければ、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/profile/passwd").withSession(session).withFormUrlEncodedBody(
-        "passwd" -> "passwd000", "passwdConf" -> "passwd001")) must beSome.which { res =>
+        PASSWORD -> "passwd000", CONFIRM -> "passwd001")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
         content must contain("""<form action="/profile/passwd" method="POST" data-ajax="false">""")
-        content must contain("""<label for="passwd" class="">パスワード</label>""")
-        content must contain("""<input type="password" id="passwd" name="passwd" >""")
-        content must contain("""<label for="passwdConf" class="">確認</label>""")
-        content must contain("""<input type="password" id="passwdConf" name="passwdConf" >""")
+        content must contain("""<label for="password" class="">パスワード</label>""")
+        content must contain("""<input type="password" id="password" name="password" >""")
+        content must contain("""<label for="confirm" class="">確認</label>""")
+        content must contain("""<input type="password" id="confirm" name="confirm" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
       }
     }

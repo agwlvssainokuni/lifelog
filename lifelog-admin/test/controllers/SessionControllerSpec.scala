@@ -18,6 +18,7 @@ package controllers
 
 import org.specs2.mutable.Specification
 
+import SessionFormDef._
 import common.FlashName._
 import play.api.test._
 import play.api.test.Helpers._
@@ -32,7 +33,7 @@ class SessionControllerSpec extends Specification {
         contentType(res) must beSome.which(_ == "text/html")
         val content = contentAsString(res)
         content must contain("""<label for="loginId" class="">ログインID</label>""")
-        content must contain("""<label for="passwd" class="">パスワード</label>""")
+        content must contain("""<label for="password" class="">パスワード</label>""")
         content must not contain ("ログアウトしました。")
         content must not contain ("ログインし直してください。")
         content must not contain ("""<input type="hidden" name="uri" value="/members" />""")
@@ -45,7 +46,7 @@ class SessionControllerSpec extends Specification {
         contentType(res) must beSome.which(_ == "text/html")
         val content = contentAsString(res)
         content must contain("""<label for="loginId" class="">ログインID</label>""")
-        content must contain("""<label for="passwd" class="">パスワード</label>""")
+        content must contain("""<label for="password" class="">パスワード</label>""")
         content must contain("ログアウトしました。")
         content must not contain ("ログインし直してください。")
         content must not contain ("""<input type="hidden" name="uri" value="/members" />""")
@@ -58,7 +59,7 @@ class SessionControllerSpec extends Specification {
         contentType(res) must beSome.which(_ == "text/html")
         val content = contentAsString(res)
         content must contain("""<label for="loginId" class="">ログインID</label>""")
-        content must contain("""<label for="passwd" class="">パスワード</label>""")
+        content must contain("""<label for="password" class="">パスワード</label>""")
         content must not contain ("ログアウトしました。")
         content must contain("ログインし直してください。")
         content must not contain ("""<input type="hidden" name="uri" value="/members" />""")
@@ -71,7 +72,7 @@ class SessionControllerSpec extends Specification {
         contentType(res) must beSome.which(_ == "text/html")
         val content = contentAsString(res)
         content must contain("""<label for="loginId" class="">ログインID</label>""")
-        content must contain("""<label for="passwd" class="">パスワード</label>""")
+        content must contain("""<label for="password" class="">パスワード</label>""")
         content must not contain ("ログアウトしました。")
         content must not contain ("ログインし直してください。")
         content must contain("""<input type="hidden" name="uri" value="/members" />""")
@@ -83,7 +84,7 @@ class SessionControllerSpec extends Specification {
 
     "ログインできる。ホームに転送される。" in new WithApplication {
       route(FakeRequest(POST, "/login").withFormUrlEncodedBody(
-        "loginId" -> "superadmin", "passwd" -> "p@ssw0rd")) must beSome.which { res =>
+        LOGIN_ID -> "superadmin", PASSWORD -> "p@ssw0rd")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/")
         contentType(res) must beNone
@@ -93,7 +94,7 @@ class SessionControllerSpec extends Specification {
 
     "ログインできる。指定されたログイン後転送先に転送される。" in new WithApplication {
       route(FakeRequest(POST, "/login").withFormUrlEncodedBody(
-        "loginId" -> "superadmin", "passwd" -> "p@ssw0rd", "uri" -> "/members")) must beSome.which { res =>
+        LOGIN_ID -> "superadmin", PASSWORD -> "p@ssw0rd", "uri" -> "/members")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/members")
         contentType(res) must beNone
@@ -103,7 +104,7 @@ class SessionControllerSpec extends Specification {
 
     "ログインID入力不正 (必須違反) でNG。" in new WithApplication {
       route(FakeRequest(POST, "/login").withFormUrlEncodedBody(
-        "loginId" -> "", "passwd" -> "p@ssw0rd")) must beSome.which { res =>
+        LOGIN_ID -> "", PASSWORD -> "p@ssw0rd")) must beSome.which { res =>
         status(res) must equalTo(OK)
         header(LOCATION, res) must beNone
         contentType(res) must beSome.which(_ == "text/html")
@@ -111,13 +112,13 @@ class SessionControllerSpec extends Specification {
         content must contain("値が不適切です。入力し直してください。")
         content must not contain ("ログインIDまたはパスワードが異なっています。")
         content must contain("""<label for="loginId" class="error">ログインID</label>""")
-        content must contain("""<label for="passwd" class="">パスワード</label>""")
+        content must contain("""<label for="password" class="">パスワード</label>""")
       }
     }
 
     "パスワード入力不正 (必須違反) でNG。" in new WithApplication {
       route(FakeRequest(POST, "/login").withFormUrlEncodedBody(
-        "loginId" -> "superadmin", "passwd" -> "")) must beSome.which { res =>
+        LOGIN_ID -> "superadmin", PASSWORD -> "")) must beSome.which { res =>
         status(res) must equalTo(OK)
         header(LOCATION, res) must beNone
         contentType(res) must beSome.which(_ == "text/html")
@@ -125,13 +126,13 @@ class SessionControllerSpec extends Specification {
         content must contain("値が不適切です。入力し直してください。")
         content must not contain ("ログインIDまたはパスワードが異なっています。")
         content must contain("""<label for="loginId" class="">ログインID</label>""")
-        content must contain("""<label for="passwd" class="error">パスワード</label>""")
+        content must contain("""<label for="password" class="error">パスワード</label>""")
       }
     }
 
     "ログインID/パスワード不適合でNG。" in new WithApplication {
       route(FakeRequest(POST, "/login").withFormUrlEncodedBody(
-        "loginId" -> "superadmin", "passwd" -> "NOMATCH")) must beSome.which { res =>
+        LOGIN_ID -> "superadmin", PASSWORD -> "NOMATCH")) must beSome.which { res =>
         status(res) must equalTo(OK)
         header(LOCATION, res) must beNone
         contentType(res) must beSome.which(_ == "text/html")
@@ -139,7 +140,7 @@ class SessionControllerSpec extends Specification {
         content must not contain ("値が不適切です。入力し直してください。")
         content must contain("ログインIDまたはパスワードが異なっています。")
         content must contain("""<label for="loginId" class="">ログインID</label>""")
-        content must contain("""<label for="passwd" class="">パスワード</label>""")
+        content must contain("""<label for="password" class="">パスワード</label>""")
       }
     }
   }

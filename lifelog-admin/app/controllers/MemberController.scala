@@ -16,6 +16,7 @@
 
 package controllers
 
+import MemberFormDef._
 import PageParam.implicitPageParam
 import common.FlashName._
 import models._
@@ -26,16 +27,38 @@ import play.api.mvc._
 import routes.{ MemberController => route }
 import views.html.{ member => view }
 
+object MemberFormDef {
+
+  val EMAIL = "email"
+  val EMAIL_MIN = 1
+  val EMAIL_MAX = 256
+
+  val NICKNAME = "nickname"
+  val NICKNAME_MIN = 1
+  val NICKNAME_MAX = 256
+
+  val BIRTHDAY = "birthday"
+  val BIRTHDAY_PATTERN = "yyyy/MM/dd"
+
+  val PASSWORD = "password"
+  val PASSWORD_MIN = 1
+  val PASSWORD_MAX = 32
+
+  val CONFIRM = "confirm"
+  val CONFIRM_MIN = 1
+  val CONFIRM_MAX = 32
+}
+
 object MemberController extends Controller with ActionBuilder {
 
   val memberForm: Form[Member] = Form(mapping(
-    "email" -> email.verifying(minLength(1), maxLength(256)),
-    "nickname" -> nonEmptyText(1, 256),
-    "birthday" -> optional(date("yyyy/MM/dd")))(Member.apply)(Member.unapply))
+    EMAIL -> email.verifying(minLength(EMAIL_MIN), maxLength(EMAIL_MAX)),
+    NICKNAME -> nonEmptyText(NICKNAME_MIN, NICKNAME_MAX),
+    BIRTHDAY -> optional(date(BIRTHDAY_PATTERN)))(Member.apply)(Member.unapply))
 
   val passwdForm: Form[(String, String)] = Form(tuple(
-    "passwd" -> nonEmptyText(1, 32),
-    "passwdConf" -> nonEmptyText(1, 32)))
+    PASSWORD -> nonEmptyText(PASSWORD_MIN, PASSWORD_MAX),
+    CONFIRM -> nonEmptyText(CONFIRM_MIN, CONFIRM_MAX)))
 
   def list(pn: Option[Long], ps: Option[Long]) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>

@@ -20,6 +20,7 @@ import org.specs2.execute.AsResult
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
+import AdminFormDef._
 import common.FlashName._
 import models._
 import play.api.db._
@@ -234,7 +235,7 @@ class AdminControllerSpec extends Specification {
 
     "入力値が適正ならば、/admins/:id に転送される。データが作成される。" in new TestApp {
       route(FakeRequest(POST, "/admins/add").withSession(session).withFormUrlEncodedBody(
-        "loginId" -> "login000", "nickname" -> "nickname000")) must beSome.which { res =>
+        LOGIN_ID -> "login000", NICKNAME -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/admins/10")
         flash(res).get(Success) must beSome.which(_ == Create)
@@ -246,7 +247,7 @@ class AdminControllerSpec extends Specification {
 
     "ログインIDが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/admins/add").withSession(session).withFormUrlEncodedBody(
-        "loginId" -> "", "nickname" -> "nickname000")) must beSome.which { res =>
+        LOGIN_ID -> "", NICKNAME -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
@@ -261,7 +262,7 @@ class AdminControllerSpec extends Specification {
 
     "ニックネームが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/admins/add").withSession(session).withFormUrlEncodedBody(
-        "loginId" -> "login000", "nickname" -> "")) must beSome.which { res =>
+        LOGIN_ID -> "login000", NICKNAME -> "")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
@@ -276,7 +277,7 @@ class AdminControllerSpec extends Specification {
 
     "ログインIDが入力不正(一意性NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/admins/add").withSession(session).withFormUrlEncodedBody(
-        "loginId" -> "login9", "nickname" -> "nickname000")) must beSome.which { res =>
+        LOGIN_ID -> "login9", NICKNAME -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
@@ -350,7 +351,7 @@ class AdminControllerSpec extends Specification {
 
     "入力値が適正ならば、/admins/:id に転送される。データが更新される。(ログインID変更なし)" in new TestApp {
       route(FakeRequest(POST, "/admins/1").withSession(session).withFormUrlEncodedBody(
-        "loginId" -> "login1", "nickname" -> "nickname000")) must beSome.which { res =>
+        LOGIN_ID -> "login1", NICKNAME -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/admins/1")
         flash(res).get(Success) must beSome.which(_ == Update)
@@ -365,7 +366,7 @@ class AdminControllerSpec extends Specification {
 
     "入力値が適正ならば、/admins/:id に転送される。データが更新される。(ログインID変更あり)" in new TestApp {
       route(FakeRequest(POST, "/admins/1").withSession(session).withFormUrlEncodedBody(
-        "loginId" -> "login000", "nickname" -> "nickname000")) must beSome.which { res =>
+        LOGIN_ID -> "login000", NICKNAME -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/admins/1")
         flash(res).get(Success) must beSome.which(_ == Update)
@@ -380,7 +381,7 @@ class AdminControllerSpec extends Specification {
 
     "ログインIDが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/admins/1").withSession(session).withFormUrlEncodedBody(
-        "loginId" -> "", "nickname" -> "nickname000")) must beSome.which { res =>
+        LOGIN_ID -> "", NICKNAME -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
@@ -395,7 +396,7 @@ class AdminControllerSpec extends Specification {
 
     "ニックネームが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/admins/1").withSession(session).withFormUrlEncodedBody(
-        "loginId" -> "login000", "nickname" -> "")) must beSome.which { res =>
+        LOGIN_ID -> "login000", NICKNAME -> "")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
@@ -410,7 +411,7 @@ class AdminControllerSpec extends Specification {
 
     "ログインIDが入力不正(一意性NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/admins/1").withSession(session).withFormUrlEncodedBody(
-        "loginId" -> "login9", "nickname" -> "nickname000")) must beSome.which { res =>
+        LOGIN_ID -> "login9", NICKNAME -> "nickname000")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
@@ -432,10 +433,10 @@ class AdminControllerSpec extends Specification {
         val content = contentAsString(res)
         content must not contain ("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
         content must contain("""<form action="/admins/1/passwd" method="POST" data-ajax="false">""")
-        content must contain("""<label for="passwd" class="">パスワード</label>""")
-        content must contain("""<input type="password" id="passwd" name="passwd" >""")
-        content must contain("""<label for="passwdConf" class="">確認</label>""")
-        content must contain("""<input type="password" id="passwdConf" name="passwdConf" >""")
+        content must contain("""<label for="password" class="">パスワード</label>""")
+        content must contain("""<input type="password" id="password" name="password" >""")
+        content must contain("""<label for="confirm" class="">確認</label>""")
+        content must contain("""<input type="password" id="confirm" name="confirm" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
       }
     }
@@ -445,7 +446,7 @@ class AdminControllerSpec extends Specification {
 
     "入力値が適正ならば、/admins/:id に転送される。" in new TestApp {
       route(FakeRequest(POST, "/admins/1/passwd").withSession(session).withFormUrlEncodedBody(
-        "passwd" -> "passwd000", "passwdConf" -> "passwd000")) must beSome.which { res =>
+        PASSWORD -> "passwd000", CONFIRM -> "passwd000")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/admins/1")
         flash(res).get(Success) must beSome.which(_ == UpdatePw)
@@ -454,45 +455,45 @@ class AdminControllerSpec extends Specification {
 
     "パスワードが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/admins/1/passwd").withSession(session).withFormUrlEncodedBody(
-        "passwd" -> "", "passwdConf" -> "passwd000")) must beSome.which { res =>
+        PASSWORD -> "", CONFIRM -> "passwd000")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
         content must contain("""<form action="/admins/1/passwd" method="POST" data-ajax="false">""")
-        content must contain("""<label for="passwd" class="error">パスワード</label>""")
-        content must contain("""<input type="password" id="passwd" name="passwd" >""")
-        content must contain("""<label for="passwdConf" class="">確認</label>""")
-        content must contain("""<input type="password" id="passwdConf" name="passwdConf" >""")
+        content must contain("""<label for="password" class="error">パスワード</label>""")
+        content must contain("""<input type="password" id="password" name="password" >""")
+        content must contain("""<label for="confirm" class="">確認</label>""")
+        content must contain("""<input type="password" id="confirm" name="confirm" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
       }
     }
 
     "確認が入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/admins/1/passwd").withSession(session).withFormUrlEncodedBody(
-        "passwd" -> "passwd000", "passwdConf" -> "")) must beSome.which { res =>
+        PASSWORD -> "passwd000", CONFIRM -> "")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
         content must contain("""<form action="/admins/1/passwd" method="POST" data-ajax="false">""")
-        content must contain("""<label for="passwd" class="">パスワード</label>""")
-        content must contain("""<input type="password" id="passwd" name="passwd" >""")
-        content must contain("""<label for="passwdConf" class="error">確認</label>""")
-        content must contain("""<input type="password" id="passwdConf" name="passwdConf" >""")
+        content must contain("""<label for="password" class="">パスワード</label>""")
+        content must contain("""<input type="password" id="password" name="password" >""")
+        content must contain("""<label for="confirm" class="error">確認</label>""")
+        content must contain("""<input type="password" id="confirm" name="confirm" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
       }
     }
 
     "パスワードと確認が同じでなければ、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/admins/1/passwd").withSession(session).withFormUrlEncodedBody(
-        "passwd" -> "passwd000", "passwdConf" -> "passwd001")) must beSome.which { res =>
+        PASSWORD -> "passwd000", CONFIRM -> "passwd001")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
         content must contain("""<form action="/admins/1/passwd" method="POST" data-ajax="false">""")
-        content must contain("""<label for="passwd" class="">パスワード</label>""")
-        content must contain("""<input type="password" id="passwd" name="passwd" >""")
-        content must contain("""<label for="passwdConf" class="">確認</label>""")
-        content must contain("""<input type="password" id="passwdConf" name="passwdConf" >""")
+        content must contain("""<label for="password" class="">パスワード</label>""")
+        content must contain("""<input type="password" id="password" name="password" >""")
+        content must contain("""<label for="confirm" class="">確認</label>""")
+        content must contain("""<input type="password" id="confirm" name="confirm" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
       }
     }

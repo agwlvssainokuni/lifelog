@@ -16,24 +16,53 @@
 
 package controllers
 
+import AdminFormDef._
 import PageParam.implicitPageParam
-import common.FlashName._
-import models._
-import play.api.data._
-import play.api.data.Forms._
-import play.api.mvc._
-import routes.{ AdminController => route }
-import views.html.{ admin => view }
+import common.FlashName.Create
+import common.FlashName.Delete
+import common.FlashName.Error
+import common.FlashName.Permission
+import common.FlashName.Success
+import common.FlashName.Update
+import common.FlashName.UpdatePw
+import models.Admin
+import models.Pager
+import play.api.data.Form
+import play.api.data.Forms.mapping
+import play.api.data.Forms.nonEmptyText
+import play.api.data.Forms.tuple
+import play.api.mvc.Controller
+import routes.{AdminController => route}
+import views.html.{admin => view}
+
+object AdminFormDef {
+
+  val LOGIN_ID = "loginId"
+  val LOGIN_ID_MIN = 1
+  val LOGIN_ID_MAX = 32
+
+  val NICKNAME = "nickname"
+  val NICKNAME_MIN = 1
+  val NICKNAME_MAX = 256
+
+  val PASSWORD = "password"
+  val PASSWORD_MIN = 1
+  val PASSWORD_MAX = 32
+
+  val CONFIRM = "confirm"
+  val CONFIRM_MIN = 1
+  val CONFIRM_MAX = 32
+}
 
 object AdminController extends Controller with ActionBuilder {
 
   val adminForm: Form[Admin] = Form(mapping(
-    "loginId" -> nonEmptyText(1, 32),
-    "nickname" -> nonEmptyText(1, 256))(Admin.apply)(Admin.unapply))
+    LOGIN_ID -> nonEmptyText(LOGIN_ID_MIN, LOGIN_ID_MAX),
+    NICKNAME -> nonEmptyText(NICKNAME_MIN, NICKNAME_MAX))(Admin.apply)(Admin.unapply))
 
   val passwdForm: Form[(String, String)] = Form(tuple(
-    "passwd" -> nonEmptyText(1, 32),
-    "passwdConf" -> nonEmptyText(1, 32)))
+    PASSWORD -> nonEmptyText(PASSWORD_MIN, PASSWORD_MAX),
+    CONFIRM -> nonEmptyText(CONFIRM_MIN, CONFIRM_MAX)))
 
   def list(pn: Option[Long], ps: Option[Long]) = AuthnCustomAction { adminId =>
     implicit conn => implicit req =>
