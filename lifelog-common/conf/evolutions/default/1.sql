@@ -5,9 +5,9 @@
 
 CREATE SEQUENCE admins_id_seq;
 CREATE TABLE admins (
-    id INTEGER NOT NULL DEFAULT nextval('admins_id_seq'),
+    id BIGINT NOT NULL DEFAULT nextval('admins_id_seq'),
     login_id VARCHAR(32) NOT NULL,
-    nickname VARCHAR(255) NOT NULL,
+    nickname VARCHAR(256) NOT NULL,
     passwd VARCHAR(64) NOT NULL DEFAULT '',
     updated_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -17,9 +17,9 @@ CREATE UNIQUE INDEX admins_login_id ON admins(login_id);
 
 CREATE SEQUENCE members_id_seq;
 CREATE TABLE members (
-    id INTEGER NOT NULL DEFAULT nextval('members_id_seq'),
-    email VARCHAR(255) NOT NULL,
-    nickname VARCHAR(255) NOT NULL,
+    id BIGINT NOT NULL DEFAULT nextval('members_id_seq'),
+    email VARCHAR(256) NOT NULL,
+    nickname VARCHAR(256) NOT NULL,
     birthday DATE,
     passwd VARCHAR(64) NOT NULL DEFAULT '',
     updated_at TIMESTAMP NOT NULL,

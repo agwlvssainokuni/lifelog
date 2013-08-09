@@ -46,7 +46,7 @@ class MemberSpec extends Specification {
           email = "name" + id + "@domain" + id
           nickname = "ニックネーム" + id
           birthday = newDate(1980 + id, id, id)
-        } Member.create(Member(email, nickname, Some(birthday)))
+        } Member.create(Member(email, nickname, Some(birthday))) must beSome.which(_ == id)
       }
       t
     }

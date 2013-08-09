@@ -29,7 +29,7 @@ object AdminController extends Controller with ActionBuilder {
 
   val adminForm: Form[Admin] = Form(mapping(
     "loginId" -> nonEmptyText(1, 32),
-    "nickname" -> nonEmptyText(1, 255))(Admin.apply)(Admin.unapply))
+    "nickname" -> nonEmptyText(1, 256))(Admin.apply)(Admin.unapply))
 
   val passwdForm: Form[(String, String)] = Form(tuple(
     "passwd" -> nonEmptyText(1, 32),

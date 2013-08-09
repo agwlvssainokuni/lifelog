@@ -32,7 +32,7 @@ class AdminSpec extends Specification {
           id <- 1 to 9
           loginId = "login" + id
           nickname = "ニックネーム" + id
-        } Admin.create(Admin(loginId, nickname))
+        } Admin.create(Admin(loginId, nickname)) must beSome.which(_ == id)
       }
       t
     }

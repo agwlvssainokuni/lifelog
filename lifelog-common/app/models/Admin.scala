@@ -82,7 +82,7 @@ object Admin {
         """).on(
       'loginId -> admin.loginId, 'nickname -> admin.nickname).executeUpdate() match {
         case 1 =>
-          SQL("""SELECT currval('admins_id_seq') FROM dual""").singleOpt(scalar[Long])
+          SQL("""SELECT IDENTITY() FROM dual""").singleOpt(scalar[Long])
         case _ => None
       }
 

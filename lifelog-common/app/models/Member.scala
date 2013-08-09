@@ -85,7 +85,7 @@ object Member {
         """).on(
       'email -> member.email, 'nickname -> member.nickname, 'birthday -> member.birthday).executeUpdate() match {
         case 1 =>
-          SQL("""SELECT currval('members_id_seq') FROM dual""").singleOpt(scalar[Long])
+          SQL("""SELECT IDENTITY() FROM dual""").singleOpt(scalar[Long])
         case _ => None
       }
 
