@@ -1,7 +1,7 @@
 @()(implicit pageParam: PageParam)
 @main("メニュー") {
 <ul data-role="listview">
-	<li><a href="#">ダイエット記録</a></li>
+	<li><a href="@routes.DietLogController.list(None, None)">ダイエット記録</a></li>
 	<li><a href="#">ドライブ記録</a></li>
 	<li><a href="#">お茶調達記録</a></li>
 	<li><a href="@routes.ProfileController.edit()">プロファイル</a></li>

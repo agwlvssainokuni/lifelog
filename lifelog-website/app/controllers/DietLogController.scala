@@ -16,39 +16,91 @@
 
 package controllers
 
+import DietLogForm._
 import PageParam.implicitPageParam
-import play.api.mvc.Controller
+import common.FlashName._
+import java.util._
+import models._
+import play.api.mvc._
+import routes.{ DietLogController => route }
+import views.html.{ dietlog => view }
 
 object DietLogController extends Controller with ActionBuilder {
 
   def list(pn: Option[Long], ps: Option[Long]) = AuthnCustomAction { memberId =>
     implicit conn => implicit req =>
-      NotImplemented
+      val pager = Pager(pn, ps, DietLog.count(memberId))
+      val list = DietLog.list(memberId, pager.pageNo, pager.pageSize)
+      Ok(view.list(pager, list))
   }
 
   def add() = AuthnCustomAction { memberId =>
     implicit conn => implicit req =>
-      NotImplemented
+      val dietLog = DietLog.last(memberId) match {
+        case Some(l) => DietLog(new Date, l.weight, l.fatRate, l.height, None)
+        case None => DietLog(new Date, BigDecimal(0), BigDecimal(0), None, None)
+      }
+      Ok(view.add(dietLogForm.fill(dietLog)))
   }
 
   def create() = AuthnCustomAction { memberId =>
     implicit conn => implicit req =>
-      NotImplemented
+      dietLogForm.bindFromRequest().fold(
+        error => {
+          Ok(view.add(error))
+        },
+        dietLog => {
+          DietLog.create(memberId, dietLog) match {
+            case Some(id) =>
+              Redirect(route.edit(id)).flashing(
+                Success -> Create)
+            case None =>
+              Ok(view.add(dietLogForm.fill(dietLog)))
+          }
+        })
   }
 
   def edit(id: Long) = AuthnCustomAction { memberId =>
     implicit conn => implicit req =>
-      NotImplemented
+      DietLog.find(memberId, id) match {
+        case Some(dietLog) =>
+          Ok(view.edit(id, dietLogForm.fill(dietLog)))
+        case None => NotFound
+      }
   }
 
   def update(id: Long) = AuthnCustomAction { memberId =>
     implicit conn => implicit req =>
-      NotImplemented
+      DietLog.tryLock(memberId, id) match {
+        case Some(_) =>
+          dietLogForm.bindFromRequest().fold(
+            error => {
+              Ok(view.edit(id, error))
+            },
+            dietLog => {
+              DietLog.update(memberId, id, dietLog) match {
+                case true =>
+                  Redirect(route.edit(id)).flashing(
+                    Success -> Update)
+                case false => BadRequest
+              }
+            })
+        case None => NotFound
+      }
   }
 
   def delete(id: Long) = AuthnCustomAction { memberId =>
     implicit conn => implicit req =>
-      NotImplemented
+      DietLog.tryLock(memberId, id) match {
+        case Some(_) =>
+          DietLog.delete(memberId, id) match {
+            case true =>
+              Redirect(route.list(None, None)).flashing(
+                Success -> Delete)
+            case false => BadRequest
+          }
+        case None => NotFound
+      }
   }
 
 }

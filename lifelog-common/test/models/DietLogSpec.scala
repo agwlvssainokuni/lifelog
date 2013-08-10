@@ -49,9 +49,7 @@ class DietLogSpec extends Specification {
             BigDecimal("2" + i + "." + j),
             Some(BigDecimal("17" + i + "." + j)),
             Some("メモ: " + i + "," + j)) match {
-              case log =>
-                log.memberId = anorm.Id(id)
-                DietLog.create(log)
+              case log => DietLog.create(id, log)
             }
         }
       }

@@ -28,7 +28,7 @@ object DietLogForm {
   val DATE_PATTERN = "yyyy/MM/dd"
 
   val TIME = "time"
-  val TIME_PATTERN = "HH:mm:ss"
+  val TIME_PATTERN = "HH:mm"
 
   val WEIGHT = "weight"
   val WEIGHT_PRECISION = 4
@@ -55,13 +55,19 @@ object DietLogForm {
     NOTE -> optional(text(NOTE_MIN, NOTE_MAX)))(apply)(unapply))
 
   def apply(date: Date, time: Date, weight: BigDecimal, fatRate: BigDecimal, height: Option[BigDecimal], note: Option[String]): DietLog = {
-    val dtm = new Date(date.getTime() + time.getTime())
-    DietLog(dtm, weight, fatRate, height, note)
+    val df = new java.text.SimpleDateFormat(DATE_PATTERN)
+    val tf = new java.text.SimpleDateFormat(TIME_PATTERN)
+    val dtf = new java.text.SimpleDateFormat(DATE_PATTERN + " " + TIME_PATTERN)
+    val dt = df.format(date) + " " + tf.format(time)
+    DietLog(dtf.parse(dt), weight, fatRate, height, note)
   }
 
   def unapply(item: DietLog): Option[(Date, Date, BigDecimal, BigDecimal, Option[BigDecimal], Option[String])] = {
-    val time = item.dtm.getTime() / (60L * 60L * 24L)
-    Some((new Date(item.dtm.getTime() - time), new Date(time), item.weight, item.fatRate, item.height, item.note))
+    val df = new java.text.SimpleDateFormat(DATE_PATTERN)
+    val d = df.parse(df.format(item.dtm))
+    val tf = new java.text.SimpleDateFormat(TIME_PATTERN)
+    val t = tf.parse(tf.format(item.dtm))
+    Some((d, t, item.weight, item.fatRate, item.height, item.note))
   }
 
 }

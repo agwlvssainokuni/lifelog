@@ -5,9 +5,6 @@
 @import views.common.custom._
 @import views.dietlog.fmt._
 @main("一覧") {
-@{flash.get(Error).map {
-	case Permission => <h3 class="error">操作が許可されていません。</h3>
-}}
 @{flash.get(Success).map {
 	case Delete => <h3 class="success">ダイエット記録を削除しました。</h3>
 }}
