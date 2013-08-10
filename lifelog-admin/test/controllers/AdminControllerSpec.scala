@@ -20,7 +20,7 @@ import org.specs2.execute.AsResult
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
-import AdminFormDef._
+import AdminForm._
 import common.FlashName._
 import models._
 import play.api.db._
