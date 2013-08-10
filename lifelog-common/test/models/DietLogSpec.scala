@@ -111,4 +111,50 @@ class DietLogSpec extends Specification {
     }
   }
 
+  "DietLog#last()" should {
+    "memberId=5の最新のエンティティを取得できる" in new TestApp {
+      DB.withTransaction { implicit c =>
+        DietLog.last(5L) must beSome.which { log =>
+          log.weight must_== BigDecimal("75.1")
+          log.fatRate must_== BigDecimal("25.1")
+          log.height must beSome.which(_ == BigDecimal("175.1"))
+          log.note must beSome.which(_ == "メモ: 5,1")
+        }
+      }
+    }
+    "memberId=99のデータは存在しない" in new TestApp {
+      DB.withTransaction { implicit c =>
+        DietLog.last(99L) must beNone
+      }
+    }
+  }
+
+  "DietLog#find()" should {
+    "memberIdとidを指定してエンティティを取得できる (1, 1)" in new TestApp {
+      DB.withTransaction { implicit c =>
+        DietLog.find(1L, 1L) must beSome
+      }
+    }
+    "memberIdとidの組合せが不適切な場合はエンティティを取得できない (1, 2)" in new TestApp {
+      DB.withTransaction { implicit c =>
+        DietLog.find(1L, 2L) must beNone
+      }
+    }
+    "memberIdが存在しない場合はエンティティを取得できない (99L, 1L)" in new TestApp {
+      DB.withTransaction { implicit c =>
+        DietLog.find(99L, 1L) must beNone
+      }
+    }
+    "idが存在しない場合はエンティティを取得できない (1L, 99L)" in new TestApp {
+      DB.withTransaction { implicit c =>
+        DietLog.find(1L, 99L) must beNone
+      }
+    }
+    "memberIdとidの両方が存在しない場合はエンティティを取得できない (99L, 99L)" in new TestApp {
+      DB.withTransaction { implicit c =>
+        DietLog.find(99L, 99L) must beNone
+      }
+    }
+  }
+
 }

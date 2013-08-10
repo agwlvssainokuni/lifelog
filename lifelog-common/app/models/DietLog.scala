@@ -21,6 +21,8 @@ import java.util.Date
 
 import anorm._
 import anorm.SqlParser._
+import play.api.Play.current
+import play.api.cache.Cache
 
 case class DietLog(memberId: Long, dtm: Date, weight: BigDecimal, fatRate: BigDecimal, height: Option[BigDecimal], note: Option[String]) {
   var id: Pk[Long] = NotAssigned
@@ -30,7 +32,8 @@ object DietLog {
 
   val parser: RowParser[DietLog] = {
     import java.math.{ BigDecimal => JBigDecimal }
-    long("diet_logs.id") ~ long("diet_logs.member_id") ~ date("diet_logs.dtm") ~ get[JBigDecimal]("diet_logs.weight") ~ get[JBigDecimal]("diet_logs.fat_rate") ~ (get[JBigDecimal]("diet_logs.height")?) ~ (str("diet_logs.note")?) map {
+    import SqlParser.{ get => pget }
+    long("diet_logs.id") ~ long("diet_logs.member_id") ~ date("diet_logs.dtm") ~ pget[JBigDecimal]("diet_logs.weight") ~ pget[JBigDecimal]("diet_logs.fat_rate") ~ (pget[JBigDecimal]("diet_logs.height")?) ~ (str("diet_logs.note")?) map {
       case id ~ memberId ~ dtm ~ weight ~ fatRate ~ height ~ note =>
         val entity = DietLog(memberId, dtm, BigDecimal(weight), BigDecimal(fatRate), height.map(BigDecimal(_)), note)
         entity.id = Id(id)
@@ -59,6 +62,32 @@ object DietLog {
       'limit -> pageSize,
       'offset -> pageSize * pageNo).list(parser)
 
+  def last(memberId: Long)(implicit c: Connection): Option[DietLog] =
+    SQL("""
+        SELECT id, member_id, dtm, weight, fat_rate, height, note FROM diet_logs
+        WHERE
+            member_id = {memberId}
+        ORDER BY
+            dtm DESC, id DESC
+        LIMIT 1 OFFSET 0
+        """).on(
+      'memberId -> memberId).singleOpt(parser)
+
+  def find(memberId: Long, id: Long)(implicit c: Connection): Option[DietLog] =
+    SQL("""
+        SELECT id, member_id, dtm, weight, fat_rate, height, note FROM diet_logs
+        WHERE
+            member_id = {memberId}
+            AND
+            id = {id}
+        """).on(
+      'memberId -> memberId, 'id -> id).singleOpt(parser)
+
+  def get(memberId: Long, id: Long)(implicit c: Connection): Option[DietLog] =
+    Cache.getOrElse(cacheName(id), 0) {
+      find(memberId, id)
+    }
+
   def create(log: DietLog)(implicit c: Connection): Option[Long] =
     SQL("""
         INSERT INTO diet_logs (
@@ -85,5 +114,7 @@ object DietLog {
           SQL("""SELECT IDENTITY() FROM dual""").singleOpt(scalar[Long])
         case _ => None
       }
+
+  private def cacheName(id: Long): String = "dietLog." + id
 
 }
