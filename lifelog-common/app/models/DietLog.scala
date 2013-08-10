@@ -24,8 +24,9 @@ import anorm.SqlParser._
 import play.api.Play.current
 import play.api.cache.Cache
 
-case class DietLog(memberId: Long, dtm: Date, weight: BigDecimal, fatRate: BigDecimal, height: Option[BigDecimal], note: Option[String]) {
+case class DietLog(dtm: Date, weight: BigDecimal, fatRate: BigDecimal, height: Option[BigDecimal], note: Option[String]) {
   var id: Pk[Long] = NotAssigned
+  var memberId: Pk[Long] = NotAssigned
 }
 
 object DietLog {
@@ -35,8 +36,9 @@ object DietLog {
     import SqlParser.{ get => pget }
     long("diet_logs.id") ~ long("diet_logs.member_id") ~ date("diet_logs.dtm") ~ pget[JBigDecimal]("diet_logs.weight") ~ pget[JBigDecimal]("diet_logs.fat_rate") ~ (pget[JBigDecimal]("diet_logs.height")?) ~ (str("diet_logs.note")?) map {
       case id ~ memberId ~ dtm ~ weight ~ fatRate ~ height ~ note =>
-        val entity = DietLog(memberId, dtm, BigDecimal(weight), BigDecimal(fatRate), height.map(BigDecimal(_)), note)
+        val entity = DietLog(dtm, BigDecimal(weight), BigDecimal(fatRate), height.map(BigDecimal(_)), note)
         entity.id = Id(id)
+        entity.memberId = Id(memberId)
         entity
     }
   }
@@ -108,11 +110,51 @@ object DietLog {
             CURRENT_TIMESTAMP
         )
         """).on(
-      'memberId -> log.memberId, 'dtm -> log.dtm,
+      'memberId -> log.memberId,
+      'dtm -> log.dtm,
       'weight -> log.weight.bigDecimal, 'fatRate -> log.fatRate.bigDecimal, 'height -> log.height.map(_.bigDecimal), 'note -> log.note).executeUpdate() match {
         case 1 =>
           SQL("""SELECT IDENTITY() FROM dual""").singleOpt(scalar[Long])
         case _ => None
+      }
+
+  def update(memberId: Long, id: Long, log: DietLog)(implicit c: Connection) =
+    SQL("""
+        UPDATE diet_logs
+        SET
+            dtm = {dtm},
+            weight = {weight},
+            fat_rate = {fatRate},
+            height = {height},
+            note = {note},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE
+            member_id = {memberId}
+            AND
+            id = {id}
+        """).on(
+      'memberId -> memberId, 'id -> id,
+      'dtm -> log.dtm,
+      'weight -> log.weight.bigDecimal, 'fatRate -> log.fatRate.bigDecimal, 'height -> log.height.map(_.bigDecimal), 'note -> log.note).executeUpdate() match {
+        case 1 =>
+          Cache.remove(cacheName(id))
+          true
+        case _ => false
+      }
+
+  def delete(memberId: Long, id: Long)(implicit c: Connection) =
+    SQL("""
+        DELETE FROM diet_logs
+        WHERE
+            member_id = {memberId}
+            AND
+            id = {id}
+        """).on(
+      'memberId -> memberId, 'id -> id).executeUpdate() match {
+        case 1 =>
+          Cache.remove(cacheName(id))
+          true
+        case _ => false
       }
 
   private def cacheName(id: Long): String = "dietLog." + id
