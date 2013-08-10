@@ -19,3 +19,11 @@ GET    /profile          controllers.ProfileController.edit()
 POST   /profile          controllers.ProfileController.update()
 GET    /profile/passwd   controllers.ProfileController.editPw()
 POST   /profile/passwd   controllers.ProfileController.updatePw()
+
+# DietLog
+GET    /dietlog          controllers.DietLogController.list(pn: Option[Long], ps: Option[Long])
+GET    /dietlog/add      controllers.DietLogController.add()
+POST   /dietlog/add      controllers.DietLogController.create()
+GET    /dietlog/:id      controllers.DietLogController.edit(id: Long)
+POST   /dietlog/:id      controllers.DietLogController.update(id: Long)
+GET    /dietlog/:id      controllers.DietLogController.delete(id: Long)
