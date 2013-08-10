@@ -17,7 +17,7 @@ CREATE TABLE diet_logs (
 );
 ALTER TABLE diet_logs ADD CONSTRAINT diet_logs_fk_1
     FOREIGN KEY (member_id) REFERENCES members (id);
-CREATE UNIQUE INDEX diet_logs_member_id ON diet_logs(member_id);
+CREATE INDEX diet_logs_member_id ON diet_logs(member_id);
 
 # --- !Downs
 

@@ -80,7 +80,7 @@ object DietLog {
         )
         """).on(
       'memberId -> log.memberId, 'dtm -> log.dtm,
-      'weight -> log.weight, 'fatRate -> log.fatRate, 'height -> log.height, 'note -> log.note).executeUpdate() match {
+      'weight -> log.weight.bigDecimal, 'fatRate -> log.fatRate.bigDecimal, 'height -> log.height.map(_.bigDecimal), 'note -> log.note).executeUpdate() match {
         case 1 =>
           SQL("""SELECT IDENTITY() FROM dual""").singleOpt(scalar[Long])
         case _ => None
