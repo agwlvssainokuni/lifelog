@@ -20,7 +20,7 @@ import org.specs2.execute.AsResult
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
-import SessionFormDef._
+import SessionForm._
 import common.FlashName._
 import models._
 import play.api.db._
