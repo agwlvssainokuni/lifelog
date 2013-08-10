@@ -16,15 +16,14 @@
 
 package controllers
 
-import MemberFormDef._
-import java.util.Calendar
+import java.util._
 import java.util.Calendar._
-import java.util.Date
 
 import org.specs2.execute.AsResult
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
+import MemberForm._
 import common.FlashName._
 import models._
 import play.api.db._
