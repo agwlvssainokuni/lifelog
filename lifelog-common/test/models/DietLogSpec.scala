@@ -28,9 +28,9 @@ import play.api.test.WithApplication
 
 class DietLogSpec extends Specification {
 
-  def newDate(i: Int) = Calendar.getInstance() match {
+  def newDate(diff: Int) = Calendar.getInstance() match {
     case cal =>
-      cal.add(DATE, i)
+      cal.add(DATE, diff)
       cal.getTime()
   }
 
@@ -64,6 +64,49 @@ class DietLogSpec extends Specification {
     "memberId=99のデータは存在しない" in new TestApp {
       DB.withTransaction { implicit c =>
         DietLog.count(99L) must_== 0L
+      }
+    }
+  }
+
+  "DieteLog#list()" should {
+    "memberIdごとのリストを取得できる (日時降順でソート)" in new TestApp {
+      DB.withTransaction { implicit c =>
+        for (i <- 1L to 5L) {
+          val list = DietLog.list(i, 0L, 10L)
+          list.size must_== i
+          for ((log, j) <- list.zipWithIndex) {
+            log.weight must_== BigDecimal("7" + i + "." + (j + 1))
+            log.fatRate must_== BigDecimal("2" + i + "." + (j + 1))
+            log.height must beSome.which(_ == BigDecimal("17" + i + "." + (j + 1)))
+            log.note must beSome.which(_ == "メモ: " + i + "," + (j + 1))
+          }
+        }
+      }
+    }
+    "memberId=99のデータは存在しない" in new TestApp {
+      DB.withTransaction { implicit c =>
+        DietLog.list(99L, 0L, 10L) must beEmpty
+      }
+    }
+    "全5件のデータ (memberId=5) をページサイズ3でペジネーション" in new TestApp {
+      DB.withTransaction { implicit c =>
+        val list0 = DietLog.list(5L, 0L, 3L)
+        list0.size must_== 3
+        for ((log, j) <- list0.zipWithIndex) {
+          log.weight must_== BigDecimal("75." + (j + 1))
+          log.fatRate must_== BigDecimal("25." + (j + 1))
+          log.height must beSome.which(_ == BigDecimal("175." + (j + 1)))
+          log.note must beSome.which(_ == "メモ: 5," + (j + 1))
+        }
+        val list1 = DietLog.list(5L, 1L, 3L)
+        list1.size must_== 2
+        for ((log, j) <- list1.zipWithIndex) {
+          log.weight must_== BigDecimal("75." + (j + 4))
+          log.fatRate must_== BigDecimal("25." + (j + 4))
+          log.height must beSome.which(_ == BigDecimal("175." + (j + 4)))
+          log.note must beSome.which(_ == "メモ: 5," + (j + 4))
+        }
+        DietLog.list(5L, 2L, 3L) must beEmpty
       }
     }
   }
