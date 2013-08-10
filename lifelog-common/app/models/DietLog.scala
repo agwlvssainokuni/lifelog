@@ -90,7 +90,7 @@ object DietLog {
       find(memberId, id)
     }
 
-  def create(log: DietLog)(implicit c: Connection): Option[Long] =
+  def create(memberId: Long, log: DietLog)(implicit c: Connection): Option[Long] =
     SQL("""
         INSERT INTO diet_logs (
             member_id,
@@ -110,7 +110,7 @@ object DietLog {
             CURRENT_TIMESTAMP
         )
         """).on(
-      'memberId -> log.memberId,
+      'memberId -> memberId,
       'dtm -> log.dtm,
       'weight -> log.weight.bigDecimal, 'fatRate -> log.fatRate.bigDecimal, 'height -> log.height.map(_.bigDecimal), 'note -> log.note).executeUpdate() match {
         case 1 =>
@@ -156,6 +156,16 @@ object DietLog {
           true
         case _ => false
       }
+
+  def tryLock(memberId: Long, id: Long)(implicit c: Connection) =
+    SQL("""
+        SELECT id FROM diet_logs
+        WHERE
+            member_id = {memberId}
+            AND
+            id = {id}
+        """).on(
+      'memberId -> memberId, 'id -> id).singleOpt(scalar[Long])
 
   private def cacheName(id: Long): String = "dietLog." + id
 

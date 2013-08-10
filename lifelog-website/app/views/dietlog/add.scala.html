@@ -1,0 +1,19 @@
+@(frm: Form[DietLog])(implicit pageParam: PageParam)
+@import controllers.DietLogForm._
+@import models._
+@import views.html.helper._
+@import views.common.custom._
+@main("登録") {
+@if(frm.hasErrors) {
+	<h3 class="error">値が不適切です。入力し直してください。</h3>
+}
+@form(routes.DietLogController.create(), dataajax -> "false") {
+	@inputText(frm(DATE), '_label -> "記録日", 'type -> "date")
+	@inputText(frm(TIME), '_label -> "記録時刻", 'type -> "time")
+	@inputText(frm(WEIGHT), '_label -> "体重(kg)", 'type -> "number", 'step -> "0.1")
+	@inputText(frm(FATRATE), '_label -> "体脂肪率(%)", 'type -> "number", 'step -> "0.1")
+	@inputText(frm(HEIGHT), '_label -> "身長(cm)(省略可)", 'type -> "number", 'step -> "0.1")
+	@textarea(frm(NOTE), '_label -> "メモ(省略可)")
+	<input type="submit" value="登録する" data-theme="b" />
+}
+}
