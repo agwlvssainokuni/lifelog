@@ -16,10 +16,11 @@
 
 package controllers
 
+import java.util.Date
+
 import DietLogForm._
 import PageParam.implicitPageParam
 import common.FlashName._
-import java.util._
 import models._
 import play.api.mvc._
 import routes.{ DietLogController => route }
