@@ -162,4 +162,22 @@ class DietLogControllerSpec extends Specification {
     }
   }
 
+  "DietLogController#list()" should {
+  }
+
+  "DietLogController#add()" should {
+  }
+
+  "DietLogController#create()" should {
+  }
+
+  "DietLogController#edit(id)" should {
+  }
+
+  "DietLogController#update(id)" should {
+  }
+
+  "DietLogController#delete(id)" should {
+  }
+
 }
