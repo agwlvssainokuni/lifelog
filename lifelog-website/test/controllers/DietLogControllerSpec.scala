@@ -51,81 +51,81 @@ class DietLogControllerSpec extends Specification {
   }
 
   "未ログインの場合は、ログイン画面に転送される" should {
-    "list() GET /dietlog" in new TestApp {
-      route(FakeRequest(GET, "/dietlog")) must beSome.which { res =>
+    "list() GET /dietlogs" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get(Uri) must beSome.which(_ == "/dietlog")
+        flash(res).get(Uri) must beSome.which(_ == "/dietlogs")
       }
     }
-    "add() GET /dietlog/add" in new TestApp {
-      route(FakeRequest(GET, "/dietlog/add")) must beSome.which { res =>
+    "add() GET /dietlogs/add" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs/add")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get(Uri) must beSome.which(_ == "/dietlog/add")
+        flash(res).get(Uri) must beSome.which(_ == "/dietlogs/add")
       }
     }
-    "create() POST /dietlog/add" in new TestApp {
-      route(FakeRequest(POST, "/dietlog/add")) must beSome.which { res =>
+    "create() POST /dietlogs/add" in new TestApp {
+      route(FakeRequest(POST, "/dietlogs/add")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get(Uri) must beSome.which(_ == "/dietlog/add")
+        flash(res).get(Uri) must beSome.which(_ == "/dietlogs/add")
       }
     }
-    "edit(id) GET /dietlog/1" in new TestApp {
-      route(FakeRequest(GET, "/dietlog/1")) must beSome.which { res =>
+    "edit(id) GET /dietlogs/1" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs/1")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get(Uri) must beSome.which(_ == "/dietlog/1")
+        flash(res).get(Uri) must beSome.which(_ == "/dietlogs/1")
       }
     }
-    "update(id) POST /dietlog/1" in new TestApp {
-      route(FakeRequest(POST, "/dietlog/1")) must beSome.which { res =>
+    "update(id) POST /dietlogs/1" in new TestApp {
+      route(FakeRequest(POST, "/dietlogs/1")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get(Uri) must beSome.which(_ == "/dietlog/1")
+        flash(res).get(Uri) must beSome.which(_ == "/dietlogs/1")
       }
     }
-    "delete(id) GET /dietlog/1/delete" in new TestApp {
-      route(FakeRequest(GET, "/dietlog/1/delete")) must beSome.which { res =>
+    "delete(id) GET /dietlogs/1/delete" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs/1/delete")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/login")
-        flash(res).get(Uri) must beSome.which(_ == "/dietlog/1/delete")
+        flash(res).get(Uri) must beSome.which(_ == "/dietlogs/1/delete")
       }
     }
   }
 
   "対象の存在しない id を指定すると 404 (Not Found)" should {
-    "edit(id) GET /dietlog/999" in new TestApp {
-      route(FakeRequest(GET, "/dietlog/999").withSession(session)) must beSome.which { res =>
+    "edit(id) GET /dietlogs/999" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs/999").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(NOT_FOUND)
       }
     }
-    "update(id) POST /dietlog/999" in new TestApp {
-      route(FakeRequest(POST, "/dietlog/999").withSession(session)) must beSome.which { res =>
+    "update(id) POST /dietlogs/999" in new TestApp {
+      route(FakeRequest(POST, "/dietlogs/999").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(NOT_FOUND)
       }
     }
-    "delete(id) GET /dietlog/999/delete" in new TestApp {
-      route(FakeRequest(GET, "/dietlog/999/delete").withSession(session)) must beSome.which { res =>
+    "delete(id) GET /dietlogs/999/delete" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs/999/delete").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(NOT_FOUND)
       }
     }
   }
 
   "所有者の異なる id を指定すると 404 (Not Found)" should {
-    "edit(id) GET /dietlog/1" in new TestApp {
-      route(FakeRequest(GET, "/dietlog/1").withSession(session)) must beSome.which { res =>
+    "edit(id) GET /dietlogs/1" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs/1").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(NOT_FOUND)
       }
     }
-    "update(id) POST /dietlog/1" in new TestApp {
-      route(FakeRequest(POST, "/dietlog/1").withSession(session)) must beSome.which { res =>
+    "update(id) POST /dietlogs/1" in new TestApp {
+      route(FakeRequest(POST, "/dietlogs/1").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(NOT_FOUND)
       }
     }
-    "delete(id) GET /dietlog/1/delete" in new TestApp {
-      route(FakeRequest(GET, "/dietlog/1/delete").withSession(session)) must beSome.which { res =>
+    "delete(id) GET /dietlogs/1/delete" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs/1/delete").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(NOT_FOUND)
       }
     }
