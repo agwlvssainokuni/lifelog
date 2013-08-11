@@ -32,6 +32,7 @@ import play.api.test.Helpers._
 class DietLogControllerSpec extends Specification {
 
   val session = Security.username -> "1"
+  val session2 = Security.username -> "2"
 
   abstract class TestApp extends WithApplication {
     override def around[T: AsResult](t: => T): Result = super.around {
@@ -127,6 +128,36 @@ class DietLogControllerSpec extends Specification {
     "delete(id) GET /dietlogs/1/delete" in new TestApp {
       route(FakeRequest(GET, "/dietlogs/1/delete").withSession(session)) must beSome.which { res =>
         status(res) must equalTo(NOT_FOUND)
+      }
+    }
+  }
+
+  "タイトル" should {
+    "list() GET /dietlogs" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs").withSession(session2)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        contentType(res) must beSome.which(_ == "text/html")
+        val content = contentAsString(res)
+        content must contain("""<title>LifeLog - ダイエット記録 一覧</title>""")
+        content must contain("""<h1>LifeLog - ダイエット記録 一覧</h1>""")
+      }
+    }
+    "add() GET /dietlogs/add" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs/add").withSession(session2)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        contentType(res) must beSome.which(_ == "text/html")
+        val content = contentAsString(res)
+        content must contain("""<title>LifeLog - ダイエット記録 登録</title>""")
+        content must contain("""<h1>LifeLog - ダイエット記録 登録</h1>""")
+      }
+    }
+    "edit(id) GET /dietlogs/1" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs/1").withSession(session2)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        contentType(res) must beSome.which(_ == "text/html")
+        val content = contentAsString(res)
+        content must contain("""<title>LifeLog - ダイエット記録 変更</title>""")
+        content must contain("""<h1>LifeLog - ダイエット記録 変更</h1>""")
       }
     }
   }
