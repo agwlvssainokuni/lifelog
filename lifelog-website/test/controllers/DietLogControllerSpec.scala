@@ -163,6 +163,88 @@ class DietLogControllerSpec extends Specification {
   }
 
   "DietLogController#list()" should {
+    "flashメッセージなし" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        contentType(res) must beSome.which(_ == "text/html")
+        val content = contentAsString(res)
+        content must not contain ("""<h3 class="success">ダイエット記録を削除しました。</h3>""")
+      }
+    }
+    "flashメッセージあり" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs").withSession(session).withFlash(
+        Success -> Delete)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        contentType(res) must beSome.which(_ == "text/html")
+        val content = contentAsString(res)
+        content must contain("""<h3 class="success">ダイエット記録を削除しました。</h3>""")
+      }
+    }
+    "ページネーション：データなし" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs").withSession(session)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        contentType(res) must beSome.which(_ == "text/html")
+        val content = contentAsString(res)
+        content must contain("""<li><a href="/dietlogs?pn=-1"
+			class=" ui-disabled "
+			data-icon="arrow-l">PREV</a></li>""")
+        content must contain("""<li><a href="/dietlogs?pn=1"
+			class=" ui-disabled "
+			data-icon="arrow-r">NEXT</a></li>""")
+      }
+    }
+    "ページネーション：データ10件、ページ指定なし" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs").withSession(session2)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        contentType(res) must beSome.which(_ == "text/html")
+        val content = contentAsString(res)
+        content must contain("""<li><a href="/dietlogs?pn=-1"
+			class=" ui-disabled "
+			data-icon="arrow-l">PREV</a></li>""")
+        content must contain("""<li><a href="/dietlogs?pn=1"
+			class=""
+			data-icon="arrow-r">NEXT</a></li>""")
+      }
+    }
+    "ページネーション：データ10件、0ページ目" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs?pn=0").withSession(session2)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        contentType(res) must beSome.which(_ == "text/html")
+        val content = contentAsString(res)
+        content must contain("""<li><a href="/dietlogs?pn=-1"
+			class=" ui-disabled "
+			data-icon="arrow-l">PREV</a></li>""")
+        content must contain("""<li><a href="/dietlogs?pn=1"
+			class=""
+			data-icon="arrow-r">NEXT</a></li>""")
+      }
+    }
+    "ページネーション：データ10件、1ページ目" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs?pn=1").withSession(session2)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        contentType(res) must beSome.which(_ == "text/html")
+        val content = contentAsString(res)
+        content must contain("""<li><a href="/dietlogs?pn=0"
+			class=""
+			data-icon="arrow-l">PREV</a></li>""")
+        content must contain("""<li><a href="/dietlogs?pn=2"
+			class=" ui-disabled "
+			data-icon="arrow-r">NEXT</a></li>""")
+      }
+    }
+    "ページネーション：データ10件、2ページ目 => 1ページ目を表示" in new TestApp {
+      route(FakeRequest(GET, "/dietlogs?pn=2").withSession(session2)) must beSome.which { res =>
+        status(res) must equalTo(OK)
+        contentType(res) must beSome.which(_ == "text/html")
+        val content = contentAsString(res)
+        content must contain("""<li><a href="/dietlogs?pn=0"
+			class=""
+			data-icon="arrow-l">PREV</a></li>""")
+        content must contain("""<li><a href="/dietlogs?pn=2"
+			class=" ui-disabled "
+			data-icon="arrow-r">NEXT</a></li>""")
+      }
+    }
   }
 
   "DietLogController#add()" should {
