@@ -27,3 +27,9 @@ POST   /dietlogs/add          controllers.DietLogController.create()
 GET    /dietlogs/:id          controllers.DietLogController.edit(id: Long)
 POST   /dietlogs/:id          controllers.DietLogController.update(id: Long)
 GET    /dietlogs/:id/delete   controllers.DietLogController.delete(id: Long)
+
+
+# DataMgmt
+GET    /datamgmt              controllers.DataMgmtController.index()
+GET    /datamgmt/dietlog      controllers.DataMgmtController.dietlogExport()
+POST   /datamgmt/dietlog      controllers.DataMgmtController.dietlogImport()
