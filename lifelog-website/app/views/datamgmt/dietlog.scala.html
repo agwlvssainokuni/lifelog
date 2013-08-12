@@ -1,4 +1,13 @@
 @()(implicit pageParam: PageParam)
+@import views.html.helper._
 @page("dietlog", Some("ダイエット記録")) {
-ダイエット記録
+<ul data-role="listview">
+	<li>@form(routes.DataMgmtController.dietlogImport()) {
+		<input type="submit" value="エクスポート" /> }
+	</li>
+	<li>@form(routes.DataMgmtController.dietlogExport()) {
+		<input type="submit" value="インポート" />
+		<input type="file" name="file" /> }
+	</li>
+</ul>
 }
