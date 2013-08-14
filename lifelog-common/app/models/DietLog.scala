@@ -118,7 +118,7 @@ object DietLog {
         case _ => None
       }
 
-  def update(memberId: Long, id: Long, log: DietLog)(implicit c: Connection) =
+  def update(memberId: Long, id: Long, log: DietLog)(implicit c: Connection): Boolean =
     SQL("""
         UPDATE diet_logs
         SET
@@ -142,7 +142,7 @@ object DietLog {
         case _ => false
       }
 
-  def delete(memberId: Long, id: Long)(implicit c: Connection) =
+  def delete(memberId: Long, id: Long)(implicit c: Connection): Boolean =
     SQL("""
         DELETE FROM diet_logs
         WHERE
@@ -157,7 +157,7 @@ object DietLog {
         case _ => false
       }
 
-  def tryLock(memberId: Long, id: Long)(implicit c: Connection) =
+  def tryLock(memberId: Long, id: Long)(implicit c: Connection): Option[Long] =
     SQL("""
         SELECT id FROM diet_logs
         WHERE
@@ -166,6 +166,16 @@ object DietLog {
             id = {id}
         """).on(
       'memberId -> memberId, 'id -> id).singleOpt(scalar[Long])
+
+  def stream(memberId: Long)(implicit c: Connection) =
+    SQL("""
+        SELECT id, member_id, dtm, weight, fat_rate, height, note
+        FROM diet_logs
+        WHERE
+            member_id = {memberId}
+        ORDER BY id
+        """).on(
+      'memberId -> memberId)()
 
   private def cacheName(id: Long): String = "dietLog." + id
 
