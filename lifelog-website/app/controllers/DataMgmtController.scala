@@ -16,10 +16,16 @@
 
 package controllers
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import java.sql.Connection
 
 import PageParam.implicitPageParam
+import akka.actor._
+import akka.actor.actorRef2Scala
+import anorm._
 import models._
+import play.api.Play.current
+import play.api.db._
+import play.api.libs.concurrent._
 import play.api.libs.iteratee._
 import play.api.mvc._
 
@@ -30,24 +36,13 @@ object DataMgmtController extends Controller with ActionBuilder {
       Ok(views.html.datamgmt.index())
   }
 
-  def dietlogExport() = AuthnCustomAction { memberId =>
-    implicit conn => implicit req =>
-      val content = (for {
-        (row, i) <- DietLog.stream(memberId).zipWithIndex
-        record = (row.asList.map {
-          case Some(v) => escape(v.toString)
-          case None => ""
-          case v => escape(v.toString)
-        }).mkString(",")
-      } yield {
-        if (i <= 0) {
-          val h = row.metaData.ms.map(m => escape(m.column.alias.getOrElse(""))).mkString(",")
-          Seq(h + newline, record + newline)
-        } else {
-          Seq(record + newline)
-        }
-      }).flatten
-      sendFile("dietlog", content)
+  def dietlogExport() = Authenticated { memberId =>
+    Action { implicit req =>
+      sendFile("dietlog", Concurrent.unicast[String]({ channel =>
+        val actor = Akka.system.actorOf(Props[DataMgmtActor])
+        actor ! ExportTask(channel, DietLog.stream(memberId)(_))
+      }))
+    }
   }
 
   def dietlogImport() = AuthnCustomAction { memberId =>
@@ -55,8 +50,8 @@ object DataMgmtController extends Controller with ActionBuilder {
       NotImplemented
   }
 
-  private def sendFile[T](basename: String, content: Stream[String]) =
-    Ok.stream(Enumerator.enumerate(content)).withHeaders(
+  private def sendFile(basename: String, content: Enumerator[String]): ChunkedResult[String] =
+    Ok.stream(content).withHeaders(
       CONTENT_TYPE -> play.api.libs.MimeTypes.forExtension("csv").getOrElse(play.api.http.ContentTypes.BINARY),
       CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(filename(basename))))
 
@@ -66,9 +61,41 @@ object DataMgmtController extends Controller with ActionBuilder {
     "%s_%s.csv".format(basename, dtm)
   }
 
+}
+
+case class ExportTask(channel: Concurrent.Channel[String], stream: Connection => Stream[SqlRow])
+
+class DataMgmtActor extends Actor {
+
+  def receive = {
+    case ExportTask(channel, stream) => export(channel, stream)
+  }
+
+  def export(channel: Concurrent.Channel[String], stream: Connection => Stream[SqlRow]) =
+    try {
+      DB.withTransaction { conn =>
+        for {
+          (row, i) <- stream(conn).zipWithIndex
+          record = (row.asList.map {
+            case Some(v) => escape(v.toString)
+            case None => ""
+            case v => escape(v.toString)
+          }).mkString(",")
+        } {
+          if (i <= 0) {
+            val h = row.metaData.ms.map(m => escape(m.column.alias.getOrElse(""))).mkString(",")
+            channel.push(h + newline)
+          }
+          channel.push(record + newline)
+        }
+      }
+      channel.eofAndEnd()
+    } catch {
+      case ex: Exception => channel.end(ex)
+    }
+
   private def newline = "\r\n"
 
   private def escape(s: String) =
     "\"" + s.flatMap(c => if (c == '"') "\"\"" else c.toString) + "\""
-
 }
