@@ -21,15 +21,20 @@ import java.sql.Connection
 import PageParam.implicitPageParam
 import akka.actor._
 import akka.actor.actorRef2Scala
+import akka.routing._
 import anorm._
 import models._
 import play.api.Play.current
 import play.api.db._
+import play.api.libs._
 import play.api.libs.concurrent._
 import play.api.libs.iteratee._
 import play.api.mvc._
 
 object DataMgmtController extends Controller with ActionBuilder {
+
+  val actor = Akka.system.actorOf(Props[DataMgmtActor].withRouter(
+    RoundRobinRouter(resizer = Some(DefaultResizer()))), "dataMgmt")
 
   def index() = AuthnCustomAction { memberId =>
     implicit conn => implicit req =>
@@ -39,8 +44,8 @@ object DataMgmtController extends Controller with ActionBuilder {
   def dietlogExport() = Authenticated { memberId =>
     Action { implicit req =>
       sendFile("dietlog", Concurrent.unicast[String]({ channel =>
-        val actor = Akka.system.actorOf(Props[DataMgmtActor])
-        actor ! ExportTask(channel, DietLog.stream(memberId)(_))
+        println(actor.toString)
+        actor ! Export.Task(channel, DietLog.stream(memberId)(_))
       }))
     }
   }
@@ -52,7 +57,7 @@ object DataMgmtController extends Controller with ActionBuilder {
 
   private def sendFile(basename: String, content: Enumerator[String]): ChunkedResult[String] =
     Ok.stream(content).withHeaders(
-      CONTENT_TYPE -> play.api.libs.MimeTypes.forExtension("csv").getOrElse(play.api.http.ContentTypes.BINARY),
+      CONTENT_TYPE -> MimeTypes.forExtension("csv").get,
       CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(filename(basename))))
 
   private def filename(basename: String) = {
@@ -63,15 +68,20 @@ object DataMgmtController extends Controller with ActionBuilder {
 
 }
 
-case class ExportTask(channel: Concurrent.Channel[String], stream: Connection => Stream[SqlRow])
-
 class DataMgmtActor extends Actor {
-
   def receive = {
-    case ExportTask(channel, stream) => export(channel, stream)
+    case Export.Task(channel, stream) => Export(channel, stream)
   }
+}
 
-  def export(channel: Concurrent.Channel[String], stream: Connection => Stream[SqlRow]) =
+object Export {
+
+  type ExportChannel = Concurrent.Channel[String]
+  type ExportSource = Connection => Stream[SqlRow]
+
+  case class Task(channel: ExportChannel, stream: ExportSource)
+
+  def apply(channel: ExportChannel, stream: ExportSource) =
     try {
       DB.withTransaction { conn =>
         for {
