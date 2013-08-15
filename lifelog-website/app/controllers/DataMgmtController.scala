@@ -42,9 +42,8 @@ object DataMgmtController extends Controller with ActionBuilder {
   }
 
   def dietlogExport() = Authenticated { memberId =>
-    Action { implicit req =>
+    Action {
       sendFile("dietlog", Concurrent.unicast[String]({ channel =>
-        println(actor.toString)
         actor ! Export.Task(channel, DietLog.stream(memberId)(_))
       }))
     }
