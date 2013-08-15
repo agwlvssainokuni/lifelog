@@ -16,8 +16,13 @@
 
 package controllers
 
+import java.io.File
 import java.sql.Connection
 
+import scala.annotation.implicitNotFound
+import scala.io.Source
+
+import DataMgmtForm.FILE
 import PageParam.implicitPageParam
 import akka.actor._
 import akka.actor.actorRef2Scala
@@ -49,9 +54,18 @@ object DataMgmtController extends Controller with ActionBuilder {
     }
   }
 
-  def dietlogImport() = AuthnCustomAction { memberId =>
-    implicit conn => implicit req =>
-      NotImplemented
+  def dietlogImport() = Authenticated { memberId =>
+    Action { implicit req =>
+      req.body.asMultipartFormData match {
+        case Some(body) => body.file(FILE) match {
+          case Some(file) =>
+            println("import")
+            Redirect(routes.DataMgmtController.index().url + "#dietlog")
+          case None => BadRequest
+        }
+        case None => BadRequest
+      }
+    }
   }
 
   private def sendFile(basename: String, content: Enumerator[String]): ChunkedResult[String] =
@@ -107,4 +121,31 @@ object Export {
 
   private def escape(s: String) =
     "\"" + s.flatMap(c => if (c == '"') "\"\"" else c.toString) + "\""
+}
+
+object Import {
+
+  import scala.io.Source
+  import _root_.common.io.CsvParser
+
+  type RecordHandler = (Connection, Seq[String]) => Option[Long]
+
+  case class Task(file: File, handler: RecordHandler)
+
+  def apply(file: File, handler: RecordHandler) =
+    try {
+      DB.withTransaction { conn =>
+        val source = new CsvParser(Source.fromFile(file))
+        try {
+          for (record <- source) {
+            handler(conn, record)
+          }
+        } finally {
+          source.close
+        }
+      }
+    } finally {
+      file.delete()
+    }
+
 }

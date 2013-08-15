@@ -1,4 +1,5 @@
 @()(implicit pageParam: PageParam)
+@import controllers.DataMgmtForm._
 @import views.html.helper._
 @import views.common.custom._
 @page("dietlog", Some("ダイエット記録")) {
@@ -7,8 +8,9 @@
 		<input type="submit" value="エクスポート" /> }
 	</li>
 	<li>@form(routes.DataMgmtController.dietlogImport(), 'enctype -> "multipart/form-data", dataajax -> "false") {
+		@inputFile(dietlogForm(FILE), '_label -> "ファイル")
 		<input type="submit" value="インポート" />
-		<input type="file" name="file" /> }
+	}
 	</li>
 </ul>
 }
