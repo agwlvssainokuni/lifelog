@@ -212,7 +212,7 @@ class MemberControllerSpec extends Specification {
 
     "入力値が適正ならば、/members/:id に転送される。データが作成される。" in new TestApp {
       route(FakeRequest(POST, "/members/add").withSession(session).withFormUrlEncodedBody(
-        EMAIL -> "name0@domain0", NICKNAME -> "nickname000", BIRTHDAY -> "1980/01/01")) must beSome.which { res =>
+        EMAIL -> "name0@domain0", NICKNAME -> "nickname000", BIRTHDAY -> "1980-01-01")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/members/11")
         flash(res).get(Success) must beSome.which(_ == Create)
@@ -236,7 +236,7 @@ class MemberControllerSpec extends Specification {
 
     "メールアドレスが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/members/add").withSession(session).withFormUrlEncodedBody(
-        EMAIL -> "", NICKNAME -> "nickname000", BIRTHDAY -> "1980/01/01")) must beSome.which { res =>
+        EMAIL -> "", NICKNAME -> "nickname000", BIRTHDAY -> "1980-01-01")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
@@ -246,14 +246,14 @@ class MemberControllerSpec extends Specification {
         content must contain("""<label for="nickname" class="">ニックネーム</label>""")
         content must contain("""<input type="text" id="nickname" name="nickname" value="nickname000" >""")
         content must contain("""<label for="birthday" class="">生年月日(省略可)</label>""")
-        content must contain("""<input type="date" id="birthday" name="birthday" value="1980/01/01" >""")
+        content must contain("""<input type="date" id="birthday" name="birthday" value="1980-01-01" >""")
         content must contain("""<input type="submit" value="登録する" data-theme="a" />""")
       }
     }
 
     "ニックネームが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/members/add").withSession(session).withFormUrlEncodedBody(
-        EMAIL -> "name0@domain0", NICKNAME -> "", BIRTHDAY -> "1980/01/01")) must beSome.which { res =>
+        EMAIL -> "name0@domain0", NICKNAME -> "", BIRTHDAY -> "1980-01-01")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
@@ -263,14 +263,14 @@ class MemberControllerSpec extends Specification {
         content must contain("""<label for="nickname" class="error">ニックネーム</label>""")
         content must contain("""<input type="text" id="nickname" name="nickname" value="" >""")
         content must contain("""<label for="birthday" class="">生年月日(省略可)</label>""")
-        content must contain("""<input type="date" id="birthday" name="birthday" value="1980/01/01" >""")
+        content must contain("""<input type="date" id="birthday" name="birthday" value="1980-01-01" >""")
         content must contain("""<input type="submit" value="登録する" data-theme="a" />""")
       }
     }
 
     "メールアドレスが入力不正(形式不正)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/members/add").withSession(session).withFormUrlEncodedBody(
-        EMAIL -> "localpartonly", NICKNAME -> "nickname000", BIRTHDAY -> "1980/01/01")) must beSome.which { res =>
+        EMAIL -> "localpartonly", NICKNAME -> "nickname000", BIRTHDAY -> "1980-01-01")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
@@ -280,7 +280,7 @@ class MemberControllerSpec extends Specification {
         content must contain("""<label for="nickname" class="">ニックネーム</label>""")
         content must contain("""<input type="text" id="nickname" name="nickname" value="nickname000" >""")
         content must contain("""<label for="birthday" class="">生年月日(省略可)</label>""")
-        content must contain("""<input type="date" id="birthday" name="birthday" value="1980/01/01" >""")
+        content must contain("""<input type="date" id="birthday" name="birthday" value="1980-01-01" >""")
         content must contain("""<input type="submit" value="登録する" data-theme="a" />""")
       }
     }
@@ -304,7 +304,7 @@ class MemberControllerSpec extends Specification {
 
     "メールアドレスが入力不正(一意性NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/members/add").withSession(session).withFormUrlEncodedBody(
-        EMAIL -> "name1@domain1", NICKNAME -> "nickname000", BIRTHDAY -> "1980/01/01")) must beSome.which { res =>
+        EMAIL -> "name1@domain1", NICKNAME -> "nickname000", BIRTHDAY -> "1980-01-01")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
@@ -314,7 +314,7 @@ class MemberControllerSpec extends Specification {
         content must contain("""<label for="nickname" class="">ニックネーム</label>""")
         content must contain("""<input type="text" id="nickname" name="nickname" value="nickname000" >""")
         content must contain("""<label for="birthday" class="">生年月日(省略可)</label>""")
-        content must contain("""<input type="date" id="birthday" name="birthday" value="1980/01/01" >""")
+        content must contain("""<input type="date" id="birthday" name="birthday" value="1980-01-01" >""")
         content must contain("""<input type="submit" value="登録する" data-theme="a" />""")
       }
     }
@@ -336,7 +336,7 @@ class MemberControllerSpec extends Specification {
         content must contain("""<label for="nickname" class="">ニックネーム</label>""")
         content must contain("""<input type="text" id="nickname" name="nickname" value="ニックネーム1" >""")
         content must contain("""<label for="birthday" class="">生年月日(省略可)</label>""")
-        content must contain("""<input type="date" id="birthday" name="birthday" value="1981/01/01" >""")
+        content must contain("""<input type="date" id="birthday" name="birthday" value="1981-01-01" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
       }
     }
@@ -382,7 +382,7 @@ class MemberControllerSpec extends Specification {
 
     "入力値が適正ならば、/members/:id に転送される。データが更新される。(メールアドレス変更なし)" in new TestApp {
       route(FakeRequest(POST, "/members/1").withSession(session).withFormUrlEncodedBody(
-        EMAIL -> "name1@domain1", NICKNAME -> "nickname000", BIRTHDAY -> "1980/01/01")) must beSome.which { res =>
+        EMAIL -> "name1@domain1", NICKNAME -> "nickname000", BIRTHDAY -> "1980-01-01")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/members/1")
         flash(res).get(Success) must beSome.which(_ == Update)
@@ -391,14 +391,14 @@ class MemberControllerSpec extends Specification {
         Member.find(1) must beSome.which { member =>
           member.email must_== "name1@domain1"
           member.nickname must_== "nickname000"
-          views.member.fmt.birthday(member) must beSome.which(_ == "1980/01/01")
+          views.member.fmt.birthday(member) must beSome.which(_ == "1980-01-01")
         }
       }
     }
 
     "入力値が適正ならば、/members/:id に転送される。データが更新される。(メールアドレス変更あり)" in new TestApp {
       route(FakeRequest(POST, "/members/1").withSession(session).withFormUrlEncodedBody(
-        EMAIL -> "name0@domain0", NICKNAME -> "nickname000", BIRTHDAY -> "1980/01/01")) must beSome.which { res =>
+        EMAIL -> "name0@domain0", NICKNAME -> "nickname000", BIRTHDAY -> "1980-01-01")) must beSome.which { res =>
         status(res) must equalTo(SEE_OTHER)
         header(LOCATION, res) must beSome.which(_ == "/members/1")
         flash(res).get(Success) must beSome.which(_ == Update)
@@ -407,7 +407,7 @@ class MemberControllerSpec extends Specification {
         Member.find(1) must beSome.which { member =>
           member.email must_== "name0@domain0"
           member.nickname must_== "nickname000"
-          views.member.fmt.birthday(member) must beSome.which(_ == "1980/01/01")
+          views.member.fmt.birthday(member) must beSome.which(_ == "1980-01-01")
         }
       }
     }
@@ -430,7 +430,7 @@ class MemberControllerSpec extends Specification {
 
     "メールアドレスが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/members/1").withSession(session).withFormUrlEncodedBody(
-        EMAIL -> "", NICKNAME -> "nickname000", BIRTHDAY -> "1980/01/01")) must beSome.which { res =>
+        EMAIL -> "", NICKNAME -> "nickname000", BIRTHDAY -> "1980-01-01")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
@@ -440,14 +440,14 @@ class MemberControllerSpec extends Specification {
         content must contain("""<label for="nickname" class="">ニックネーム</label>""")
         content must contain("""<input type="text" id="nickname" name="nickname" value="nickname000" >""")
         content must contain("""<label for="birthday" class="">生年月日(省略可)</label>""")
-        content must contain("""<input type="date" id="birthday" name="birthday" value="1980/01/01" >""")
+        content must contain("""<input type="date" id="birthday" name="birthday" value="1980-01-01" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
       }
     }
 
     "ニックネームが入力不正(必須NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/members/1").withSession(session).withFormUrlEncodedBody(
-        "email" -> "name0@domain0", "nickname" -> "", "birthday" -> "1980/01/01")) must beSome.which { res =>
+        "email" -> "name0@domain0", "nickname" -> "", "birthday" -> "1980-01-01")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
@@ -457,14 +457,14 @@ class MemberControllerSpec extends Specification {
         content must contain("""<label for="nickname" class="error">ニックネーム</label>""")
         content must contain("""<input type="text" id="nickname" name="nickname" value="" >""")
         content must contain("""<label for="birthday" class="">生年月日(省略可)</label>""")
-        content must contain("""<input type="date" id="birthday" name="birthday" value="1980/01/01" >""")
+        content must contain("""<input type="date" id="birthday" name="birthday" value="1980-01-01" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
       }
     }
 
     "メールアドレスが入力不正(形式不正)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/members/1").withSession(session).withFormUrlEncodedBody(
-        "email" -> "localpartonly", "nickname" -> "nickname000", "birthday" -> "1980/01/01")) must beSome.which { res =>
+        "email" -> "localpartonly", "nickname" -> "nickname000", "birthday" -> "1980-01-01")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
@@ -474,7 +474,7 @@ class MemberControllerSpec extends Specification {
         content must contain("""<label for="nickname" class="">ニックネーム</label>""")
         content must contain("""<input type="text" id="nickname" name="nickname" value="nickname000" >""")
         content must contain("""<label for="birthday" class="">生年月日(省略可)</label>""")
-        content must contain("""<input type="date" id="birthday" name="birthday" value="1980/01/01" >""")
+        content must contain("""<input type="date" id="birthday" name="birthday" value="1980-01-01" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
       }
     }
@@ -498,7 +498,7 @@ class MemberControllerSpec extends Specification {
 
     "メールアドレスが入力不正(一意性NG)ならば、再入力を促す。" in new TestApp {
       route(FakeRequest(POST, "/members/1").withSession(session).withFormUrlEncodedBody(
-        "email" -> "name10@domain10", "nickname" -> "nickname000", "birthday" -> "1980/01/01")) must beSome.which { res =>
+        "email" -> "name10@domain10", "nickname" -> "nickname000", "birthday" -> "1980-01-01")) must beSome.which { res =>
         status(res) must equalTo(OK)
         val content = contentAsString(res)
         content must contain("""<h3 class="error">値が不適切です。入力し直してください。</h3>""")
@@ -508,7 +508,7 @@ class MemberControllerSpec extends Specification {
         content must contain("""<label for="nickname" class="">ニックネーム</label>""")
         content must contain("""<input type="text" id="nickname" name="nickname" value="nickname000" >""")
         content must contain("""<label for="birthday" class="">生年月日(省略可)</label>""")
-        content must contain("""<input type="date" id="birthday" name="birthday" value="1980/01/01" >""")
+        content must contain("""<input type="date" id="birthday" name="birthday" value="1980-01-01" >""")
         content must contain("""<input type="submit" value="変更する" data-theme="a" />""")
       }
     }

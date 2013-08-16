@@ -32,7 +32,7 @@ object MemberForm {
   val NICKNAME_MAX = 256
 
   val BIRTHDAY = "birthday"
-  val BIRTHDAY_PATTERN = "yyyy/MM/dd"
+  val BIRTHDAY_PATTERN = "yyyy-MM-dd"
 
   val PASSWORD = "password"
   val PASSWORD_MIN = 1

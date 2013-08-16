@@ -25,7 +25,7 @@ import models.Member
 
 object fmt {
 
-  def patternBirthday = "yyyy/MM/dd"
+  def patternBirthday = "yyyy-MM-dd"
   def patternAge = "#0 '歳'"
 
   def birthday(item: Member) =
