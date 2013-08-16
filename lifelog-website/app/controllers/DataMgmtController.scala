@@ -24,13 +24,11 @@ import scala.collection.breakOut
 import scala.io.Source
 
 import DataMgmtForm._
-import DietLogForm._
 import PageParam.implicitPageParam
 import akka.actor._
 import akka.actor.actorRef2Scala
 import akka.routing._
 import anorm._
-import common.FlashName
 import models._
 import play.api.Play.current
 import play.api.data._
@@ -61,11 +59,12 @@ object DataMgmtController extends Controller with ActionBuilder {
 
   def dietlogImport() = Authenticated { memberId =>
     Action { implicit req =>
+      import DietLogForm._
+      import common.FlashName
       req.body.asMultipartFormData match {
         case Some(body) => body.file(FILE) match {
           case Some(filePart) =>
 
-            import DietLogForm._
             val form = Form(tuple(
               "dtm" -> date(DATE_PATTERN + " " + TIME_PATTERN),
               WEIGHT -> bigDecimal(WEIGHT_PRECISION, WEIGHT_SCALE),
@@ -161,9 +160,9 @@ object Import {
 
   def apply(file: File, handler: RecordHandler) =
     try {
-      DB.withTransaction { conn =>
-        val source = new CsvParser(Source.fromFile(file))
-        try {
+      val source = new CsvParser(Source.fromFile(file))
+      try {
+        DB.withTransaction { conn =>
           for {
             header <- if (source.hasNext)
               Some(source.next.map(a => camelCase(a)))
@@ -182,9 +181,9 @@ object Import {
               case ((total, ok, ng), (a, b, c)) => (total + a, ok + b, ng + c)
             }
           }
-        } finally {
-          source.close
         }
+      } finally {
+        source.close
       }
     } finally {
       file.delete()
