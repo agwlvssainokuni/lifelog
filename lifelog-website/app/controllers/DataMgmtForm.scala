@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package controllers.common
+package controllers
 
-object FlashName {
+import play.api.data._
+import play.api.data.Forms._
 
-  val Success = "success"
-  val Error = "error"
-  val Uri = "uri"
+object DataMgmtForm {
 
-  val Logout = "logout"
-  val Unauthorized = "unauthorized"
-  val Create = "create"
-  val Update = "update"
-  val UpdatePw = "updatePw"
-  val Delete = "delete"
-  val Permission = "permission"
-  val Import = "import"
+  val FILE = "file"
+
+  val dietlogForm: Form[String] = Form(single(
+    FILE -> ignored("")))
 
 }

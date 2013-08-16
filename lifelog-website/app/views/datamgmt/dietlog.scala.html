@@ -1,14 +1,23 @@
-@()(implicit pageParam: PageParam)
+@()(implicit pageParam: PageParam, flash: Flash)
+@import controllers.DataMgmtForm._
+@import controllers.common.FlashName._
 @import views.html.helper._
 @import views.common.custom._
 @page("dietlog", Some("ダイエット記録")) {
+@{flash.get(Success).map {
+	case Import => <h3 class="success">インポートを開始しました。</h3>
+}}
+@{flash.get(Error).map {
+	case Import => <h3 class="error">インポートファイルが指定されていませn。</h3>
+}}
 <ul data-role="listview">
 	<li>@form(routes.DataMgmtController.dietlogExport(), dataajax -> "false") {
 		<input type="submit" value="エクスポート" /> }
 	</li>
 	<li>@form(routes.DataMgmtController.dietlogImport(), 'enctype -> "multipart/form-data", dataajax -> "false") {
+		@inputFile(dietlogForm(FILE), '_label -> "ファイル")
 		<input type="submit" value="インポート" />
-		<input type="file" name="file" /> }
+	}
 	</li>
 </ul>
 }

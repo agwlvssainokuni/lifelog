@@ -16,8 +16,14 @@
 
 package controllers
 
+import java.io.File
 import java.sql.Connection
 
+import scala.Array.canBuildFrom
+import scala.collection.breakOut
+import scala.io.Source
+
+import DataMgmtForm._
 import PageParam.implicitPageParam
 import akka.actor._
 import akka.actor.actorRef2Scala
@@ -25,6 +31,8 @@ import akka.routing._
 import anorm._
 import models._
 import play.api.Play.current
+import play.api.data._
+import play.api.data.Forms._
 import play.api.db._
 import play.api.libs._
 import play.api.libs.concurrent._
@@ -49,9 +57,40 @@ object DataMgmtController extends Controller with ActionBuilder {
     }
   }
 
-  def dietlogImport() = AuthnCustomAction { memberId =>
-    implicit conn => implicit req =>
-      NotImplemented
+  def dietlogImport() = Authenticated { memberId =>
+    Action { implicit req =>
+      import DietLogForm._
+      import common.FlashName
+      req.body.asMultipartFormData match {
+        case Some(body) => body.file(FILE) match {
+          case Some(filePart) =>
+
+            val form = Form(tuple(
+              "dtm" -> date(DATE_PATTERN + " " + TIME_PATTERN),
+              WEIGHT -> bigDecimal(WEIGHT_PRECISION, WEIGHT_SCALE),
+              FATRATE -> bigDecimal(FATRATE_PRECISION, FATRATE_SCALE),
+              HEIGHT -> optional(bigDecimal(HEIGHT_PRECISION, HEIGHT_SCALE)),
+              NOTE -> optional(text(NOTE_MIN, NOTE_MAX))))
+
+            def handler(conn: Connection, param: Map[String, String]) =
+              form.bind(param).fold(
+                error => None,
+                log => {
+                  implicit val c = conn
+                  val (dtm, weight, fatRate, height, note) = log
+                  DietLog.create(memberId, DietLog(dtm, weight, fatRate, height, note))
+                })
+
+            actor ! Import.Task(filePart.ref.file, handler)
+            Redirect(routes.DataMgmtController.index().url + "#dietlog").flashing(
+              FlashName.Success -> FlashName.Import)
+          case None =>
+            Redirect(routes.DataMgmtController.index().url + "#dietlog").flashing(
+              FlashName.Error -> FlashName.Import)
+        }
+        case None => BadRequest
+      }
+    }
   }
 
   private def sendFile(basename: String, content: Enumerator[String]): ChunkedResult[String] =
@@ -70,6 +109,7 @@ object DataMgmtController extends Controller with ActionBuilder {
 class DataMgmtActor extends Actor {
   def receive = {
     case Export.Task(channel, stream) => Export(channel, stream)
+    case Import.Task(file, handler) => Import(file, handler)
   }
 }
 
@@ -107,4 +147,59 @@ object Export {
 
   private def escape(s: String) =
     "\"" + s.flatMap(c => if (c == '"') "\"\"" else c.toString) + "\""
+}
+
+object Import {
+
+  import scala.io.Source
+  import _root_.common.io.CsvParser
+
+  type RecordHandler = (Connection, Map[String, String]) => Option[Long]
+
+  case class Task(file: File, handler: RecordHandler)
+
+  def apply(file: File, handler: RecordHandler) =
+    try {
+      val source = new CsvParser(Source.fromFile(file))
+      try {
+        DB.withTransaction { conn =>
+          for {
+            header <- if (source.hasNext)
+              Some(source.next.map(a => camelCase(a)))
+            else
+              None
+          } yield {
+            (for {
+              record <- source
+              param: Map[String, String] = header.zip(record).map(a => a._1 -> a._2)(breakOut)
+            } yield {
+              handler(conn, param) match {
+                case Some(_) => (1, 1, 0)
+                case None => (1, 0, 1)
+              }
+            }).foldLeft((0, 0, 0)) {
+              case ((total, ok, ng), (a, b, c)) => (total + a, ok + b, ng + c)
+            }
+          }
+        }
+      } finally {
+        source.close
+      }
+    } finally {
+      file.delete()
+    }
+
+  private def camelCase(name: String) =
+    (for {
+      (part, i) <- name.split("_").zipWithIndex
+      (ch, j) <- part.zipWithIndex
+    } yield {
+      if (i <= 0)
+        Character.toLowerCase(ch)
+      else if (j <= 0)
+        Character.toUpperCase(ch)
+      else
+        Character.toLowerCase(ch)
+    }).mkString
+
 }

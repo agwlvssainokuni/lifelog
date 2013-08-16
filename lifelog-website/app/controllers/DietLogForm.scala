@@ -25,7 +25,7 @@ import play.api.data.Forms._
 object DietLogForm {
 
   val DATE = "date"
-  val DATE_PATTERN = "yyyy/MM/dd"
+  val DATE_PATTERN = "yyyy-MM-dd"
 
   val TIME = "time"
   val TIME_PATTERN = "HH:mm"
