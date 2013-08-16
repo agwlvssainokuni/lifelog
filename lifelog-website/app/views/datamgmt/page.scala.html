@@ -1,4 +1,4 @@
-@(id: String, title: Option[String] = None)(content: Html)(implicit pageParam: PageParam)
+@(id: String, title: Option[String] = None)(content: Html)(implicit pageParam: PageParam, flash: Flash)
 <div data-role="page" id="@{id}">
 	<div data-role="header" data-theme="b">
 		@pageParam.member.map{ member => <span>@{member.nickname}</span> }

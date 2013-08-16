@@ -29,5 +29,6 @@ object FlashName {
   val UpdatePw = "updatePw"
   val Delete = "delete"
   val Permission = "permission"
+  val Import = "import"
 
 }
