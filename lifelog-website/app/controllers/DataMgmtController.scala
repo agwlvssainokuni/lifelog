@@ -175,11 +175,11 @@ object Import {
               param: Map[String, String] = header.zip(record).map(a => a._1 -> a._2)(breakOut)
             } yield {
               handler(conn, param) match {
-                case Some(_) => (1, 0)
-                case None => (0, 1)
+                case Some(_) => (1, 1, 0)
+                case None => (1, 0, 1)
               }
-            }).foldLeft((0, 0)) {
-              (a, b) => (a._1 + b._1, a._2 + b._2)
+            }).foldLeft((0, 0, 0)) {
+              case ((total, ok, ng), (a, b, c)) => (total + a, ok + b, ng + c)
             }
           }
         } finally {

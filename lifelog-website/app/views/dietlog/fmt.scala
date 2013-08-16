@@ -23,7 +23,7 @@ import models.DietLog
 
 object fmt {
 
-  def patternDtm = "yyyy/MM/dd HH:mm"
+  def patternDtm = "yyyy-MM-dd HH:mm"
   def patternWeight = "#0.0 'kg'"
   def patternFatRate = "#0.0 '%'"
   def patternHeight = "##0.0 'cm'"
