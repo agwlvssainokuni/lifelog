@@ -8,7 +8,8 @@
 	case Import => <h3 class="success">インポートを開始しました。</h3>
 }}
 @{flash.get(Error).map {
-	case Import => <h3 class="error">インポートファイルが指定されていませn。</h3>
+	case Task => <h3 class="error">タスクを開始できませんでした。</h3>
+	case Import => <h3 class="error">インポートファイルが指定されていません。</h3>
 }}
 <ul data-role="listview">
 	<li>@form(routes.DataMgmtController.dietlogExport(), dataajax -> "false") {

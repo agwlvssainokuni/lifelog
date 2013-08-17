@@ -18,6 +18,7 @@ package controllers
 
 import java.io.File
 import java.sql.Connection
+import java.util.Calendar
 
 import scala.Array.canBuildFrom
 import scala.collection.breakOut
@@ -29,20 +30,19 @@ import akka.actor._
 import akka.actor.actorRef2Scala
 import akka.routing._
 import anorm._
+import common.FlashName
 import models._
 import play.api.Play.current
-import play.api.data._
-import play.api.data.Forms._
 import play.api.db._
 import play.api.libs._
 import play.api.libs.concurrent._
 import play.api.libs.iteratee._
 import play.api.mvc._
 
-object DataMgmtController extends Controller with ActionBuilder {
+object DataMgmtController extends Controller with ActionBuilder with AsyncTaskUtil {
 
   val actor = Akka.system.actorOf(Props[DataMgmtActor].withRouter(
-    RoundRobinRouter(resizer = Some(DefaultResizer()))), "dataMgmt")
+    RoundRobinRouter(resizer = Some(DefaultResizer()))))
 
   def index() = AuthnCustomAction { memberId =>
     implicit conn => implicit req =>
@@ -51,39 +51,32 @@ object DataMgmtController extends Controller with ActionBuilder {
 
   def dietlogExport() = Authenticated { memberId =>
     Action {
-      sendFile("dietlog", Concurrent.unicast[String]({ channel =>
-        actor ! Export.Task(channel, DietLog.stream(memberId)(_))
-      }))
+      taskCreate(memberId, "dietlog export") match {
+        case Some(taskId) =>
+          sendFile("dietlog", Concurrent.unicast[String]({ channel =>
+            actor ! Export.Task(memberId, taskId, channel, DietLog.stream(memberId)(_))
+          }))
+        case None =>
+          Redirect(routes.DataMgmtController.index().url + "#dietlog").flashing(
+            FlashName.Error -> FlashName.Task)
+      }
     }
   }
 
   def dietlogImport() = Authenticated { memberId =>
-    Action { implicit req =>
-      import DietLogForm._
-      import common.FlashName
+    Action { req =>
       req.body.asMultipartFormData match {
         case Some(body) => body.file(FILE) match {
           case Some(filePart) =>
-
-            val form = Form(tuple(
-              "dtm" -> date(DATE_PATTERN + " " + TIME_PATTERN),
-              WEIGHT -> bigDecimal(WEIGHT_PRECISION, WEIGHT_SCALE),
-              FATRATE -> bigDecimal(FATRATE_PRECISION, FATRATE_SCALE),
-              HEIGHT -> optional(bigDecimal(HEIGHT_PRECISION, HEIGHT_SCALE)),
-              NOTE -> optional(text(NOTE_MIN, NOTE_MAX))))
-
-            def handler(conn: Connection, param: Map[String, String]) =
-              form.bind(param).fold(
-                error => None,
-                log => {
-                  implicit val c = conn
-                  val (dtm, weight, fatRate, height, note) = log
-                  DietLog.create(memberId, DietLog(dtm, weight, fatRate, height, note))
-                })
-
-            actor ! Import.Task(filePart.ref.file, handler)
-            Redirect(routes.DataMgmtController.index().url + "#dietlog").flashing(
-              FlashName.Success -> FlashName.Import)
+            taskCreate(memberId, "dietlog import " + filePart.filename) match {
+              case Some(taskId) =>
+                actor ! Import.Task(memberId, taskId, filePart.ref.file, dietlogImportHandler(memberId))
+                Redirect(routes.DataMgmtController.index().url + "#dietlog").flashing(
+                  FlashName.Success -> FlashName.Import)
+              case None =>
+                Redirect(routes.DataMgmtController.index().url + "#dietlog").flashing(
+                  FlashName.Error -> FlashName.Task)
+            }
           case None =>
             Redirect(routes.DataMgmtController.index().url + "#dietlog").flashing(
               FlashName.Error -> FlashName.Import)
@@ -92,6 +85,15 @@ object DataMgmtController extends Controller with ActionBuilder {
       }
     }
   }
+
+  private def dietlogImportHandler(memberId: Long)(conn: Connection, param: Map[String, String]) =
+    dietlog.recordForm.bind(param).fold(
+      error => None,
+      log => {
+        implicit val c = conn
+        val (dtm, weight, fatRate, height, note) = log
+        DietLog.create(memberId, DietLog(dtm, weight, fatRate, height, note))
+      })
 
   private def sendFile(basename: String, content: Enumerator[String]): ChunkedResult[String] =
     Ok.stream(content).withHeaders(
@@ -108,20 +110,22 @@ object DataMgmtController extends Controller with ActionBuilder {
 
 class DataMgmtActor extends Actor {
   def receive = {
-    case Export.Task(channel, stream) => Export(channel, stream)
-    case Import.Task(file, handler) => Import(file, handler)
+    case Export.Task(memberId, id, channel, stream) => Export(memberId, id, channel, stream)
+    case Import.Task(memberId, id, file, handler) => Import(memberId, id, file, handler)
   }
 }
 
-object Export {
+object Export extends AsyncTaskUtil {
 
   type ExportChannel = Concurrent.Channel[String]
   type ExportSource = Connection => Stream[SqlRow]
 
-  case class Task(channel: ExportChannel, stream: ExportSource)
+  case class Task(memberId: Long, id: Long, channel: ExportChannel, stream: ExportSource)
 
-  def apply(channel: ExportChannel, stream: ExportSource) =
+  def apply(memberId: Long, id: Long, channel: ExportChannel, stream: ExportSource) =
     try {
+      taskStarted(memberId, id)
+      var count = -1
       DB.withTransaction { conn =>
         for {
           (row, i) <- stream(conn).zipWithIndex
@@ -132,15 +136,20 @@ object Export {
           }).mkString(",")
         } {
           if (i <= 0) {
+            taskRunning(memberId, id)
             val h = row.metaData.ms.map(m => escape(m.column.alias.getOrElse(""))).mkString(",")
             channel.push(h + newline)
           }
           channel.push(record + newline)
+          count = i
         }
       }
       channel.eofAndEnd()
+      taskOkEnd(memberId, id, (count + 1).toLong, None, None)
     } catch {
-      case ex: Exception => channel.end(ex)
+      case ex: Exception =>
+        channel.end(ex)
+        taskNgEnd(memberId, id)
     }
 
   private def newline = "\r\n"
@@ -149,26 +158,25 @@ object Export {
     "\"" + s.flatMap(c => if (c == '"') "\"\"" else c.toString) + "\""
 }
 
-object Import {
-
-  import scala.io.Source
-  import _root_.common.io.CsvParser
+object Import extends AsyncTaskUtil {
 
   type RecordHandler = (Connection, Map[String, String]) => Option[Long]
 
-  case class Task(file: File, handler: RecordHandler)
+  case class Task(memberId: Long, id: Long, file: File, handler: RecordHandler)
 
-  def apply(file: File, handler: RecordHandler) =
+  def apply(memberId: Long, id: Long, file: File, handler: RecordHandler) =
     try {
-      val source = new CsvParser(Source.fromFile(file))
+      taskStarted(memberId, id)
+      val source = new _root_.common.io.CsvParser(Source.fromFile(file))
       try {
-        DB.withTransaction { conn =>
+        val result = DB.withTransaction { conn =>
           for {
             header <- if (source.hasNext)
               Some(source.next.map(a => camelCase(a)))
             else
               None
           } yield {
+            taskRunning(memberId, id)
             (for {
               record <- source
               param: Map[String, String] = header.zip(record).map(a => a._1 -> a._2)(breakOut)
@@ -181,6 +189,12 @@ object Import {
               case ((total, ok, ng), (a, b, c)) => (total + a, ok + b, ng + c)
             }
           }
+        }
+        result match {
+          case Some((totalCount, okCount, ngCount)) =>
+            taskOkEnd(memberId, id, totalCount, Some(okCount), Some(ngCount))
+          case _ =>
+            taskNgEnd(memberId, id)
         }
       } finally {
         source.close
@@ -201,5 +215,67 @@ object Import {
       else
         Character.toLowerCase(ch)
     }).mkString
+
+}
+
+trait AsyncTaskUtil {
+
+  def taskCreate(memberId: Long, name: String) =
+    DB.withTransaction { implicit c =>
+      AsyncTask.create(memberId,
+        AsyncTask(name, AsyncTask.New, None, None, None, None, None))
+    }
+
+  def taskStarted(memberId: Long, id: Long) =
+    DB.withTransaction { implicit c =>
+      AsyncTask.tryLock(memberId, id) match {
+        case Some(_) => AsyncTask.find(memberId, id) match {
+          case Some(AsyncTask(name, _, _, _, _, _, _)) =>
+            AsyncTask.update(memberId, id,
+              AsyncTask(name, AsyncTask.Started, Some(Calendar.getInstance.getTime), None, None, None, None))
+          case _ => false
+        }
+        case _ => false
+      }
+    }
+
+  def taskRunning(memberId: Long, id: Long) =
+    DB.withTransaction { implicit c =>
+      AsyncTask.tryLock(memberId, id) match {
+        case Some(_) => AsyncTask.find(memberId, id) match {
+          case Some(AsyncTask(name, _, startDtm, _, _, _, _)) =>
+            AsyncTask.update(memberId, id,
+              AsyncTask(name, AsyncTask.Running, startDtm, None, None, None, None))
+          case _ => false
+        }
+        case _ => false
+      }
+    }
+
+  def taskOkEnd(memberId: Long, id: Long, totalCount: Long, okCount: Option[Long] = None, ngCount: Option[Long] = None) =
+    DB.withTransaction { implicit c =>
+      AsyncTask.tryLock(memberId, id) match {
+        case Some(_) => AsyncTask.find(memberId, id) match {
+          case Some(AsyncTask(name, _, startDtm, _, _, _, _)) =>
+            AsyncTask.update(memberId, id,
+              AsyncTask(name, AsyncTask.OkEnd, startDtm, Some(Calendar.getInstance.getTime), Some(totalCount), okCount, ngCount))
+          case _ => false
+        }
+        case _ => false
+      }
+    }
+
+  def taskNgEnd(memberId: Long, id: Long) =
+    DB.withTransaction { implicit c =>
+      AsyncTask.tryLock(memberId, id) match {
+        case Some(_) => AsyncTask.find(memberId, id) match {
+          case Some(AsyncTask(name, _, startDtm, _, _, _, _)) =>
+            AsyncTask.update(memberId, id,
+              AsyncTask(name, AsyncTask.NgEnd, startDtm, Some(Calendar.getInstance.getTime), None, None, None))
+          case _ => false
+        }
+        case _ => false
+      }
+    }
 
 }

@@ -26,4 +26,16 @@ object DataMgmtForm {
   val dietlogForm: Form[String] = Form(single(
     FILE -> ignored("")))
 
+  object dietlog {
+    import DietLogForm._
+    val DTM = "dtm"
+    val DTM_PATTERN = DATE_PATTERN + " " + TIME_PATTERN
+    val recordForm = Form(tuple(
+      DTM -> date(DTM_PATTERN),
+      WEIGHT -> bigDecimal(WEIGHT_PRECISION, WEIGHT_SCALE),
+      FATRATE -> bigDecimal(FATRATE_PRECISION, FATRATE_SCALE),
+      HEIGHT -> optional(bigDecimal(HEIGHT_PRECISION, HEIGHT_SCALE)),
+      NOTE -> optional(text(NOTE_MIN, NOTE_MAX))))
+  }
+
 }
