@@ -78,7 +78,7 @@ object AsyncTask {
 
   def list(memberId: Long, pageNo: Long, pageSize: Long)(implicit c: Connection) =
     SQL("""
-        SELECT id, member_id, status, start_dtm, end_dtm, total_count, ok_count, ng_count
+        SELECT id, member_id, name, status, start_dtm, end_dtm, total_count, ok_count, ng_count
         FROM async_tasks
         WHERE
             member_id = {memberId}
@@ -92,7 +92,7 @@ object AsyncTask {
 
   def find(memberId: Long, id: Long)(implicit c: Connection) =
     SQL("""
-        SELECT id, member_id, status, start_dtm, end_dtm, total_count, ok_count, ng_count
+        SELECT id, member_id, name, status, start_dtm, end_dtm, total_count, ok_count, ng_count
         FROM async_tasks
         WHERE
             member_id = {memberId}
@@ -105,6 +105,7 @@ object AsyncTask {
     SQL("""
         INSERT INTO async_tasks (
             member_id,
+            name,
             status,
             start_dtm,
             end_dtm,
@@ -114,6 +115,7 @@ object AsyncTask {
             updated_at
         ) VALUES (
             {memberId},
+            {name},
             {status},
             {startDtm},
             {endDtm},
@@ -134,11 +136,12 @@ object AsyncTask {
     SQL("""
         UPDATE async_tasks
         SET
+            name = {name},
             status = {status},
             start_dtm = {startDtm},
             end_dtm = {endDtm},
             total_count = {totalCount},
-            ok_cont = {okCount},
+            ok_count = {okCount},
             ng_count = {ngCount},
             updated_at = CURRENT_TIMESTAMP
         WHERE
