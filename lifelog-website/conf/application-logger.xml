@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+
+	<conversionRule conversionWord="coloredLevel"
+		converterClass="play.api.Logger$ColoredLevel" />
+
+	<appender name="FILE"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${application.home}/logs/applog.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${application.home}/logs/applog_%d{yyyy-MM-dd}.log</fileNamePattern>
+			<maxHistory>7</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%d{yyyy-MM-dd'T'HH:mm:ss:SSS} [%level] %thread %logger %X{username} %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%coloredLevel %logger{15} - %message%n%xException{5}</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="ACCESSLOG"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${application.home}/logs/operlog.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${application.home}/logs/operlog_%d{yyyy-MM-dd}.log</fileNamePattern>
+			<maxHistory>7</maxHistory>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%d{yyyy-MM-dd'T'HH:mm:ss:SSS},%thread,%logger,%X{remoteAddr},%X{username},%X{method},%msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<!--
+	<appender name="FLUENT" class="common.log.FluentLoggerAppender">
+		<tag>lifelog</tag>
+	</appender>
+	-->
+
+	<logger name="play" level="INFO" />
+	<logger name="application" level="INFO" />
+	<logger name="accessLog" level="INFO" additivity="false">
+		<appender-ref ref="ACCESSLOG" />
+	</logger>
+	<root level="ERROR">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="FILE" />
+		<!-- <appender-ref ref="FLUENT" /> -->
+	</root>
+
+</configuration>
