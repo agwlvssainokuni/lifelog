@@ -68,9 +68,15 @@ object DataMgmtController extends Controller with ActionBuilder with AsyncTaskUt
       req.body.asMultipartFormData match {
         case Some(body) => body.file(FILE) match {
           case Some(filePart) =>
-            actor ! Import.Task(filePart.ref.file, dietlogImportHandler(memberId))
-            Redirect(routes.DataMgmtController.index().url + "#dietlog").flashing(
-              FlashName.Success -> FlashName.Import)
+            taskCreate(memberId, "dietlog import " + filePart.filename) match {
+              case Some(taskId) =>
+                actor ! Import.Task(memberId, taskId, filePart.ref.file, dietlogImportHandler(memberId))
+                Redirect(routes.DataMgmtController.index().url + "#dietlog").flashing(
+                  FlashName.Success -> FlashName.Import)
+              case None =>
+                Redirect(routes.DataMgmtController.index().url + "#dietlog").flashing(
+                  FlashName.Error -> FlashName.Task)
+            }
           case None =>
             Redirect(routes.DataMgmtController.index().url + "#dietlog").flashing(
               FlashName.Error -> FlashName.Import)
@@ -105,7 +111,7 @@ object DataMgmtController extends Controller with ActionBuilder with AsyncTaskUt
 class DataMgmtActor extends Actor {
   def receive = {
     case Export.Task(memberId, id, channel, stream) => Export(memberId, id, channel, stream)
-    case Import.Task(file, handler) => Import(file, handler)
+    case Import.Task(memberId, id, file, handler) => Import(memberId, id, file, handler)
   }
 }
 
@@ -152,23 +158,25 @@ object Export extends AsyncTaskUtil {
     "\"" + s.flatMap(c => if (c == '"') "\"\"" else c.toString) + "\""
 }
 
-object Import {
+object Import extends AsyncTaskUtil {
 
   type RecordHandler = (Connection, Map[String, String]) => Option[Long]
 
-  case class Task(file: File, handler: RecordHandler)
+  case class Task(memberId: Long, id: Long, file: File, handler: RecordHandler)
 
-  def apply(file: File, handler: RecordHandler) =
+  def apply(memberId: Long, id: Long, file: File, handler: RecordHandler) =
     try {
+      taskStarted(memberId, id)
       val source = new _root_.common.io.CsvParser(Source.fromFile(file))
       try {
-        DB.withTransaction { conn =>
+        val result = DB.withTransaction { conn =>
           for {
             header <- if (source.hasNext)
               Some(source.next.map(a => camelCase(a)))
             else
               None
           } yield {
+            taskRunning(memberId, id)
             (for {
               record <- source
               param: Map[String, String] = header.zip(record).map(a => a._1 -> a._2)(breakOut)
@@ -181,6 +189,12 @@ object Import {
               case ((total, ok, ng), (a, b, c)) => (total + a, ok + b, ng + c)
             }
           }
+        }
+        result match {
+          case Some((totalCount, okCount, ngCount)) =>
+            taskOkEnd(memberId, id, totalCount, Some(okCount), Some(ngCount))
+          case _ =>
+            taskNgEnd(memberId, id)
         }
       } finally {
         source.close
