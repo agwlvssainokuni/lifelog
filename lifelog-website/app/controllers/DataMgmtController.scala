@@ -29,10 +29,9 @@ import akka.actor._
 import akka.actor.actorRef2Scala
 import akka.routing._
 import anorm._
+import common.FlashName
 import models._
 import play.api.Play.current
-import play.api.data._
-import play.api.data.Forms._
 import play.api.db._
 import play.api.libs._
 import play.api.libs.concurrent._
@@ -42,7 +41,7 @@ import play.api.mvc._
 object DataMgmtController extends Controller with ActionBuilder {
 
   val actor = Akka.system.actorOf(Props[DataMgmtActor].withRouter(
-    RoundRobinRouter(resizer = Some(DefaultResizer()))), "dataMgmt")
+    RoundRobinRouter(resizer = Some(DefaultResizer()))))
 
   def index() = AuthnCustomAction { memberId =>
     implicit conn => implicit req =>
@@ -58,30 +57,11 @@ object DataMgmtController extends Controller with ActionBuilder {
   }
 
   def dietlogImport() = Authenticated { memberId =>
-    Action { implicit req =>
-      import DietLogForm._
-      import common.FlashName
+    Action { req =>
       req.body.asMultipartFormData match {
         case Some(body) => body.file(FILE) match {
           case Some(filePart) =>
-
-            val form = Form(tuple(
-              "dtm" -> date(DATE_PATTERN + " " + TIME_PATTERN),
-              WEIGHT -> bigDecimal(WEIGHT_PRECISION, WEIGHT_SCALE),
-              FATRATE -> bigDecimal(FATRATE_PRECISION, FATRATE_SCALE),
-              HEIGHT -> optional(bigDecimal(HEIGHT_PRECISION, HEIGHT_SCALE)),
-              NOTE -> optional(text(NOTE_MIN, NOTE_MAX))))
-
-            def handler(conn: Connection, param: Map[String, String]) =
-              form.bind(param).fold(
-                error => None,
-                log => {
-                  implicit val c = conn
-                  val (dtm, weight, fatRate, height, note) = log
-                  DietLog.create(memberId, DietLog(dtm, weight, fatRate, height, note))
-                })
-
-            actor ! Import.Task(filePart.ref.file, handler)
+            actor ! Import.Task(filePart.ref.file, dietlogImportHandler(memberId))
             Redirect(routes.DataMgmtController.index().url + "#dietlog").flashing(
               FlashName.Success -> FlashName.Import)
           case None =>
@@ -92,6 +72,15 @@ object DataMgmtController extends Controller with ActionBuilder {
       }
     }
   }
+
+  private def dietlogImportHandler(memberId: Long)(conn: Connection, param: Map[String, String]) =
+    dietlog.recordForm.bind(param).fold(
+      error => None,
+      log => {
+        implicit val c = conn
+        val (dtm, weight, fatRate, height, note) = log
+        DietLog.create(memberId, DietLog(dtm, weight, fatRate, height, note))
+      })
 
   private def sendFile(basename: String, content: Enumerator[String]): ChunkedResult[String] =
     Ok.stream(content).withHeaders(
@@ -151,16 +140,13 @@ object Export {
 
 object Import {
 
-  import scala.io.Source
-  import _root_.common.io.CsvParser
-
   type RecordHandler = (Connection, Map[String, String]) => Option[Long]
 
   case class Task(file: File, handler: RecordHandler)
 
   def apply(file: File, handler: RecordHandler) =
     try {
-      val source = new CsvParser(Source.fromFile(file))
+      val source = new _root_.common.io.CsvParser(Source.fromFile(file))
       try {
         DB.withTransaction { conn =>
           for {
