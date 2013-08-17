@@ -18,6 +18,7 @@ package controllers
 
 import java.io.File
 import java.sql.Connection
+import java.util.Calendar
 
 import scala.Array.canBuildFrom
 import scala.collection.breakOut
@@ -38,7 +39,7 @@ import play.api.libs.concurrent._
 import play.api.libs.iteratee._
 import play.api.mvc._
 
-object DataMgmtController extends Controller with ActionBuilder {
+object DataMgmtController extends Controller with ActionBuilder with AsyncTaskUtil {
 
   val actor = Akka.system.actorOf(Props[DataMgmtActor].withRouter(
     RoundRobinRouter(resizer = Some(DefaultResizer()))))
@@ -50,9 +51,15 @@ object DataMgmtController extends Controller with ActionBuilder {
 
   def dietlogExport() = Authenticated { memberId =>
     Action {
-      sendFile("dietlog", Concurrent.unicast[String]({ channel =>
-        actor ! Export.Task(channel, DietLog.stream(memberId)(_))
-      }))
+      taskCreate(memberId, "dietlog export") match {
+        case Some(taskId) =>
+          sendFile("dietlog", Concurrent.unicast[String]({ channel =>
+            actor ! Export.Task(memberId, taskId, channel, DietLog.stream(memberId)(_))
+          }))
+        case None =>
+          Redirect(routes.DataMgmtController.index().url + "#dietlog").flashing(
+            FlashName.Error -> FlashName.Task)
+      }
     }
   }
 
@@ -97,20 +104,22 @@ object DataMgmtController extends Controller with ActionBuilder {
 
 class DataMgmtActor extends Actor {
   def receive = {
-    case Export.Task(channel, stream) => Export(channel, stream)
+    case Export.Task(memberId, id, channel, stream) => Export(memberId, id, channel, stream)
     case Import.Task(file, handler) => Import(file, handler)
   }
 }
 
-object Export {
+object Export extends AsyncTaskUtil {
 
   type ExportChannel = Concurrent.Channel[String]
   type ExportSource = Connection => Stream[SqlRow]
 
-  case class Task(channel: ExportChannel, stream: ExportSource)
+  case class Task(memberId: Long, id: Long, channel: ExportChannel, stream: ExportSource)
 
-  def apply(channel: ExportChannel, stream: ExportSource) =
+  def apply(memberId: Long, id: Long, channel: ExportChannel, stream: ExportSource) =
     try {
+      taskStarted(memberId, id)
+      var count = -1
       DB.withTransaction { conn =>
         for {
           (row, i) <- stream(conn).zipWithIndex
@@ -121,15 +130,20 @@ object Export {
           }).mkString(",")
         } {
           if (i <= 0) {
+            taskRunning(memberId, id)
             val h = row.metaData.ms.map(m => escape(m.column.alias.getOrElse(""))).mkString(",")
             channel.push(h + newline)
           }
           channel.push(record + newline)
+          count = i
         }
       }
       channel.eofAndEnd()
+      taskOkEnd(memberId, id, (count + 1).toLong, None, None)
     } catch {
-      case ex: Exception => channel.end(ex)
+      case ex: Exception =>
+        channel.end(ex)
+        taskNgEnd(memberId, id)
     }
 
   private def newline = "\r\n"
@@ -187,5 +201,67 @@ object Import {
       else
         Character.toLowerCase(ch)
     }).mkString
+
+}
+
+trait AsyncTaskUtil {
+
+  def taskCreate(memberId: Long, name: String) =
+    DB.withTransaction { implicit c =>
+      AsyncTask.create(memberId,
+        AsyncTask(name, AsyncTask.New, None, None, None, None, None))
+    }
+
+  def taskStarted(memberId: Long, id: Long) =
+    DB.withTransaction { implicit c =>
+      AsyncTask.tryLock(memberId, id) match {
+        case Some(_) => AsyncTask.find(memberId, id) match {
+          case Some(AsyncTask(name, _, _, _, _, _, _)) =>
+            AsyncTask.update(memberId, id,
+              AsyncTask(name, AsyncTask.Started, Some(Calendar.getInstance.getTime), None, None, None, None))
+          case _ => false
+        }
+        case _ => false
+      }
+    }
+
+  def taskRunning(memberId: Long, id: Long) =
+    DB.withTransaction { implicit c =>
+      AsyncTask.tryLock(memberId, id) match {
+        case Some(_) => AsyncTask.find(memberId, id) match {
+          case Some(AsyncTask(name, _, startDtm, _, _, _, _)) =>
+            AsyncTask.update(memberId, id,
+              AsyncTask(name, AsyncTask.Running, startDtm, None, None, None, None))
+          case _ => false
+        }
+        case _ => false
+      }
+    }
+
+  def taskOkEnd(memberId: Long, id: Long, totalCount: Long, okCount: Option[Long] = None, ngCount: Option[Long] = None) =
+    DB.withTransaction { implicit c =>
+      AsyncTask.tryLock(memberId, id) match {
+        case Some(_) => AsyncTask.find(memberId, id) match {
+          case Some(AsyncTask(name, _, startDtm, _, _, _, _)) =>
+            AsyncTask.update(memberId, id,
+              AsyncTask(name, AsyncTask.OkEnd, startDtm, Some(Calendar.getInstance.getTime), Some(totalCount), okCount, ngCount))
+          case _ => false
+        }
+        case _ => false
+      }
+    }
+
+  def taskNgEnd(memberId: Long, id: Long) =
+    DB.withTransaction { implicit c =>
+      AsyncTask.tryLock(memberId, id) match {
+        case Some(_) => AsyncTask.find(memberId, id) match {
+          case Some(AsyncTask(name, _, startDtm, _, _, _, _)) =>
+            AsyncTask.update(memberId, id,
+              AsyncTask(name, AsyncTask.NgEnd, startDtm, Some(Calendar.getInstance.getTime), None, None, None))
+          case _ => false
+        }
+        case _ => false
+      }
+    }
 
 }
