@@ -164,6 +164,7 @@ object DietLog {
             member_id = {memberId}
             AND
             id = {id}
+        FOR UPDATE
         """).on(
       'memberId -> memberId, 'id -> id).singleOpt(scalar[Long])
 
