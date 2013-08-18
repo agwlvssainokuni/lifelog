@@ -1,0 +1,11 @@
+@(title: String)(content: Html)(implicit pageParam: PageParam)
+@views.html.main("タスク管理 " + title)(content) {
+<div data-role="navbar" data-iconpos="left">
+	<ul>
+		<li><a href="@routes.HomeController.index()" data-ajax="false"
+			data-icon="home">ホーム</a></li>
+		<li><a href="@routes.AsyncTaskController.list(None, None)" data-ajax="false"
+			data-icon="grid">一覧</a></li>
+	</ul>
+</div>
+}

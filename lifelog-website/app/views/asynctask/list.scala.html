@@ -1,0 +1,47 @@
+@(pager: Pager, list: Seq[AsyncTask])(implicit pageParam: PageParam, flash: Flash)
+@import controllers.common.FlashName._
+@import models._
+@import views.html.helper._
+@import views.common.custom._
+@import views.asynctask.fmt._
+@main("一覧") {
+<table id="asynctasks-list" data-role="table" data-mode="columntoggle"
+	class="ui-body-d ui-shadow table-stripe ui-responsive"
+	data-column-btn-theme="b" data-column-btn-text="表示列選択"
+	data-column-popup-theme="b">
+	<thead>
+		<tr class="ui-bar-d">
+			<th>タスク名</th>
+			<th>状態</th>
+			<th data-priority="2">開始日時</th>
+			<th data-priority="2">終了日時</th>
+			<th data-priority="5">全件数</th>
+			<th data-priority="6">OK件数</th>
+			<th data-priority="6">NG件数</th>
+		</tr>
+	</thead>
+	<tbody>
+		@list.map { item =>
+		<tr>
+			<td>@{item.name}</td>
+			<td>@{status(item)}</td>
+			<td>@{startDtm(item)}</td>
+			<td>@{endDtm(item)}</td>
+			<td>@{totalCount(item)}</td>
+			<td>@{okCount(item)}</td>
+			<td>@{ngCount(item)}</td>
+		</tr>
+		}
+	</tbody>
+</table>
+<div data-role="navbar" data-iconpos="left">
+	<ul>
+		<li><a href="@routes.AsyncTaskController.list(pager.no.map(_ - 1), pager.size)"
+			class="@if(!pager.hasPrev) { ui-disabled }"
+			data-icon="arrow-l">PREV</a></li>
+		<li><a href="@routes.AsyncTaskController.list(pager.no.map(_ + 1), pager.size)"
+			class="@if(!pager.hasNext) { ui-disabled }"
+			data-icon="arrow-r">NEXT</a></li>
+	</ul>
+</div>
+}

@@ -33,3 +33,6 @@ GET    /dietlogs/:id/delete   controllers.DietLogController.delete(id: Long)
 GET    /datamgmt              controllers.DataMgmtController.index()
 GET    /datamgmt/dietlog      controllers.DataMgmtController.dietlogExport()
 POST   /datamgmt/dietlog      controllers.DataMgmtController.dietlogImport()
+
+# AsyncTask
+GET    /asynctasks            controllers.AsyncTaskController.list(pn: Option[Long], ps: Option[Long])
