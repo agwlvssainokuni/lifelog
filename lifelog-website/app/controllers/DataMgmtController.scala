@@ -227,51 +227,36 @@ trait AsyncTaskUtil {
     }
 
   def taskStarted(memberId: Long, id: Long) =
-    DB.withTransaction { implicit c =>
-      AsyncTask.tryLock(memberId, id) match {
-        case Some(_) => AsyncTask.find(memberId, id) match {
-          case Some(AsyncTask(name, _, _, _, _, _, _)) =>
-            AsyncTask.update(memberId, id,
-              AsyncTask(name, AsyncTask.Started, Some(Calendar.getInstance.getTime), None, None, None, None))
-          case _ => false
-        }
-        case _ => false
-      }
+    lockAndUpdate(memberId, id) {
+      case AsyncTask(name, _, _, _, _, _, _) =>
+        AsyncTask(name, AsyncTask.Started, Some(now()), None, None, None, None)
     }
 
   def taskRunning(memberId: Long, id: Long) =
-    DB.withTransaction { implicit c =>
-      AsyncTask.tryLock(memberId, id) match {
-        case Some(_) => AsyncTask.find(memberId, id) match {
-          case Some(AsyncTask(name, _, startDtm, _, _, _, _)) =>
-            AsyncTask.update(memberId, id,
-              AsyncTask(name, AsyncTask.Running, startDtm, None, None, None, None))
-          case _ => false
-        }
-        case _ => false
-      }
+    lockAndUpdate(memberId, id) {
+      case AsyncTask(name, _, startDtm, _, _, _, _) =>
+        AsyncTask(name, AsyncTask.Running, startDtm, None, None, None, None)
     }
 
   def taskOkEnd(memberId: Long, id: Long, totalCount: Long, okCount: Option[Long] = None, ngCount: Option[Long] = None) =
-    DB.withTransaction { implicit c =>
-      AsyncTask.tryLock(memberId, id) match {
-        case Some(_) => AsyncTask.find(memberId, id) match {
-          case Some(AsyncTask(name, _, startDtm, _, _, _, _)) =>
-            AsyncTask.update(memberId, id,
-              AsyncTask(name, AsyncTask.OkEnd, startDtm, Some(Calendar.getInstance.getTime), Some(totalCount), okCount, ngCount))
-          case _ => false
-        }
-        case _ => false
-      }
+    lockAndUpdate(memberId, id) {
+      case AsyncTask(name, _, startDtm, _, _, _, _) =>
+        AsyncTask(name, AsyncTask.OkEnd, startDtm, Some(now()), Some(totalCount), okCount, ngCount)
     }
 
   def taskNgEnd(memberId: Long, id: Long) =
+    lockAndUpdate(memberId, id) {
+      case AsyncTask(name, _, startDtm, _, _, _, _) =>
+        AsyncTask(name, AsyncTask.NgEnd, startDtm, Some(now()), None, None, None)
+    }
+
+  private def now() = Calendar.getInstance().getTime
+
+  private def lockAndUpdate(memberId: Long, id: Long)(next: AsyncTask => AsyncTask) =
     DB.withTransaction { implicit c =>
       AsyncTask.tryLock(memberId, id) match {
         case Some(_) => AsyncTask.find(memberId, id) match {
-          case Some(AsyncTask(name, _, startDtm, _, _, _, _)) =>
-            AsyncTask.update(memberId, id,
-              AsyncTask(name, AsyncTask.NgEnd, startDtm, Some(Calendar.getInstance.getTime), None, None, None))
+          case Some(task) => AsyncTask.update(memberId, id, next(task))
           case _ => false
         }
         case _ => false
