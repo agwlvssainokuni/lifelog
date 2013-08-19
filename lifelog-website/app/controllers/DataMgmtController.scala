@@ -18,31 +18,23 @@ package controllers
 
 import java.io.File
 import java.sql.Connection
-import java.util.Calendar
 
 import scala.Array.canBuildFrom
-import scala.collection.breakOut
 import scala.io.Source
 
-import DataMgmtForm._
+import DataMgmtForm.FILE
+import DataMgmtForm.dietlog
 import PageParam.implicitPageParam
-import akka.actor._
-import akka.actor.actorRef2Scala
-import akka.routing._
 import anorm._
 import common.FlashName
 import models._
 import play.api.Play.current
 import play.api.db._
 import play.api.libs._
-import play.api.libs.concurrent._
 import play.api.libs.iteratee._
 import play.api.mvc._
 
-object DataMgmtController extends Controller with ActionBuilder with AsyncTaskUtil {
-
-  val actor = Akka.system.actorOf(Props[DataMgmtActor].withRouter(
-    RoundRobinRouter(resizer = Some(DefaultResizer()))))
+object DataMgmtController extends Controller with ActionBuilder with TaskUtil {
 
   def index() = AuthnCustomAction { memberId =>
     implicit conn => implicit req =>
@@ -54,7 +46,7 @@ object DataMgmtController extends Controller with ActionBuilder with AsyncTaskUt
       taskCreate(memberId, "dietlog export") match {
         case Some(taskId) =>
           sendFile("dietlog", Concurrent.unicast[String]({ channel =>
-            actor ! Export.Task(memberId, taskId, channel, DietLog.stream(memberId)(_))
+            TaskActor ! Export(memberId, taskId, channel)(DietLog.stream(memberId)(_))
           }))
         case None =>
           Redirect(routes.DataMgmtController.index().url + "#dietlog").flashing(
@@ -70,7 +62,15 @@ object DataMgmtController extends Controller with ActionBuilder with AsyncTaskUt
           case Some(filePart) =>
             taskCreate(memberId, "dietlog import " + filePart.filename) match {
               case Some(taskId) =>
-                actor ! Import.Task(memberId, taskId, filePart.ref.file, dietlogImportHandler(memberId))
+                TaskActor ! Import(memberId, taskId, filePart.ref.file) { (conn, param) =>
+                  dietlog.recordForm.bind(param).fold(
+                    error => None,
+                    log => {
+                      implicit val c = conn
+                      val (dtm, weight, fatRate, height, note) = log
+                      DietLog.create(memberId, DietLog(dtm, weight, fatRate, height, note))
+                    })
+                }
                 Redirect(routes.DataMgmtController.index().url + "#dietlog").flashing(
                   FlashName.Success -> FlashName.Import)
               case None =>
@@ -86,15 +86,6 @@ object DataMgmtController extends Controller with ActionBuilder with AsyncTaskUt
     }
   }
 
-  private def dietlogImportHandler(memberId: Long)(conn: Connection, param: Map[String, String]) =
-    dietlog.recordForm.bind(param).fold(
-      error => None,
-      log => {
-        implicit val c = conn
-        val (dtm, weight, fatRate, height, note) = log
-        DietLog.create(memberId, DietLog(dtm, weight, fatRate, height, note))
-      })
-
   private def sendFile(basename: String, content: Enumerator[String]): ChunkedResult[String] =
     Ok.stream(content).withHeaders(
       CONTENT_TYPE -> MimeTypes.forExtension("csv").get,
@@ -108,21 +99,10 @@ object DataMgmtController extends Controller with ActionBuilder with AsyncTaskUt
 
 }
 
-class DataMgmtActor extends Actor {
-  def receive = {
-    case Export.Task(memberId, id, channel, stream) => Export(memberId, id, channel, stream)
-    case Import.Task(memberId, id, file, handler) => Import(memberId, id, file, handler)
-  }
-}
+case class Export(memberId: Long, id: Long, channel: Concurrent.Channel[String])(
+  stream: Connection => Stream[Row]) extends Task with TaskUtil {
 
-object Export extends AsyncTaskUtil {
-
-  type ExportChannel = Concurrent.Channel[String]
-  type ExportSource = Connection => Stream[SqlRow]
-
-  case class Task(memberId: Long, id: Long, channel: ExportChannel, stream: ExportSource)
-
-  def apply(memberId: Long, id: Long, channel: ExportChannel, stream: ExportSource) =
+  override def apply() =
     try {
       taskStarted(memberId, id)
       var count = -1
@@ -137,7 +117,9 @@ object Export extends AsyncTaskUtil {
         } {
           if (i <= 0) {
             taskRunning(memberId, id)
-            val h = row.metaData.ms.map(m => escape(camelCase(m.column.alias.getOrElse("")))).mkString(",")
+            val h = (row.metaData.ms.map { m =>
+              escape(camelCase(m.column.alias.getOrElse("")))
+            }).mkString(",")
             channel.push(h + newline)
           }
           channel.push(record + newline)
@@ -147,9 +129,7 @@ object Export extends AsyncTaskUtil {
       channel.eofAndEnd()
       taskOkEnd(memberId, id, (count + 1).toLong, None, None)
     } catch {
-      case ex: Exception =>
-        channel.end(ex)
-        taskNgEnd(memberId, id)
+      case ex: Exception => channel.end(ex); taskNgEnd(memberId, id)
     }
 
   private def camelCase(name: String) =
@@ -171,13 +151,10 @@ object Export extends AsyncTaskUtil {
     "\"" + s.flatMap(c => if (c == '"') "\"\"" else c.toString) + "\""
 }
 
-object Import extends AsyncTaskUtil {
+case class Import(memberId: Long, id: Long, file: File)(
+  handler: (Connection, Map[String, String]) => Option[Long]) extends Task with TaskUtil {
 
-  type RecordHandler = (Connection, Map[String, String]) => Option[Long]
-
-  case class Task(memberId: Long, id: Long, file: File, handler: RecordHandler)
-
-  def apply(memberId: Long, id: Long, file: File, handler: RecordHandler) =
+  override def apply() =
     try {
       taskStarted(memberId, id)
       val source = new _root_.common.io.CsvParser(Source.fromFile(file))
@@ -189,14 +166,14 @@ object Import extends AsyncTaskUtil {
             taskRunning(memberId, id)
             (for {
               record <- source
-              param: Map[String, String] = header.zip(record).map(a => a._1 -> a._2)(breakOut)
+              param = header.zip(record).map(a => a._1 -> a._2).toMap
             } yield {
               handler(conn, param) match {
-                case Some(_) => (1, 1, 0)
-                case None => (1, 0, 1)
+                case Some(_) => (1, 0)
+                case None => (0, 1)
               }
             }).foldLeft((0, 0, 0)) {
-              case ((total, ok, ng), (a, b, c)) => (total + a, ok + b, ng + c)
+              case ((total, ok, ng), (a, b)) => (total + 1, ok + a, ng + b)
             }
           }
         }
@@ -209,55 +186,10 @@ object Import extends AsyncTaskUtil {
       } finally {
         source.close
       }
+    } catch {
+      case ex: Exception => taskNgEnd(memberId, id); throw ex
     } finally {
       file.delete()
-    }
-
-}
-
-trait AsyncTaskUtil {
-
-  def taskCreate(memberId: Long, name: String) =
-    DB.withTransaction { implicit c =>
-      AsyncTask.create(memberId,
-        AsyncTask(name, AsyncTask.New, None, None, None, None, None))
-    }
-
-  def taskStarted(memberId: Long, id: Long) =
-    lockAndUpdate(memberId, id) {
-      case AsyncTask(name, _, _, _, _, _, _) =>
-        AsyncTask(name, AsyncTask.Started, Some(now()), None, None, None, None)
-    }
-
-  def taskRunning(memberId: Long, id: Long) =
-    lockAndUpdate(memberId, id) {
-      case AsyncTask(name, _, startDtm, _, _, _, _) =>
-        AsyncTask(name, AsyncTask.Running, startDtm, None, None, None, None)
-    }
-
-  def taskOkEnd(memberId: Long, id: Long, totalCount: Long, okCount: Option[Long] = None, ngCount: Option[Long] = None) =
-    lockAndUpdate(memberId, id) {
-      case AsyncTask(name, _, startDtm, _, _, _, _) =>
-        AsyncTask(name, AsyncTask.OkEnd, startDtm, Some(now()), Some(totalCount), okCount, ngCount)
-    }
-
-  def taskNgEnd(memberId: Long, id: Long) =
-    lockAndUpdate(memberId, id) {
-      case AsyncTask(name, _, startDtm, _, _, _, _) =>
-        AsyncTask(name, AsyncTask.NgEnd, startDtm, Some(now()), None, None, None)
-    }
-
-  private def now() = Calendar.getInstance().getTime
-
-  private def lockAndUpdate(memberId: Long, id: Long)(next: AsyncTask => AsyncTask) =
-    DB.withTransaction { implicit c =>
-      AsyncTask.tryLock(memberId, id) match {
-        case Some(_) => AsyncTask.find(memberId, id) match {
-          case Some(task) => AsyncTask.update(memberId, id, next(task))
-          case _ => false
-        }
-        case _ => false
-      }
     }
 
 }
