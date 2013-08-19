@@ -137,7 +137,7 @@ object Export extends AsyncTaskUtil {
         } {
           if (i <= 0) {
             taskRunning(memberId, id)
-            val h = row.metaData.ms.map(m => escape(m.column.alias.getOrElse(""))).mkString(",")
+            val h = row.metaData.ms.map(m => escape(camelCase(m.column.alias.getOrElse("")))).mkString(",")
             channel.push(h + newline)
           }
           channel.push(record + newline)
@@ -151,6 +151,19 @@ object Export extends AsyncTaskUtil {
         channel.end(ex)
         taskNgEnd(memberId, id)
     }
+
+  private def camelCase(name: String) =
+    (for {
+      (part, i) <- name.split("_").zipWithIndex
+      (ch, j) <- part.zipWithIndex
+    } yield {
+      if (i <= 0)
+        Character.toLowerCase(ch)
+      else if (j <= 0)
+        Character.toUpperCase(ch)
+      else
+        Character.toLowerCase(ch)
+    }).mkString
 
   private def newline = "\r\n"
 
@@ -171,10 +184,7 @@ object Import extends AsyncTaskUtil {
       try {
         val result = DB.withTransaction { conn =>
           for {
-            header <- if (source.hasNext)
-              Some(source.next.map(a => camelCase(a)))
-            else
-              None
+            header <- if (source.hasNext) Some(source.next) else None
           } yield {
             taskRunning(memberId, id)
             (for {
@@ -202,19 +212,6 @@ object Import extends AsyncTaskUtil {
     } finally {
       file.delete()
     }
-
-  private def camelCase(name: String) =
-    (for {
-      (part, i) <- name.split("_").zipWithIndex
-      (ch, j) <- part.zipWithIndex
-    } yield {
-      if (i <= 0)
-        Character.toLowerCase(ch)
-      else if (j <= 0)
-        Character.toUpperCase(ch)
-      else
-        Character.toLowerCase(ch)
-    }).mkString
 
 }
 
