@@ -168,7 +168,7 @@ object DietLog {
         """).on(
       'memberId -> memberId, 'id -> id).singleOpt(scalar[Long])
 
-  def stream(memberId: Long)(implicit c: Connection) =
+  def stream(memberId: Long)(implicit c: Connection): Stream[Row] =
     SQL("""
         SELECT id, member_id, dtm, weight, fat_rate, height, note
         FROM diet_logs

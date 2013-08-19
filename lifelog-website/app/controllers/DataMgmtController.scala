@@ -46,7 +46,9 @@ object DataMgmtController extends Controller with ActionBuilder with TaskUtil {
       taskCreate(memberId, "dietlog export") match {
         case Some(taskId) =>
           sendFile("dietlog", Concurrent.unicast[String]({ channel =>
-            TaskActor ! Export(memberId, taskId, channel)(DietLog.stream(memberId)(_))
+            TaskActor ! Export(memberId, taskId, channel) { implicit c =>
+              DietLog.stream(memberId)
+            }
           }))
         case None =>
           Redirect(routes.DataMgmtController.index().url + "#dietlog").flashing(
@@ -65,10 +67,16 @@ object DataMgmtController extends Controller with ActionBuilder with TaskUtil {
                 TaskActor ! Import(memberId, taskId, filePart.ref.file) { (conn, param) =>
                   dietlog.recordForm.bind(param).fold(
                     error => None,
-                    log => {
+                    row => {
                       implicit val c = conn
-                      val (dtm, weight, fatRate, height, note) = log
-                      DietLog.create(memberId, DietLog(dtm, weight, fatRate, height, note))
+                      val (idopt, dtm, weight, fatRate, height, note) = row
+                      val log = DietLog(dtm, weight, fatRate, height, note)
+                      idopt match {
+                        case Some(id) =>
+                          if (DietLog.update(memberId, id, log)) idopt else None
+                        case _ =>
+                          DietLog.create(memberId, log)
+                      }
                     })
                 }
                 Redirect(routes.DataMgmtController.index().url + "#dietlog").flashing(
