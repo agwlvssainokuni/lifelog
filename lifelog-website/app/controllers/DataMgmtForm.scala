@@ -16,6 +16,7 @@
 
 package controllers
 
+import DietLogForm._
 import play.api.data._
 import play.api.data.Forms._
 
@@ -28,9 +29,12 @@ object DataMgmtForm {
 
   object dietlog {
     import DietLogForm._
+    val ID = "id"
+    val ID_MIN = 1L
     val DTM = "dtm"
     val DTM_PATTERN = DATE_PATTERN + " " + TIME_PATTERN
     val recordForm = Form(tuple(
+      ID -> optional(longNumber(ID_MIN)),
       DTM -> date(DTM_PATTERN),
       WEIGHT -> bigDecimal(WEIGHT_PRECISION, WEIGHT_SCALE),
       FATRATE -> bigDecimal(FATRATE_PRECISION, FATRATE_SCALE),
