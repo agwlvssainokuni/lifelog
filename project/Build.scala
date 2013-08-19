@@ -19,6 +19,9 @@ object ApplicationBuild extends Build {
   val websiteDeps = Seq(
   )
 
+  val batchDeps = Seq(
+  )
+
   val commonProj = play.Project(
     appName + "-common",
     appVersion,
@@ -40,15 +43,24 @@ object ApplicationBuild extends Build {
     path = file(appName + "-website")
   ).dependsOn(commonProj)
 
+  val batchProj = play.Project(
+    appName + "-batch",
+    appVersion,
+    batchDeps,
+    path = file(appName + "-batch")
+  ).dependsOn(commonProj)
+
   val main = play.Project(
     appName,
     appVersion
   ).dependsOn(
     adminProj,
-    websiteProj
+    websiteProj,
+    batchProj
   ).aggregate(
     adminProj,
-    websiteProj
+    websiteProj,
+    batchProj
   )
 
 }
