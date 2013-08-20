@@ -6,3 +6,12 @@ scalacOptions ++= Seq(
   "-encoding",
   "UTF-8"
 )
+
+shellPrompt := { state =>
+  "[%s%s %s%s] $ ".format(
+    scala.Console.CYAN,
+    Project.extract(state).currentProject.id,
+    "git branch".lines_!.find{_.head == '*'}.map{_.drop(2)}.getOrElse("-"),
+    scala.Console.RESET
+  )
+}
