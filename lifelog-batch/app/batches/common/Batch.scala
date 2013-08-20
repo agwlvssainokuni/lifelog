@@ -41,35 +41,32 @@ object Batch {
     case _ => Mode.Dev
   }
 
-  def apply(args: String*)(implicit mode: Mode.Mode): Option[Int] = {
-    val application = new DefaultApplication(basedir, classOf[Batch].getClassLoader(), None, mode)
+  def apply[T <: Batch](klass: Class[T])(args: Seq[String])(implicit m: Mode.Mode): Option[Int] = {
+    val application = new DefaultApplication(basedir, classOf[Batch].getClassLoader(), None, m)
     Play.start(application)
     try {
       for {
-        name <- args.headOption
-        batch <- batch(name)
-      } yield batch(args.tail)
+        batch <- instantiate(klass)
+      } yield batch(args)
     } finally {
       Play.stop()
     }
   }
 
-  def batch(name: String): Option[Batch] = {
-    try {
-      Some(Class.forName(name).newInstance().asInstanceOf[Batch])
-    } catch {
+  def instantiate[T](klass: Class[T]): Option[T] = {
+    try Some(klass.newInstance()) catch {
       case NonFatal(ex) => None
     }
   }
 }
 
-object Launch extends App {
-  import Batch._
-  Batch(args: _*) match {
-    case Some(exitCode) if mode == Mode.Prod =>
-      System.exit(exitCode)
-    case None if mode == Mode.Prod =>
-      System.exit(255)
-    case _ => ()
-  }
+trait Launch {
+  def launch[T <: Batch](klass: Class[T])(args: Seq[String])(implicit m: Mode.Mode): Unit =
+    Batch(klass)(args) match {
+      case Some(exitCode) if m == Mode.Prod =>
+        System.exit(exitCode)
+      case None if m == Mode.Prod =>
+        System.exit(255)
+      case _ => ()
+    }
 }

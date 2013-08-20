@@ -26,19 +26,19 @@ class LaunchSpec extends Specification {
 
   "Batch" should {
     "インスタンス化 正常" in {
-      val name = classOf[LaunchSpecTest1].getName()
-      Batch(name) must beSome.which(_ == 0)
+      Batch(classOf[LaunchSpecTest1])(Seq()) must beSome.which(_ == 0)
     }
-    "インスタンス化 異常(存在しない)" in {
-      Batch("NotExist") must beNone
-    }
-    "インスタンス化 異常(指定しない)" in {
-      Batch() must beNone
+    "インスタンス化 異常(インスタンス化できない)" in {
+      Batch(classOf[LaunchSpecTest2])(Seq()) must beNone
     }
   }
 
 }
 
 class LaunchSpecTest1 extends Batch {
+  override def apply(args: Seq[String]): Int = 0
+}
+
+class LaunchSpecTest2(dummy: Int) extends Batch {
   override def apply(args: Seq[String]): Int = 0
 }
