@@ -40,18 +40,18 @@ class AsyncTaskCleaner extends Batch {
       try a.toInt catch { case NonFatal(ex) => defaultKeep }
     }).getOrElse(defaultKeep)
 
-    val result = DB.withTransaction { implicit c =>
-      for {
+    val count = DB.withTransaction { implicit c =>
+      val result = for {
         row <- SQL("""SELECT id FROM members""")()
         memberId = row("id")(Column.rowToLong)
         (id, i) <- SQL("""
             SELECT id FROM async_tasks
             WHERE
                 member_id = {memberId}
-            ORDER BY id ASC
+            ORDER BY id DESC
             """).on(
           'memberId -> memberId).list(scalar[Long]).zipWithIndex
-        if i >= 10
+        if i >= keep
       } yield {
         SQL("""
             DELETE FROM async_tasks
@@ -62,8 +62,9 @@ class AsyncTaskCleaner extends Batch {
             """).on(
           'memberId -> memberId, 'id -> id).executeUpdate()
       }
+      result.sum
     }
 
-    if (result.sum > 0) 0 else 1
+    if (count > 0) 0 else 1
   }
 }
