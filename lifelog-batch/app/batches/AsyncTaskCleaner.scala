@@ -19,9 +19,13 @@ package batches
 import scala.util.control.NonFatal
 
 import anorm._
+import anorm.SQL
 import anorm.SqlParser._
+import anorm.sqlToSimple
+import anorm.toParameterValue
 import batches.common.Batch
 import batches.common.Batch.mode
+import batches.common.BatchStatus
 import batches.common.Launch
 import play.api.Play.current
 import play.api.db._
@@ -34,7 +38,7 @@ class AsyncTaskCleaner extends Batch {
 
   val defaultKeep = 100
 
-  def apply(args: Seq[String]): Int = {
+  override def apply(args: Seq[String]) = {
 
     val keep = (args.headOption.map { a =>
       try a.toInt catch { case NonFatal(ex) => defaultKeep }
@@ -65,6 +69,6 @@ class AsyncTaskCleaner extends Batch {
       result.sum
     }
 
-    if (count > 0) 0 else 1
+    if (count > 0) BatchStatus.Ok else BatchStatus.Warn
   }
 }

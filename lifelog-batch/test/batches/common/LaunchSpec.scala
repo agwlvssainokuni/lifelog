@@ -26,7 +26,7 @@ class LaunchSpec extends Specification {
 
   "Batch" should {
     "インスタンス化 正常" in {
-      Batch(classOf[LaunchSpecTest1])(Seq()) must beSome.which(_ == 0)
+      Batch(classOf[LaunchSpecTest1])(Seq()) must beSome.which(_ == BatchStatus.Ok)
     }
     "インスタンス化 異常(インスタンス化できない)" in {
       Batch(classOf[LaunchSpecTest2])(Seq()) must beNone
@@ -36,9 +36,9 @@ class LaunchSpec extends Specification {
 }
 
 class LaunchSpecTest1 extends Batch {
-  override def apply(args: Seq[String]): Int = 0
+  override def apply(args: Seq[String]) = BatchStatus.Ok
 }
 
 class LaunchSpecTest2(dummy: Int) extends Batch {
-  override def apply(args: Seq[String]): Int = 0
+  override def apply(args: Seq[String]) = BatchStatus.Ok
 }
