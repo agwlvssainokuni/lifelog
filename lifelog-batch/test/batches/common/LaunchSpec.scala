@@ -27,13 +27,13 @@ class LaunchSpec extends Specification {
   "Batch" should {
     "インスタンス化 正常" in {
       val name = classOf[LaunchSpecTest1].getName()
-      Batch(Seq(name)) must beSome.which(_ == 0)
+      Batch(name) must beSome.which(_ == 0)
     }
     "インスタンス化 異常(存在しない)" in {
-      Batch(Seq("NotExist")) must beNone
+      Batch("NotExist") must beNone
     }
     "インスタンス化 異常(指定しない)" in {
-      Batch(Seq()) must beNone
+      Batch() must beNone
     }
   }
 

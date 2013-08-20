@@ -41,7 +41,7 @@ object Batch {
     case _ => Mode.Dev
   }
 
-  def apply(args: Seq[String])(implicit mode: Mode.Mode): Option[Int] = {
+  def apply(args: String*)(implicit mode: Mode.Mode): Option[Int] = {
     val application = new DefaultApplication(basedir, classOf[Batch].getClassLoader(), None, mode)
     Play.start(application)
     try {
@@ -65,7 +65,7 @@ object Batch {
 
 object Launch extends App {
   import Batch._
-  Batch(args) match {
+  Batch(args: _*) match {
     case Some(exitCode) if mode == Mode.Prod =>
       System.exit(exitCode)
     case None if mode == Mode.Prod =>
