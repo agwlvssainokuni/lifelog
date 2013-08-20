@@ -24,7 +24,7 @@ import play.api._
 
 trait Batch extends (Array[String] => Int)
 
-object Launcher extends App {
+object Batch {
 
   val BASEDIR = "app.basedir"
   val MODE = "app.mode"
@@ -34,28 +34,23 @@ object Launcher extends App {
     case None => new File(".")
   }
 
-  val mode = Option(System.getProperty(MODE)) match {
+  implicit val mode = Option(System.getProperty(MODE)).map(_.toLowerCase) match {
     case Some("prod") => Mode.Prod
     case Some("test") => Mode.Test
     case _ => Mode.Dev
   }
 
-  val application = new DefaultApplication(basedir, getClass().getClassLoader(), None, mode)
-
-  Play.start(application)
-  val exitCode = try {
-    for {
-      name <- args.headOption
-      batch <- batch(name)
-    } yield batch(args.tail)
-  } finally {
-    Play.stop()
-  }
-
-  exitCode match {
-    case Some(code) =>
-      if (mode == Mode.Prod) System.exit(code) else ()
-    case _ => ()
+  def apply(args: Array[String])(implicit mode: Mode.Mode): Option[Int] = {
+    val application = new DefaultApplication(basedir, classOf[Batch].getClassLoader(), None, mode)
+    Play.start(application)
+    try {
+      for {
+        name <- args.headOption
+        batch <- batch(name)
+      } yield batch(args.tail)
+    } finally {
+      Play.stop()
+    }
   }
 
   def batch(name: String): Option[Batch] = {
@@ -64,5 +59,16 @@ object Launcher extends App {
     } catch {
       case NonFatal(ex) => None
     }
+  }
+}
+
+object Launch extends App {
+  import Batch._
+  Batch(args) match {
+    case Some(exitCode) if mode == Mode.Prod =>
+      System.exit(exitCode)
+    case None if mode == Mode.Prod =>
+      System.exit(255)
+    case _ => ()
   }
 }

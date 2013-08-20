@@ -18,12 +18,22 @@ package batches.common
 
 import org.specs2.mutable.Specification
 
-class LauncherSpec extends Specification {
+import play.api._
 
-  "Launcher" should {
-    "インスタンス化" in {
+class BatchSpec extends Specification {
+
+  implicit val mode = Mode.Test
+
+  "Batch" should {
+    "インスタンス化 正常" in {
       val name = classOf[Test1].getName()
-      Launcher.main(Array(name))
+      Batch(Array(name)) must beSome.which(_ == 0)
+    }
+    "インスタンス化 異常(存在しない)" in {
+      Batch(Array("NotExist")) must beNone
+    }
+    "インスタンス化 異常(指定しない)" in {
+      Batch(Array()) must beNone
     }
   }
 
