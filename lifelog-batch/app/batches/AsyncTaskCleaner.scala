@@ -19,33 +19,43 @@ package batches
 import scala.util.control.NonFatal
 
 import anorm._
+import anorm.SQL
 import anorm.SqlParser._
+import anorm.sqlToSimple
+import anorm.toParameterValue
 import batches.common.Batch
+import batches.common.Batch.mode
+import batches.common.BatchStatus
+import batches.common.Launch
 import play.api.Play.current
 import play.api.db._
+
+object AsyncTaskCleaner extends App with Launch {
+  launch(classOf[AsyncTaskCleaner])(args)
+}
 
 class AsyncTaskCleaner extends Batch {
 
   val defaultKeep = 100
 
-  def apply(args: Seq[String]): Int = {
+  override def apply(args: Seq[String]) = {
 
     val keep = (args.headOption.map { a =>
       try a.toInt catch { case NonFatal(ex) => defaultKeep }
     }).getOrElse(defaultKeep)
 
-    val result = DB.withTransaction { implicit c =>
-      for {
+    val count = DB.withTransaction { implicit c =>
+      val result = for {
         row <- SQL("""SELECT id FROM members""")()
         memberId = row("id")(Column.rowToLong)
         (id, i) <- SQL("""
             SELECT id FROM async_tasks
             WHERE
                 member_id = {memberId}
-            ORDER BY id ASC
+            ORDER BY id DESC
             """).on(
           'memberId -> memberId).list(scalar[Long]).zipWithIndex
-        if i >= 10
+        if i >= keep
       } yield {
         SQL("""
             DELETE FROM async_tasks
@@ -56,8 +66,9 @@ class AsyncTaskCleaner extends Batch {
             """).on(
           'memberId -> memberId, 'id -> id).executeUpdate()
       }
+      result.sum
     }
 
-    if (result.sum > 0) 0 else 1
+    if (count > 0) BatchStatus.Ok else BatchStatus.Warn
   }
 }

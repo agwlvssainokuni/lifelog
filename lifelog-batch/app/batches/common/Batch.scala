@@ -23,7 +23,18 @@ import scala.util.control.NonFatal
 
 import play.api._
 
-trait Batch extends (Seq[String] => Int)
+trait Batch extends (Seq[String] => BatchStatus)
+
+sealed trait BatchStatus {
+  def code: Int
+}
+
+object BatchStatus {
+  object Ok extends BatchStatus { override def code: Int = 0 }
+  object Warn extends BatchStatus { override def code: Int = 50 }
+  object Error extends BatchStatus { override def code: Int = 100 }
+  object Fatal extends BatchStatus { override def code: Int = 255 }
+}
 
 object Batch {
 
@@ -41,7 +52,7 @@ object Batch {
     case _ => Mode.Dev
   }
 
-  def apply[T <: Batch](klass: Class[T])(args: Seq[String])(implicit m: Mode.Mode): Option[Int] = {
+  def apply[T <: Batch](klass: Class[T])(args: Seq[String])(implicit m: Mode.Mode): Option[BatchStatus] = {
     val application = new DefaultApplication(basedir, classOf[Batch].getClassLoader(), None, m)
     Play.start(application)
     try {
@@ -63,10 +74,10 @@ object Batch {
 trait Launch {
   def launch[T <: Batch](klass: Class[T])(args: Seq[String])(implicit m: Mode.Mode): Unit =
     Batch(klass)(args) match {
-      case Some(exitCode) if m == Mode.Prod =>
-        System.exit(exitCode)
+      case Some(batchStatus) if m == Mode.Prod =>
+        sys.exit(batchStatus.code)
       case None if m == Mode.Prod =>
-        System.exit(255)
+        sys.exit(BatchStatus.Fatal.code)
       case _ => ()
     }
 }
