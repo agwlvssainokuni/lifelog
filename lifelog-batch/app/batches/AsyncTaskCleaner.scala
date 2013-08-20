@@ -21,8 +21,14 @@ import scala.util.control.NonFatal
 import anorm._
 import anorm.SqlParser._
 import batches.common.Batch
+import batches.common.Batch.mode
+import batches.common.Launch
 import play.api.Play.current
 import play.api.db._
+
+object AsyncTaskCleaner extends App with Launch {
+  launch(classOf[AsyncTaskCleaner])(args)
+}
 
 class AsyncTaskCleaner extends Batch {
 
