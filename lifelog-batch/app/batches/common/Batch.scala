@@ -18,11 +18,12 @@ package batches.common
 
 import java.io.File
 
+import scala.language.implicitConversions
 import scala.util.control.NonFatal
 
 import play.api._
 
-trait Batch extends (Array[String] => Int)
+trait Batch extends (Seq[String] => Int)
 
 object Batch {
 
@@ -40,7 +41,7 @@ object Batch {
     case _ => Mode.Dev
   }
 
-  def apply(args: Array[String])(implicit mode: Mode.Mode): Option[Int] = {
+  def apply(args: Seq[String])(implicit mode: Mode.Mode): Option[Int] = {
     val application = new DefaultApplication(basedir, classOf[Batch].getClassLoader(), None, mode)
     Play.start(application)
     try {

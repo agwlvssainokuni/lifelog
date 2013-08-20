@@ -20,25 +20,25 @@ import org.specs2.mutable.Specification
 
 import play.api._
 
-class BatchSpec extends Specification {
+class LaunchSpec extends Specification {
 
   implicit val mode = Mode.Test
 
   "Batch" should {
     "インスタンス化 正常" in {
-      val name = classOf[Test1].getName()
-      Batch(Array(name)) must beSome.which(_ == 0)
+      val name = classOf[LaunchSpecTest1].getName()
+      Batch(Seq(name)) must beSome.which(_ == 0)
     }
     "インスタンス化 異常(存在しない)" in {
-      Batch(Array("NotExist")) must beNone
+      Batch(Seq("NotExist")) must beNone
     }
     "インスタンス化 異常(指定しない)" in {
-      Batch(Array()) must beNone
+      Batch(Seq()) must beNone
     }
   }
 
-  class Test1 extends Batch {
-    override def apply(args: Array[String]): Int = 0
-  }
+}
 
+class LaunchSpecTest1 extends Batch {
+  override def apply(args: Seq[String]): Int = 0
 }
