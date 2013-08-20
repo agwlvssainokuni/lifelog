@@ -146,11 +146,11 @@ case class Export(memberId: Long, id: Long, channel: Concurrent.Channel[String])
       (ch, j) <- part.zipWithIndex
     } yield {
       if (i <= 0)
-        Character.toLowerCase(ch)
+        ch.toLower
       else if (j <= 0)
-        Character.toUpperCase(ch)
+        ch.toUpper
       else
-        Character.toLowerCase(ch)
+        ch.toLower
     }).mkString
 
   private def newline = "\r\n"
