@@ -24,7 +24,6 @@ import anorm.SqlParser._
 import anorm.sqlToSimple
 import anorm.toParameterValue
 import batches.common.Batch
-import batches.common.Batch.mode
 import batches.common.BatchStatus
 import batches.common.Launch
 import play.api.Play.current

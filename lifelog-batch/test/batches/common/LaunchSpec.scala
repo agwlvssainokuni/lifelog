@@ -16,23 +16,23 @@
 
 package batches.common
 
+import java.io.File
+
 import org.specs2.mutable.Specification
 
 import play.api._
 
 class LaunchSpec extends Specification {
-
-  implicit val mode = Mode.Test
-
+  val basedir = new File(".")
+  val mode = Mode.Test
   "Batch" should {
     "インスタンス化 正常" in {
-      Batch(classOf[LaunchSpecTest1])(Seq()) must beSome.which(_ == BatchStatus.Ok)
+      Batch(basedir, mode)(classOf[LaunchSpecTest1])(Seq()) must beSome.which(_ == BatchStatus.Ok)
     }
     "インスタンス化 異常(インスタンス化できない)" in {
-      Batch(classOf[LaunchSpecTest2])(Seq()) must beNone
+      Batch(basedir, mode)(classOf[LaunchSpecTest2])(Seq()) must beNone
     }
   }
-
 }
 
 class LaunchSpecTest1 extends Batch {

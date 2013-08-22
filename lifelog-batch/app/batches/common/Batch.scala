@@ -38,22 +38,8 @@ object BatchStatus {
 
 object Batch {
 
-  val BASEDIR = "app.basedir"
-  val MODE = "app.mode"
-
-  val basedir = Option(System.getProperty(BASEDIR)) match {
-    case Some(path) => new File(path)
-    case None => new File(".")
-  }
-
-  implicit val mode = Option(System.getProperty(MODE)).map(_.toLowerCase) match {
-    case Some("prod") => Mode.Prod
-    case Some("test") => Mode.Test
-    case _ => Mode.Dev
-  }
-
-  def apply[T <: Batch](klass: Class[T])(args: Seq[String])(implicit m: Mode.Mode): Option[BatchStatus] = {
-    val application = new DefaultApplication(basedir, classOf[Batch].getClassLoader(), None, m)
+  def apply[T <: Batch](basedir: File, mode: Mode.Mode)(klass: Class[T])(args: Seq[String]): Option[BatchStatus] = {
+    val application = new DefaultApplication(basedir, classOf[Batch].getClassLoader(), None, mode)
     Play.start(application)
     try {
       for {
@@ -72,11 +58,26 @@ object Batch {
 }
 
 trait Launch {
-  def launch[T <: Batch](klass: Class[T])(args: Seq[String])(implicit m: Mode.Mode): Unit =
-    Batch(klass)(args) match {
-      case Some(batchStatus) if m == Mode.Prod =>
+
+  val BASEDIR = "app.basedir"
+  val MODE = "app.mode"
+
+  val basedir = Option(System.getProperty(BASEDIR)) match {
+    case Some(path) => new File(path)
+    case None => new File(".")
+  }
+
+  val mode = Option(System.getProperty(MODE)).map(_.toLowerCase) match {
+    case Some("prod") => Mode.Prod
+    case Some("test") => Mode.Test
+    case _ => Mode.Dev
+  }
+
+  def launch[T <: Batch](klass: Class[T])(args: Seq[String]): Unit =
+    Batch(basedir, mode)(klass)(args) match {
+      case Some(batchStatus) if mode == Mode.Prod =>
         sys.exit(batchStatus.code)
-      case None if m == Mode.Prod =>
+      case None if mode == Mode.Prod =>
         sys.exit(BatchStatus.Fatal.code)
       case _ => ()
     }
