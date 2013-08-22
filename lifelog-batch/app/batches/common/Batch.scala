@@ -74,11 +74,9 @@ trait Launch {
   }
 
   def launch[T <: Batch](klass: Class[T])(args: Seq[String]): Unit =
-    Batch(basedir, mode)(klass)(args) match {
-      case Some(batchStatus) if mode == Mode.Prod =>
-        sys.exit(batchStatus.code)
-      case None if mode == Mode.Prod =>
-        sys.exit(BatchStatus.Fatal.code)
+    Batch(basedir, mode)(klass)(args).getOrElse(BatchStatus.Fatal) match {
+      case status if mode == Mode.Prod =>
+        sys.exit(status.code)
       case _ => ()
     }
 }
