@@ -17,7 +17,8 @@
 package models
 
 import java.util.Calendar
-import java.util.Calendar._
+import java.util.Calendar.DATE
+import java.util.Calendar.HOUR
 
 import org.specs2.execute.AsResult
 import org.specs2.execute.Result

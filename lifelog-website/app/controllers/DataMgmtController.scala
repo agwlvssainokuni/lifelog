@@ -18,10 +18,8 @@ package controllers
 
 import java.io.File
 import java.sql.Connection
-
 import scala.Array.canBuildFrom
 import scala.io.Source
-
 import DataMgmtForm.FILE
 import DataMgmtForm.dietlog
 import PageParam.implicitPageParam
@@ -33,6 +31,7 @@ import play.api.db._
 import play.api.libs._
 import play.api.libs.iteratee._
 import play.api.mvc._
+import utils.io.CsvParser
 
 object DataMgmtController extends Controller with ActionBuilder with TaskUtil {
 
@@ -165,7 +164,7 @@ case class Import(memberId: Long, id: Long, file: File)(
   override def apply() =
     try {
       taskStarted(memberId, id)
-      val source = new _root_.common.io.CsvParser(Source.fromFile(file))
+      val source = new CsvParser(Source.fromFile(file))
       try {
         val result = DB.withTransaction { conn =>
           for {

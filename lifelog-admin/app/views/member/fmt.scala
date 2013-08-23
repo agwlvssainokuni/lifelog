@@ -19,9 +19,11 @@ package views.member
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Calendar._
+import java.util.Calendar.DAY_OF_MONTH
+import java.util.Calendar.MONTH
+import java.util.Calendar.YEAR
 
-import models.Member
+import models._
 
 object fmt {
 

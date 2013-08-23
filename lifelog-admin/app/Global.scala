@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import common.filter.AccessLogFilter
-import common.filter.MDCInsertingFilter
-import play.api.mvc.WithFilters
+import play.api.mvc._
+import utils.filter.AccessLogFilter
+import utils.filter.MDCInsertingFilter
 
 object Global extends WithFilters(MDCInsertingFilter(), AccessLogFilter(Seq("/assets/"))) {
 

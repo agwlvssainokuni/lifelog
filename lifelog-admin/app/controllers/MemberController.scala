@@ -16,9 +16,14 @@
 
 package controllers
 
-import MemberForm._
+import MemberForm.memberForm
+import MemberForm.passwdForm
 import PageParam.implicitPageParam
-import common.FlashName._
+import common.FlashName.Create
+import common.FlashName.Delete
+import common.FlashName.Success
+import common.FlashName.Update
+import common.FlashName.UpdatePw
 import models._
 import play.api.mvc._
 import routes.{ MemberController => route }

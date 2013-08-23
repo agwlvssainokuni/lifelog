@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package common.io
+package utils.io
 
 /**
  * CSV解析用状態遷移マシン.<br>

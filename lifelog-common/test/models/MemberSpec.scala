@@ -17,14 +17,16 @@
 package models
 
 import java.util.Calendar
-import java.util.Calendar._
+import java.util.Calendar.DAY_OF_MONTH
+import java.util.Calendar.MONTH
+import java.util.Calendar.YEAR
 import java.util.Date
 
 import org.specs2.execute.AsResult
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
-import play.api.db.DB
+import play.api.db._
 import play.api.test.WithApplication
 
 class MemberSpec extends Specification {

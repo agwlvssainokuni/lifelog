@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package common.filter
+package utils.filter
+
+import scala.Array.canBuildFrom
 
 import org.slf4j.MDC
 

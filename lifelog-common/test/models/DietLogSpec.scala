@@ -16,14 +16,14 @@
 
 package models
 
-import java.util._
-import java.util.Calendar._
+import java.util.Calendar
+import java.util.Calendar.DATE
 
 import org.specs2.execute.AsResult
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
-import play.api.db.DB
+import play.api.db._
 import play.api.test.WithApplication
 
 class DietLogSpec extends Specification {

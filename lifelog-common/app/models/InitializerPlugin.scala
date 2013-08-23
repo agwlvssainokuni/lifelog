@@ -16,12 +16,12 @@
 
 package models
 
-import anorm._
+import anorm.SQL
 import anorm.SqlParser._
-import models._
+import anorm.sqlToSimple
+import anorm.toParameterValue
 import play.api._
-import play.api.db.DB
-import scala.annotation.implicitNotFound
+import play.api.db._
 
 class InitializerPlugin(implicit app: Application) extends Plugin {
 

@@ -20,10 +20,13 @@ import java.sql.Connection
 import java.util.Date
 
 import anorm._
+import anorm.SQL
 import anorm.SqlParser._
+import anorm.sqlToSimple
+import anorm.toParameterValue
 import play.api.Play.current
 import play.api.cache.Cache
-import play.api.libs.Crypto
+import play.api.libs._
 
 case class Member(email: String, nickname: String, birthday: Option[Date]) {
   var id: Pk[Long] = NotAssigned

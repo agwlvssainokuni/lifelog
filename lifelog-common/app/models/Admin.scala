@@ -19,10 +19,13 @@ package models
 import java.sql.Connection
 
 import anorm._
+import anorm.SQL
 import anorm.SqlParser._
+import anorm.sqlToSimple
+import anorm.toParameterValue
 import play.api.Play.current
 import play.api.cache.Cache
-import play.api.libs.Crypto
+import play.api.libs._
 
 case class Admin(loginId: String, nickname: String) {
   var id: Pk[Long] = NotAssigned

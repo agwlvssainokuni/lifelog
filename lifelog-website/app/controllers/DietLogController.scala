@@ -18,9 +18,12 @@ package controllers
 
 import java.util.Date
 
-import DietLogForm._
+import DietLogForm.dietLogForm
 import PageParam.implicitPageParam
-import common.FlashName._
+import common.FlashName.Create
+import common.FlashName.Delete
+import common.FlashName.Success
+import common.FlashName.Update
 import models._
 import play.api.mvc._
 import routes.{ DietLogController => route }

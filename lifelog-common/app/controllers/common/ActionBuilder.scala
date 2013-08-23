@@ -19,7 +19,7 @@ package controllers.common
 import java.sql.Connection
 
 import play.api.Play.current
-import play.api.db.DB
+import play.api.db._
 import play.api.mvc._
 
 trait ActionBuilder {

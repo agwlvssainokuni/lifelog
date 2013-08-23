@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package common.log;
+package utils.log;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
