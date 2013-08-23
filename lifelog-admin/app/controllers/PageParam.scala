@@ -18,9 +18,8 @@ package controllers
 
 import java.sql.Connection
 
-import models.Admin
-import play.api.mvc.RequestHeader
-import play.api.mvc.Security
+import models._
+import play.api.mvc._
 
 case class PageParam(admin: Option[Admin])
 

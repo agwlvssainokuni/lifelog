@@ -16,7 +16,20 @@
 
 package controllers
 
-import DietLogForm._
+import DietLogForm.DATE_PATTERN
+import DietLogForm.FATRATE
+import DietLogForm.FATRATE_PRECISION
+import DietLogForm.FATRATE_SCALE
+import DietLogForm.HEIGHT
+import DietLogForm.HEIGHT_PRECISION
+import DietLogForm.HEIGHT_SCALE
+import DietLogForm.NOTE
+import DietLogForm.NOTE_MAX
+import DietLogForm.NOTE_MIN
+import DietLogForm.TIME_PATTERN
+import DietLogForm.WEIGHT
+import DietLogForm.WEIGHT_PRECISION
+import DietLogForm.WEIGHT_SCALE
 import play.api.data._
 import play.api.data.Forms._
 

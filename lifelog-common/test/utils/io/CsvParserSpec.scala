@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package common.io
+package utils.io
 
 import scala.io.Source
 

@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package common.filter
+package utils.filter
 
-import play.api.Logger
-import play.api.mvc.Filter
-import play.api.mvc.RequestHeader
-import play.api.mvc.Result
+import play.api._
+import play.api.mvc._
 
 case class AccessLogFilter(excludes: Seq[String] = Seq()) extends Filter {
 

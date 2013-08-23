@@ -16,11 +16,16 @@
 
 package models
 
+import java.math.{ BigDecimal => JBigDecimal }
 import java.sql.Connection
 import java.util.Date
 
 import anorm._
+import anorm.SQL
 import anorm.SqlParser._
+import anorm.SqlParser.{ get => pget }
+import anorm.sqlToSimple
+import anorm.toParameterValue
 import play.api.Play.current
 import play.api.cache.Cache
 
@@ -32,8 +37,6 @@ case class DietLog(dtm: Date, weight: BigDecimal, fatRate: BigDecimal, height: O
 object DietLog {
 
   val parser: RowParser[DietLog] = {
-    import java.math.{ BigDecimal => JBigDecimal }
-    import SqlParser.{ get => pget }
     long("diet_logs.id") ~ long("diet_logs.member_id") ~ date("diet_logs.dtm") ~ pget[JBigDecimal]("diet_logs.weight") ~ pget[JBigDecimal]("diet_logs.fat_rate") ~ (pget[JBigDecimal]("diet_logs.height")?) ~ (str("diet_logs.note")?) map {
       case id ~ memberId ~ dtm ~ weight ~ fatRate ~ height ~ note =>
         val entity = DietLog(dtm, BigDecimal(weight), BigDecimal(fatRate), height.map(BigDecimal(_)), note)

@@ -16,13 +16,15 @@
 
 package controllers
 
-import SessionForm._
-import common.FlashName._
+import SessionForm.loginForm
+import common.FlashName.Logout
+import common.FlashName.Success
+import common.FlashName.Uri
 import models._
 import play.api.mvc._
-import routes.HomeController.{ index => home }
-import routes.{ SessionController => route }
-import views.html.{ session => view }
+import routes.HomeController.{index => home}
+import routes.{SessionController => route}
+import views.html.{session => view}
 
 object SessionController extends Controller with ActionBuilder {
 
