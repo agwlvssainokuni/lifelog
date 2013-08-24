@@ -16,8 +16,9 @@
 
 package controllers
 
-import PageParam.implicitPageParam
-import models._
+import controllers.PageParam.implicitPageParam
+import models.AsyncTask
+import models.Pager
 import play.api.mvc._
 import views.html.{ asynctask => view }
 

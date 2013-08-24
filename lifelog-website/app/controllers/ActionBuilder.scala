@@ -16,8 +16,8 @@
 
 package controllers
 
-import common.FlashName.Error
-import common.FlashName.Uri
+import controllers.common.FlashName.Error
+import controllers.common.FlashName.Uri
 import play.api.mvc._
 
 trait ActionBuilder extends common.ActionBuilder {

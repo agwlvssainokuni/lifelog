@@ -21,7 +21,7 @@ import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
 import play.api.db._
-import play.api.test.WithApplication
+import play.api.test._
 
 class AdminSpec extends Specification {
 

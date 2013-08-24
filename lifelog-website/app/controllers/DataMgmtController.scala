@@ -18,14 +18,16 @@ package controllers
 
 import java.io.File
 import java.sql.Connection
+
 import scala.Array.canBuildFrom
 import scala.io.Source
-import DataMgmtForm.FILE
-import DataMgmtForm.dietlog
-import PageParam.implicitPageParam
+
 import anorm._
-import common.FlashName
-import models._
+import controllers.DataMgmtForm.FILE
+import controllers.DataMgmtForm.dietlog
+import controllers.PageParam.implicitPageParam
+import controllers.common.FlashName
+import models.DietLog
 import play.api.Play.current
 import play.api.db._
 import play.api.libs._

@@ -18,7 +18,7 @@ package controllers
 
 import java.util.Date
 
-import models._
+import models.DietLog
 import play.api.data._
 import play.api.data.Forms._
 

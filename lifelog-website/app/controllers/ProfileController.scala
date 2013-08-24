@@ -16,13 +16,14 @@
 
 package controllers
 
-import PageParam.implicitPageParam
-import ProfileForm.passwdForm
-import ProfileForm.profileForm
-import common.FlashName.Success
-import common.FlashName.Update
-import common.FlashName.UpdatePw
-import models._
+import controllers.PageParam.implicitPageParam
+import controllers.ProfileForm.passwdForm
+import controllers.ProfileForm.profileForm
+import controllers.common.FlashName.Success
+import controllers.common.FlashName.Update
+import controllers.common.FlashName.UpdatePw
+import models.Member
+import models.Profile
 import play.api.mvc._
 import routes.{ ProfileController => route }
 import views.html.{ profile => view }
