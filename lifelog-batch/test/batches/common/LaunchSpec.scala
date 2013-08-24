@@ -22,23 +22,23 @@ import org.specs2.mutable.Specification
 
 import play.api._
 
-class LaunchSpec extends Specification {
+class BatchSpec extends Specification {
   val basedir = new File(".")
   val mode = Mode.Test
   "Batch" should {
     "インスタンス化 正常" in {
-      Batch(basedir, mode)(classOf[LaunchSpecTest1])(Seq()) must beSome.which(_ == BatchStatus.Ok)
+      Batch(basedir, mode)(classOf[BatchSpecTest1])(Seq()) must beSome.which(_ == BatchStatus.Ok)
     }
     "インスタンス化 異常(インスタンス化できない)" in {
-      Batch(basedir, mode)(classOf[LaunchSpecTest2])(Seq()) must beNone
+      Batch(basedir, mode)(classOf[BatchSpecTest2])(Seq()) must beNone
     }
   }
 }
 
-class LaunchSpecTest1 extends Batch {
+class BatchSpecTest1 extends Batch {
   override def apply(args: Seq[String]) = BatchStatus.Ok
 }
 
-class LaunchSpecTest2(dummy: Int) extends Batch {
+class BatchSpecTest2(dummy: Int) extends Batch {
   override def apply(args: Seq[String]) = BatchStatus.Ok
 }
