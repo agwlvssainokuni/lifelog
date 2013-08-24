@@ -16,7 +16,7 @@
 
 package controllers
 
-import models._
+import models.Profile
 import play.api.data._
 import play.api.data.Forms._
 import play.api.data.validation.Constraints._

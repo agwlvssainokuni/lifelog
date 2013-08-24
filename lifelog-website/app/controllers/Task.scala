@@ -21,7 +21,7 @@ import java.util.Calendar
 import akka.actor._
 import akka.actor.actorRef2Scala
 import akka.routing._
-import models._
+import models.AsyncTask
 import play.api.Play.current
 import play.api.db._
 import play.api.libs.concurrent._

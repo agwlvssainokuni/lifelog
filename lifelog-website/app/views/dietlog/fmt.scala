@@ -19,7 +19,7 @@ package views.dietlog
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 
-import models._
+import models.DietLog
 
 object fmt {
 

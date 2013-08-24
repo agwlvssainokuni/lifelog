@@ -22,27 +22,15 @@ import org.specs2.execute.AsResult
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
-import common.FlashName.Delete
-import common.FlashName.Success
-import common.FlashName.Uri
-import models._
+import controllers.common.FlashName.Delete
+import controllers.common.FlashName.Success
+import controllers.common.FlashName.Uri
+import models.DietLog
+import models.Member
 import play.api.db._
 import play.api.mvc._
-import play.api.test.FakeRequest
-import play.api.test.Helpers.GET
-import play.api.test.Helpers.LOCATION
-import play.api.test.Helpers.NOT_FOUND
-import play.api.test.Helpers.OK
-import play.api.test.Helpers.POST
-import play.api.test.Helpers.SEE_OTHER
-import play.api.test.Helpers.contentAsString
-import play.api.test.Helpers.contentType
-import play.api.test.Helpers.flash
-import play.api.test.Helpers.header
-import play.api.test.Helpers.route
-import play.api.test.Helpers.status
-import play.api.test.Helpers.writeableOf_AnyContentAsEmpty
-import play.api.test.WithApplication
+import play.api.test._
+import play.api.test.Helpers._
 
 class DietLogControllerSpec extends Specification {
 

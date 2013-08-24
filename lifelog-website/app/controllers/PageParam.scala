@@ -18,7 +18,7 @@ package controllers
 
 import java.sql.Connection
 
-import models._
+import models.Member
 import play.api.mvc._
 
 case class PageParam(member: Option[Member])
