@@ -34,29 +34,22 @@ case class AsyncTask(name: String, status: AsyncTask.Status, startDtm: Option[Da
 
 object AsyncTask {
 
-  sealed trait Status
-  object New extends Status
-  object Started extends Status
-  object Running extends Status
-  object OkEnd extends Status
-  object NgEnd extends Status
-  object Unknown extends Status
+  sealed trait Status { val code: Int }
+  object New extends Status { val code = 1 }
+  object Started extends Status { val code = 2 }
+  object Running extends Status { val code = 3 }
+  object OkEnd extends Status { val code = 4 }
+  object NgEnd extends Status { val code = 5 }
+  object Unknown extends Status { val code = 0 }
 
-  implicit def status2int(status: Status) = status match {
-    case New => 1
-    case Started => 2
-    case Running => 3
-    case OkEnd => 4
-    case NgEnd => 9
-    case Unknown => 0
-  }
+  implicit def status2int(status: Status) = status.code
 
   implicit def int2status(status: Int) = status match {
-    case 1 => New
-    case 2 => Started
-    case 3 => Running
-    case 4 => OkEnd
-    case 9 => NgEnd
+    case s if s == New.code => New
+    case s if s == Started.code => Started
+    case s if s == Running.code => Running
+    case s if s == OkEnd.code => OkEnd
+    case s if s == NgEnd.code => NgEnd
     case _ => Unknown
   }
 
