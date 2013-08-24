@@ -23,7 +23,7 @@ import java.util.Calendar.DAY_OF_MONTH
 import java.util.Calendar.MONTH
 import java.util.Calendar.YEAR
 
-import models._
+import models.Member
 
 object fmt {
 

@@ -26,36 +26,22 @@ import org.specs2.execute.AsResult
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
-import MemberForm.BIRTHDAY
-import MemberForm.CONFIRM
-import MemberForm.EMAIL
-import MemberForm.NICKNAME
-import MemberForm.PASSWORD
-import common.FlashName.Create
-import common.FlashName.Delete
-import common.FlashName.Success
-import common.FlashName.Update
-import common.FlashName.UpdatePw
-import common.FlashName.Uri
-import models._
+import controllers.MemberForm.BIRTHDAY
+import controllers.MemberForm.CONFIRM
+import controllers.MemberForm.EMAIL
+import controllers.MemberForm.NICKNAME
+import controllers.MemberForm.PASSWORD
+import controllers.common.FlashName.Create
+import controllers.common.FlashName.Delete
+import controllers.common.FlashName.Success
+import controllers.common.FlashName.Update
+import controllers.common.FlashName.UpdatePw
+import controllers.common.FlashName.Uri
+import models.Member
 import play.api.db._
 import play.api.mvc._
-import play.api.test.FakeRequest
-import play.api.test.Helpers.GET
-import play.api.test.Helpers.LOCATION
-import play.api.test.Helpers.NOT_FOUND
-import play.api.test.Helpers.OK
-import play.api.test.Helpers.POST
-import play.api.test.Helpers.SEE_OTHER
-import play.api.test.Helpers.contentAsString
-import play.api.test.Helpers.contentType
-import play.api.test.Helpers.flash
-import play.api.test.Helpers.header
-import play.api.test.Helpers.route
-import play.api.test.Helpers.status
-import play.api.test.Helpers.writeableOf_AnyContentAsEmpty
-import play.api.test.Helpers.writeableOf_AnyContentAsFormUrlEncoded
-import play.api.test.WithApplication
+import play.api.test._
+import play.api.test.Helpers._
 
 class MemberControllerSpec extends Specification {
 

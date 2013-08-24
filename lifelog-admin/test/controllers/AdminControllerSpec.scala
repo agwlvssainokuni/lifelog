@@ -20,37 +20,23 @@ import org.specs2.execute.AsResult
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
-import AdminForm.CONFIRM
-import AdminForm.LOGIN_ID
-import AdminForm.NICKNAME
-import AdminForm.PASSWORD
-import common.FlashName.Create
-import common.FlashName.Delete
-import common.FlashName.Error
-import common.FlashName.Permission
-import common.FlashName.Success
-import common.FlashName.Update
-import common.FlashName.UpdatePw
-import common.FlashName.Uri
-import models._
+import controllers.AdminForm.CONFIRM
+import controllers.AdminForm.LOGIN_ID
+import controllers.AdminForm.NICKNAME
+import controllers.AdminForm.PASSWORD
+import controllers.common.FlashName.Create
+import controllers.common.FlashName.Delete
+import controllers.common.FlashName.Error
+import controllers.common.FlashName.Permission
+import controllers.common.FlashName.Success
+import controllers.common.FlashName.Update
+import controllers.common.FlashName.UpdatePw
+import controllers.common.FlashName.Uri
+import models.Admin
 import play.api.db._
 import play.api.mvc._
-import play.api.test.FakeRequest
-import play.api.test.Helpers.GET
-import play.api.test.Helpers.LOCATION
-import play.api.test.Helpers.NOT_FOUND
-import play.api.test.Helpers.OK
-import play.api.test.Helpers.POST
-import play.api.test.Helpers.SEE_OTHER
-import play.api.test.Helpers.contentAsString
-import play.api.test.Helpers.contentType
-import play.api.test.Helpers.flash
-import play.api.test.Helpers.header
-import play.api.test.Helpers.route
-import play.api.test.Helpers.status
-import play.api.test.Helpers.writeableOf_AnyContentAsEmpty
-import play.api.test.Helpers.writeableOf_AnyContentAsFormUrlEncoded
-import play.api.test.WithApplication
+import play.api.test._
+import play.api.test.Helpers._
 
 class AdminControllerSpec extends Specification {
 

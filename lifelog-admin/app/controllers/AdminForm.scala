@@ -16,7 +16,7 @@
 
 package controllers
 
-import models._
+import models.Admin
 import play.api.data._
 import play.api.data.Forms._
 

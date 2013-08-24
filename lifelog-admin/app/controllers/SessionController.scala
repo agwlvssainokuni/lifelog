@@ -16,15 +16,15 @@
 
 package controllers
 
-import SessionForm.loginForm
-import common.FlashName.Logout
-import common.FlashName.Success
-import common.FlashName.Uri
-import models._
+import controllers.SessionForm.loginForm
+import controllers.common.FlashName.Logout
+import controllers.common.FlashName.Success
+import controllers.common.FlashName.Uri
+import models.Admin
 import play.api.mvc._
-import routes.HomeController.{index => home}
-import routes.{SessionController => route}
-import views.html.{session => view}
+import routes.{ HomeController => home }
+import routes.{ SessionController => route }
+import views.html.{ session => view }
 
 object SessionController extends Controller with ActionBuilder {
 
@@ -41,7 +41,7 @@ object SessionController extends Controller with ActionBuilder {
           val (loginId, passwd, uri) = login
           Admin.authenticate(loginId, passwd) match {
             case Some(adminId) =>
-              val redirTo = uri.fold(home())(Call("GET", _))
+              val redirTo = uri.fold(home.index())(Call("GET", _))
               Redirect(redirTo).withSession(Security.username -> adminId.toString)
             case None =>
               Ok(view.index(loginForm.fill(login).withGlobalError("login.failed")))

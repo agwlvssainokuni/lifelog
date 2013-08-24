@@ -16,17 +16,18 @@
 
 package controllers
 
-import AdminForm.adminForm
-import AdminForm.passwdForm
-import PageParam.implicitPageParam
-import common.FlashName.Create
-import common.FlashName.Delete
-import common.FlashName.Error
-import common.FlashName.Permission
-import common.FlashName.Success
-import common.FlashName.Update
-import common.FlashName.UpdatePw
-import models._
+import controllers.AdminForm.adminForm
+import controllers.AdminForm.passwdForm
+import controllers.PageParam.implicitPageParam
+import controllers.common.FlashName.Create
+import controllers.common.FlashName.Delete
+import controllers.common.FlashName.Error
+import controllers.common.FlashName.Permission
+import controllers.common.FlashName.Success
+import controllers.common.FlashName.Update
+import controllers.common.FlashName.UpdatePw
+import models.Admin
+import models.Pager
 import play.api.mvc._
 import routes.{ AdminController => route }
 import views.html.{ admin => view }

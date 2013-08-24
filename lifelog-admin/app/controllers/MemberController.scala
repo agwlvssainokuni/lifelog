@@ -16,15 +16,16 @@
 
 package controllers
 
-import MemberForm.memberForm
-import MemberForm.passwdForm
-import PageParam.implicitPageParam
-import common.FlashName.Create
-import common.FlashName.Delete
-import common.FlashName.Success
-import common.FlashName.Update
-import common.FlashName.UpdatePw
-import models._
+import controllers.MemberForm.memberForm
+import controllers.MemberForm.passwdForm
+import controllers.PageParam.implicitPageParam
+import controllers.common.FlashName.Create
+import controllers.common.FlashName.Delete
+import controllers.common.FlashName.Success
+import controllers.common.FlashName.Update
+import controllers.common.FlashName.UpdatePw
+import models.Member
+import models.Pager
 import play.api.mvc._
 import routes.{ MemberController => route }
 import views.html.{ member => view }
