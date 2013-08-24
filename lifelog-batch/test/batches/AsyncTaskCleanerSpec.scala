@@ -25,10 +25,11 @@ import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 
 import batches.common.BatchStatus
-import models._
+import models.AsyncTask
+import models.Member
 import play.api._
 import play.api.db._
-import play.api.test.WithApplication
+import play.api.test._
 
 class AsyncTaskCleanerSpec extends Specification {
 
