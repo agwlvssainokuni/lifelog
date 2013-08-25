@@ -31,16 +31,18 @@ import play.api.cache.Cache
 
 case class DriveLog(dt: Date, tripmeter: BigDecimal, fuelometer: BigDecimal, remaining: BigDecimal, odometer: BigDecimal, note: Option[String]) {
   var id: Pk[Long] = NotAssigned
+  var memberId: Pk[Long] = NotAssigned
   var refuel: Option[Boolean] = None
 }
 
 object DriveLog {
 
   val parser: RowParser[DriveLog] = {
-    long("drive_logs.id") ~ date("drive_logs.dt") ~ pget[JBigDecimal]("drive_logs.tripmeter") ~ pget[JBigDecimal]("drive_logs.fuelometer") ~ pget[JBigDecimal]("drive_logs.remaining") ~ pget[JBigDecimal]("drive_logs.odometer") ~ (str("drive_logs.note")?) map {
-      case id ~ dt ~ tripmeter ~ fuelometer ~ remaining ~ odometer ~ note =>
+    long("drive_logs.id") ~ long("drive_logs.member_id") ~ date("drive_logs.dt") ~ pget[JBigDecimal]("drive_logs.tripmeter") ~ pget[JBigDecimal]("drive_logs.fuelometer") ~ pget[JBigDecimal]("drive_logs.remaining") ~ pget[JBigDecimal]("drive_logs.odometer") ~ (str("drive_logs.note")?) map {
+      case id ~ memberId ~ dt ~ tripmeter ~ fuelometer ~ remaining ~ odometer ~ note =>
         val entity = DriveLog(dt, BigDecimal(tripmeter), BigDecimal(fuelometer), BigDecimal(remaining), BigDecimal(odometer), note)
         entity.id = Id(id)
+        entity.memberId = Id(memberId)
         entity
     }
   }
@@ -64,18 +66,22 @@ object DriveLog {
   def list(memberId: Long, pageNo: Long, pageSize: Long)(implicit c: Connection): Seq[DriveLog] =
     SQL("""
         SELECT
-            id, dt, tripmeter, fuelometer, remaining, odometer, note,
+            id, member_id, dt, tripmeter, fuelometer, remaining, odometer, note,
             CASE WHEN EXISTS (SELECT * FROM refuel_logs WHERE refuel_logs.drive_log_id = drive_logs.id) THEN 1 ELSE 0 END AS refuel
         FROM drive_logs
         WHERE
             member_id = {memberId}
+        ORDER BY
+            dt DESC, id DESC
+        LIMIT {limit} OFFSET {offset}
         """).on(
-      'memberid -> memberId).list(parserWithRefuel)
+      'memberid -> memberId,
+      'limit -> pageSize, 'offset -> pageSize * pageNo).list(parserWithRefuel)
 
   def find(memberId: Long, id: Long)(implicit c: Connection): Option[DriveLog] =
     SQL("""
         SELECT
-            id, dt, tripmeter, fuelometer, remaining, odometer, note
+            id, member_id, dt, tripmeter, fuelometer, remaining, odometer, note
         FROM drive_logs
         WHERE
             member_id = {memberId}
@@ -92,19 +98,23 @@ object DriveLog {
   def create(memberId: Long, log: DriveLog)(implicit c: Connection): Option[Long] =
     SQL("""
         INSERT INTO drive_logs (
+            member_id,
             dt,
             tripmeter,
             fuelometer,
             remaining,
             odometer,
-            note
+            note,
+            updated_at
         ) VALUES (
+            {memberId},
             {dt},
             {tripmeter},
             {fuelometer},
             {remaining},
             {odometer},
-            {note}
+            {note},
+            CURRENT_TIMESTAMP
         )
         """).on(
       'memberId -> memberId,
@@ -124,7 +134,8 @@ object DriveLog {
             fuelometer = {fuelometer},
             remaining = {remaining},
             odometer = {odometer},
-            note = {note}
+            note = {note},
+            updated_at = CURRENT_TIMESTAMP
         WHERE
             member_id = {memberId}
             AND
