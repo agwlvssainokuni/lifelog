@@ -57,7 +57,8 @@ object DriveLog {
 
   def count(memberId: Long)(implicit c: Connection): Long =
     SQL("""
-        SELECT COUNT(*) FROM drive_logs
+        SELECT COUNT(*)
+        FROM drive_logs
         WHERE
             member_id = {memberId}
         """).on(
@@ -65,14 +66,17 @@ object DriveLog {
 
   def list(memberId: Long, pageNo: Long, pageSize: Long)(implicit c: Connection): Seq[DriveLog] =
     SQL("""
-        SELECT
-            id, member_id, dt, tripmeter, fuelometer, remaining, odometer, note,
-            CASE WHEN EXISTS (SELECT * FROM refuel_logs WHERE refuel_logs.drive_log_id = drive_logs.id) THEN 1 ELSE 0 END AS refuel
-        FROM drive_logs
+        SELECT drive_logs.id, drive_logs.member_id, drive_logs.dt, drive_logs.tripmeter, drive_logs.fuelometer, drive_logs.remaining, drive_logs.odometer, drive_logs.note,
+            CASE WHEN refuel_logs.id IS NOT NULL THEN 1 ELSE 0 AS refuel
+        FROM
+            drive_logs
+            LEFT OUTER JOIN refuel_logs
+            ON
+                refuel_logs.id = drive_logs.id
         WHERE
-            member_id = {memberId}
+            drive_logs.member_id = {memberId}
         ORDER BY
-            dt DESC, id DESC
+            drive_logs.dt DESC, drive_logs.id DESC
         LIMIT {limit} OFFSET {offset}
         """).on(
       'memberid -> memberId,
@@ -80,8 +84,7 @@ object DriveLog {
 
   def find(memberId: Long, id: Long)(implicit c: Connection): Option[DriveLog] =
     SQL("""
-        SELECT
-            id, member_id, dt, tripmeter, fuelometer, remaining, odometer, note
+        SELECT drive_logs.id, drive_logs.member_id, drive_logs.dt, drive_logs.tripmeter, drive_logs.fuelometer, drive_logs.remaining, drive_logs.odometer, drive_logs.note
         FROM drive_logs
         WHERE
             member_id = {memberId}

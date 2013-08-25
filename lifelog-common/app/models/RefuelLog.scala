@@ -16,13 +16,13 @@
 
 package models
 
-import java.math.{BigDecimal => JBigDecimal}
+import java.math.{ BigDecimal => JBigDecimal }
 import java.sql.Connection
 
 import anorm._
 import anorm.SQL
 import anorm.SqlParser._
-import anorm.SqlParser.{get => pget}
+import anorm.SqlParser.{ get => pget }
 import anorm.sqlToSimple
 import anorm.toParameterValue
 import play.api.Play.current
@@ -30,49 +30,60 @@ import play.api.cache.Cache
 
 case class RefuelLog(unit: BigDecimal, quantity: BigDecimal, price: BigDecimal, note: Option[String]) {
   var id: Pk[Long] = NotAssigned
-  var memberId: Pk[Long] = NotAssigned
-  var driveLogId: Pk[Long] = NotAssigned
 }
 
 object RefuelLog {
 
-  val parser = long("refuel_logs.id") ~ long("refuel_logs.member_id") ~ long("refuel_logs.drive_log_id") ~ pget[JBigDecimal]("refuel_logs.unit") ~ pget[JBigDecimal]("refuel_logs.quantity") ~ pget[JBigDecimal]("refuel_logs.price") ~ (str("refuel_logs.note")?) map {
-    case id ~ memberId ~ driveLogId ~ unit ~ quantity ~ price ~ note =>
+  val parser = long("refuel_logs.id") ~ pget[JBigDecimal]("refuel_logs.unit") ~ pget[JBigDecimal]("refuel_logs.quantity") ~ pget[JBigDecimal]("refuel_logs.price") ~ (str("refuel_logs.note")?) map {
+    case id ~ unit ~ quantity ~ price ~ note =>
       val entity = RefuelLog(BigDecimal(unit), BigDecimal(quantity), BigDecimal(price), note)
       entity.id = Id(id)
-      entity.memberId = Id(memberId)
-      entity.driveLogId = Id(driveLogId)
       entity
   }
 
   def count(memberId: Long)(implicit c: Connection): Long =
     SQL("""
-        SELECT COUNT(*) FROM refuel_logs
+        SELECT COUNT(*)
+        FROM
+            refuel_logs
+            JOIN
+            drive_logs
+            ON
+                refuel_logs.id = drive_logs.id
         WHERE
-            member_id = {memberId}
+            drive_logs.member_id = {memberId}
         """).on('memberId -> memberId).single(scalar[Long])
 
   def list(memberId: Long, pageNo: Long, pageSize: Long)(implicit c: Connection): Seq[RefuelLog] =
     SQL("""
-        SELECT id, member_id, drive_log_id, unit, quantity, price, note
-        FROM refuel_logs
+        SELECT refuel_logs.id, refuel_logs.unit, refuel_logs.quantity, refuel_logs.price, refuel_logs.note
+        FROM
+            refuel_logs
+            JOIN
+            drive_logs
+            ON
+                refuel_logs.id = drive_logs.id
         WHERE
-            member_id = {memberId}
+            drive_logs.member_id = {memberId}
         ORDER BY
-            (SELECT dt FROM drive_logs WHERE drive_logs.id = refuel_logs.drive_log_id) DESC,
-            id DESC
+            drive_logs.dt DESC, drive_logs.id DESC
         LIMIT {limit} OFFSET {offset}
         """).on(
       'memberId -> memberId, 'limit -> pageSize, 'offset -> pageSize * pageNo).list(parser)
 
   def find(memberId: Long, id: Long)(implicit c: Connection): Option[RefuelLog] =
     SQL("""
-        SELECT id, member_id, drive_log_id, unit, quantity, price, note
-        FROM refuel_logs
+        SELECT refuel_logs.id, refuel_logs.unit, refuel_logs.quantity, refuel_logs.price, refuel_logs.note
+        FROM
+            refuel_logs
+            JOIN
+            drive_logs
+            ON
+                refuel_logs.id = drive_logs.id
         WHERE
-            member_id = {memberId}
+            drive_logs.member_id = {memberId}
             AND
-            id = {id}
+            drive_logs.id = {id}
         """).on(
       'memberId -> memberId, 'id -> id).singleOpt(parser)
 
@@ -81,19 +92,17 @@ object RefuelLog {
       find(memberId, id)
     }
 
-  def create(memberId: Long, log: RefuelLog)(implicit c: Connection): Option[Long] =
+  def create(id: Long, log: RefuelLog)(implicit c: Connection): Option[Long] =
     SQL("""
         INSERT INTO refuel_logs (
-            member_id,
-            drive_log_id,
+            id,
             unit,
             quantity,
             price,
             note,
             updated_at
         ) VALUES (
-            {memberId},
-            {driveLogId},
+            {id},
             {unit},
             {quantity},
             {price},
@@ -101,15 +110,13 @@ object RefuelLog {
             CURRENT_TIMESTAMP
         )
         """).on(
-      'memberId -> memberId,
-      'driveLogId -> log.driveLogId.get,
+      'id -> id,
       'unit -> log.unit.bigDecimal, 'quantity -> log.quantity.bigDecimal, 'price -> log.price.bigDecimal, 'note -> log.note).executeUpdate() match {
-        case 1 =>
-          SQL("""SELECT IDENTITY() FROM dual""").singleOpt(scalar[Long])
+        case 1 => Some(id)
         case _ => None
       }
 
-  def update(memberId: Long, id: Long, log: RefuelLog)(implicit c: Connection): Boolean =
+  def update(id: Long, log: RefuelLog)(implicit c: Connection): Boolean =
     SQL("""
         UPDATE refuel_logs
         SET
@@ -119,11 +126,9 @@ object RefuelLog {
             note = {note},
             updated_at = CURRENT_TIMESTAMP
         WHERE
-            member_id = {memberId}
-            AND
             id = {id}
         """).on(
-      'memberId -> memberId, 'id -> id,
+      'id -> id,
       'unit -> log.unit.bigDecimal, 'quantity -> log.quantity.bigDecimal, 'price -> log.price.bigDecimal, 'note -> log.note).executeUpdate() match {
         case 1 =>
           Cache.remove(cacheName(id))
@@ -131,15 +136,13 @@ object RefuelLog {
         case _ => false
       }
 
-  def delete(memberId: Long, id: Long)(implicit c: Connection): Boolean =
+  def delete(id: Long)(implicit c: Connection): Boolean =
     SQL("""
         DELETE FROM refuel_logs
         WHERE
-            member_id = {memberId}
-            AND
             id = {id}
         """).on(
-      'memberId -> memberId, 'id -> id).executeUpdate() match {
+      'id -> id).executeUpdate() match {
         case 1 =>
           Cache.remove(cacheName(id))
           true
@@ -148,11 +151,18 @@ object RefuelLog {
 
   def tryLock(memberId: Long, id: Long)(implicit c: Connection): Option[Long] =
     SQL("""
-        SELECT id FROM refuel_logs
+        SELECT refuel_logs.id
+        FROM
+            refuel_logs
+            JOIN
+            drive_logs
+            ON
+                refuel_logs.id = drive_logs.id
         WHERE
-            member_id = {memberId}
+            drive_logs.member_id = {memberId}
             AND
-            id = {id}
+            drive_logs.id = {id}
+        FOR UPDATE
         """).on(
       'memberId -> memberId, 'id -> id).singleOpt(scalar[Long])
 
