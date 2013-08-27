@@ -17,12 +17,17 @@
 package controllers
 
 import play.api.mvc._
+import models.Pager
+import models.DriveLog
+import views.html.{ drivelog => view }
 
 object DriveLogController extends Controller with ActionBuilder {
 
   def list(pn: Option[Long], ps: Option[Long]) = AuthnCustomAction { memberId =>
     implicit conn => implicit req =>
-      NotImplemented
+      val pager = Pager(pn, ps, DriveLog.count(memberId))
+      val list = DriveLog.list(memberId, pager.pageNo, pager.pageSize)
+      Ok(view.list(pager, list))
   }
 
   def add() = AuthnCustomAction { memberId =>

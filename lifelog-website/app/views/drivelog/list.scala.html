@@ -1,0 +1,57 @@
+@(pager: Pager, list: Seq[DriveLog])(implicit pageParam: PageParam, flash: Flash)
+@import controllers.common.FlashName._
+@import models._
+@import views.html.helper._
+@import views.common.custom._
+@import views.drivelog.fmt._
+@main("一覧") {
+@{flash.get(Success).map {
+	case Delete => <h3 class="success">ドライブ記録を削除しました。</h3>
+}}
+<table id="drivelogs-list" data-role="table" data-mode="columntoggle"
+	class="ui-body-d ui-shadow table-stripe ui-responsive"
+	data-column-btn-theme="b" data-column-btn-text="表示列選択"
+	data-column-popup-theme="b">
+	<thead>
+		<tr class="ui-bar-d">
+			<th>記録日時</th>
+			<th>走行距離</th>
+			<th data-priority="2">燃費</th>
+			<th data-priority="8">残距離</th>
+			<th data-priority="5">総走行距離</th>
+			<th>操作</th>
+		</tr>
+	</thead>
+	<tbody>
+		@list.map { item =>
+		<tr>
+			<td>@{dt(item)}</td>
+			<td>@{tripmeter(item)}</td>
+			<td>@{fuelometer(item)}</td>
+			<td>@{remaining(item)}</td>
+			<td>@{odometer(item)}</td>
+			<td>
+				<div data-role="controlgroup" data-type="horizontal">
+					<a href="@routes.DriveLogController.edit(item.id.get)"
+						data-ajax="false" data-role="button" data-mini="true"
+						data-icon="gear">変更</a>
+					<a href="@routes.DriveLogController.delete(item.id.get)"
+						data-ajax="false" data-role="button" data-mini="true"
+						data-icon="delete">削除</a>
+				</div>
+			</td>
+		</tr>
+		}
+	</tbody>
+</table>
+<div data-role="navbar" data-iconpos="left">
+	<ul>
+		<li><a href="@routes.DriveLogController.list(pager.no.map(_ - 1), pager.size)"
+			class="@if(!pager.hasPrev) { ui-disabled }"
+			data-icon="arrow-l">PREV</a></li>
+		<li><a href="@routes.DriveLogController.list(pager.no.map(_ + 1), pager.size)"
+			class="@if(!pager.hasNext) { ui-disabled }"
+			data-icon="arrow-r">NEXT</a></li>
+	</ul>
+</div>
+}
