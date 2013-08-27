@@ -67,7 +67,7 @@ object DriveLog {
   def list(memberId: Long, pageNo: Long, pageSize: Long)(implicit c: Connection): Seq[DriveLog] =
     SQL("""
         SELECT drive_logs.id, drive_logs.member_id, drive_logs.dt, drive_logs.tripmeter, drive_logs.fuelometer, drive_logs.remaining, drive_logs.odometer, drive_logs.note,
-            CASE WHEN refuel_logs.id IS NOT NULL THEN 1 ELSE 0 AS refuel
+            CASE WHEN refuel_logs.id IS NOT NULL THEN 1 ELSE 0 END AS refuel
         FROM
             drive_logs
             LEFT OUTER JOIN refuel_logs
@@ -79,7 +79,7 @@ object DriveLog {
             drive_logs.dt DESC, drive_logs.id DESC
         LIMIT {limit} OFFSET {offset}
         """).on(
-      'memberid -> memberId,
+      'memberId -> memberId,
       'limit -> pageSize, 'offset -> pageSize * pageNo).list(parserWithRefuel)
 
   def find(memberId: Long, id: Long)(implicit c: Connection): Option[DriveLog] =
