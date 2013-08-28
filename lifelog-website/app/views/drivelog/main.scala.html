@@ -1,0 +1,13 @@
+@(title: String)(content: Html)(implicit pageParam: PageParam)
+@views.html.main("ドライブ記録 " + title)(content) {
+<div data-role="navbar" data-iconpos="left">
+	<ul>
+		<li><a href="@routes.HomeController.index()" data-ajax="false"
+			data-icon="home">ホーム</a></li>
+		<li><a href="@routes.DriveLogController.list(None, None)" data-ajax="false"
+			data-icon="grid">一覧</a></li>
+		<li><a href="@routes.DriveLogController.add()" data-ajax="false"
+			data-icon="plus">登録</a></li>
+	</ul>
+</div>
+}

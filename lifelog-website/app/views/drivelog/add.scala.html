@@ -1,0 +1,19 @@
+@(frm: Form[DriveLog])(implicit pageParam: PageParam)
+@import controllers.DriveLogForm._
+@import models._
+@import views.html.helper._
+@import views.common.custom._
+@main("登録") {
+@if(frm.hasErrors) {
+	<h3 class="error">値が不適切です。入力し直してください。</h3>
+}
+@form(routes.DriveLogController.create(), dataajax -> "false") {
+	@inputText(frm(DATE), '_label -> "記録日", 'type -> "date")
+	@inputText(frm(TRIPMETER), '_label -> "走行距離(km)", 'type -> "number", 'step -> "0.1")
+	@inputText(frm(FUELOMETER), '_label -> "燃費(km/l)", 'type -> "number", 'step -> "0.1")
+	@inputText(frm(REMAINING), '_label -> "残距離(km)", 'type -> "number", 'step -> "1")
+	@inputText(frm(ODOMETER), '_label -> "総走行距離(km)", 'type -> "number", 'step -> "1")
+	@textarea(frm(NOTE), '_label -> "メモ(省略可)")
+	<input type="submit" value="登録する" data-theme="b" />
+}
+}
