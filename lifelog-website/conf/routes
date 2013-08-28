@@ -3,36 +3,44 @@
 # ~~~~
 
 # Home page
-GET    /                      controllers.HomeController.index()
+GET    /                       controllers.HomeController.index()
 
 # Map static resources from the /public folder to the /assets URL path
-GET    /assets/*file          controllers.Assets.at(path="/public", file)
+GET    /assets/*file           controllers.Assets.at(path="/public", file)
 
 
 # Session
-GET    /login                 controllers.SessionController.index()
-POST   /login                 controllers.SessionController.login()
-GET    /logout                controllers.SessionController.logout()
+GET    /login                  controllers.SessionController.index()
+POST   /login                  controllers.SessionController.login()
+GET    /logout                 controllers.SessionController.logout()
 
 # Profile
-GET    /profile               controllers.ProfileController.edit()
-POST   /profile               controllers.ProfileController.update()
-GET    /profile/passwd        controllers.ProfileController.editPw()
-POST   /profile/passwd        controllers.ProfileController.updatePw()
+GET    /profile                controllers.ProfileController.edit()
+POST   /profile                controllers.ProfileController.update()
+GET    /profile/passwd         controllers.ProfileController.editPw()
+POST   /profile/passwd         controllers.ProfileController.updatePw()
 
 # DietLog
-GET    /dietlogs              controllers.DietLogController.list(pn: Option[Long], ps: Option[Long])
-GET    /dietlogs/add          controllers.DietLogController.add()
-POST   /dietlogs/add          controllers.DietLogController.create()
-GET    /dietlogs/:id          controllers.DietLogController.edit(id: Long)
-POST   /dietlogs/:id          controllers.DietLogController.update(id: Long)
-GET    /dietlogs/:id/delete   controllers.DietLogController.delete(id: Long)
+GET    /dietlogs               controllers.DietLogController.list(pn: Option[Long], ps: Option[Long])
+GET    /dietlogs/add           controllers.DietLogController.add()
+POST   /dietlogs/add           controllers.DietLogController.create()
+GET    /dietlogs/:id           controllers.DietLogController.edit(id: Long)
+POST   /dietlogs/:id           controllers.DietLogController.update(id: Long)
+GET    /dietlogs/:id/delete    controllers.DietLogController.delete(id: Long)
+
+# DriveLog
+GET    /drivelogs              controllers.DriveLogController.list(pn: Option[Long], ps: Option[Long])
+GET    /drivelogs/add          controllers.DriveLogController.add()
+POST   /drivelogs/add          controllers.DriveLogController.create()
+GET    /drivelogs/:id          controllers.DriveLogController.edit(id: Long)
+POST   /drivelogs/:id          controllers.DriveLogController.update(id: Long)
+GET    /drivelogs/:id/delete   controllers.DriveLogController.delete(id: Long)
 
 
 # DataMgmt
-GET    /datamgmt              controllers.DataMgmtController.index()
-GET    /datamgmt/dietlog      controllers.DataMgmtController.dietlogExport()
-POST   /datamgmt/dietlog      controllers.DataMgmtController.dietlogImport()
+GET    /datamgmt               controllers.DataMgmtController.index()
+GET    /datamgmt/dietlog       controllers.DataMgmtController.dietlogExport()
+POST   /datamgmt/dietlog       controllers.DataMgmtController.dietlogImport()
 
 # AsyncTask
-GET    /asynctasks            controllers.AsyncTaskController.list(pn: Option[Long], ps: Option[Long])
+GET    /asynctasks             controllers.AsyncTaskController.list(pn: Option[Long], ps: Option[Long])

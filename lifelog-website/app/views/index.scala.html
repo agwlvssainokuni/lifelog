@@ -2,7 +2,7 @@
 @main("メニュー") {
 <ul data-role="listview">
 	<li><a href="@routes.DietLogController.list(None, None)">ダイエット記録</a></li>
-	<li><a href="#">ドライブ記録</a></li>
+	<li><a href="@routes.DriveLogController.list(None, None)">ドライブ記録</a></li>
 	<li><a href="#">お茶調達記録</a></li>
 	<li><a href="@routes.DataMgmtController.index()" data-ajax="false">データ管理</a>
 	<li><a href="@routes.AsyncTaskController.list(None, None)" data-ajax="false">タスク管理</a>
