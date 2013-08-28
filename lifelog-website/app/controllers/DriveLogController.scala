@@ -16,9 +16,15 @@
 
 package controllers
 
-import play.api.mvc._
-import models.Pager
+import java.util.Date
+
+import controllers.DriveLogForm.driveLogForm
+import controllers.common.FlashName.Create
+import controllers.common.FlashName.Success
 import models.DriveLog
+import models.Pager
+import play.api.mvc._
+import routes.{ DriveLogController => route }
 import views.html.{ drivelog => view }
 
 object DriveLogController extends Controller with ActionBuilder {
@@ -32,12 +38,28 @@ object DriveLogController extends Controller with ActionBuilder {
 
   def add() = AuthnCustomAction { memberId =>
     implicit conn => implicit req =>
-      NotImplemented
+      val driveLog = DriveLog.last(memberId) match {
+        case Some(l) => DriveLog(new Date, l.tripmeter, l.fuelometer, l.remaining, l.odometer, None)
+        case None => DriveLog(new Date, BigDecimal(0.0), BigDecimal(0.0), BigDecimal(0), BigDecimal(0), None)
+      }
+      Ok(view.add(driveLogForm.fill(driveLog)))
   }
 
   def create() = AuthnCustomAction { memberId =>
     implicit conn => implicit req =>
-      NotImplemented
+      driveLogForm.bindFromRequest().fold(
+        error => {
+          Ok(view.add(error))
+        },
+        driveLog => {
+          DriveLog.create(memberId, driveLog) match {
+            case Some(id) =>
+              Redirect(route.edit(id)).flashing(
+                Success -> Create)
+            case None =>
+              Ok(view.add(driveLogForm.fill(driveLog)))
+          }
+        })
   }
 
   def edit(id: Long) = AuthnCustomAction { memberId =>

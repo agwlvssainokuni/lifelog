@@ -82,9 +82,20 @@ object DriveLog {
       'memberId -> memberId,
       'limit -> pageSize, 'offset -> pageSize * pageNo).list(parserWithRefuel)
 
+  def last(memberId: Long)(implicit c: Connection): Option[DriveLog] =
+    SQL("""
+        SELECT id, member_id, dt, tripmeter, fuelometer, remaining, odometer, note
+        FROM drive_logs
+        WHERE
+            member_id = {memberId}
+        ORDER BY
+            dt DESC, id DESC
+        LIMIT 1 OFFSET 0
+        """).on('memberId -> memberId).singleOpt(parser)
+
   def find(memberId: Long, id: Long)(implicit c: Connection): Option[DriveLog] =
     SQL("""
-        SELECT drive_logs.id, drive_logs.member_id, drive_logs.dt, drive_logs.tripmeter, drive_logs.fuelometer, drive_logs.remaining, drive_logs.odometer, drive_logs.note
+        SELECT id, member_id, dt, tripmeter, fuelometer, remaining, odometer, note
         FROM drive_logs
         WHERE
             member_id = {memberId}
