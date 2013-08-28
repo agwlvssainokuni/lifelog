@@ -20,7 +20,9 @@ import java.util.Date
 
 import controllers.DriveLogForm.driveLogForm
 import controllers.common.FlashName.Create
+import controllers.common.FlashName.Delete
 import controllers.common.FlashName.Success
+import controllers.common.FlashName.Update
 import models.DriveLog
 import models.Pager
 import play.api.mvc._
@@ -64,17 +66,45 @@ object DriveLogController extends Controller with ActionBuilder {
 
   def edit(id: Long) = AuthnCustomAction { memberId =>
     implicit conn => implicit req =>
-      NotImplemented
+      DriveLog.find(memberId, id) match {
+        case Some(driveLog) =>
+          Ok(view.edit(id, driveLogForm.fill(driveLog)))
+        case None => NotFound
+      }
   }
 
   def update(id: Long) = AuthnCustomAction { memberId =>
     implicit conn => implicit req =>
-      NotImplemented
+      DriveLog.tryLock(memberId, id) match {
+        case Some(_) =>
+          driveLogForm.bindFromRequest().fold(
+            error => {
+              Ok(view.edit(id, error))
+            },
+            driveLog => {
+              DriveLog.update(memberId, id, driveLog) match {
+                case true =>
+                  Redirect(route.edit(id)).flashing(
+                    Success -> Update)
+                case false => BadRequest
+              }
+            })
+        case None => NotFound
+      }
   }
 
   def delete(id: Long) = AuthnCustomAction { memberId =>
     implicit conn => implicit req =>
-      NotImplemented
+      DriveLog.tryLock(memberId, id) match {
+        case Some(_) =>
+          DriveLog.delete(memberId, id) match {
+            case true =>
+              Redirect(route.list(None, None)).flashing(
+                Success -> Delete)
+            case false => BadRequest
+          }
+        case None => NotFound
+      }
   }
 
 }
