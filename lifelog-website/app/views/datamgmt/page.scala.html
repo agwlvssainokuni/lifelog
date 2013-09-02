@@ -14,7 +14,10 @@
 			<ul>
 				<li><a href="@routes.HomeController.index()" data-ajax="false"
 					data-icon="home">ホーム</a></li>
-				@if(title.isDefined) { <li><a href="#menu" data-icon="grid">データ管理</a> }
+				<li><a href="@routes.DataMgmtController.index()" data-ajax="false"
+					data-icon="grid">データ管理</a></li>
+				<li><a href="@routes.AsyncTaskController.list(None, None)" data-ajax="false"
+					data-icon="info">タスク管理</a></li>
 			</ul>
 		</div>
 		<h1>Copyright (C), 2013, agwlvssainokuni</h1>

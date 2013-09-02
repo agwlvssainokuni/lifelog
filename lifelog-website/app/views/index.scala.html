@@ -4,8 +4,16 @@
 	<li><a href="@routes.DietLogController.list(None, None)">ダイエット記録</a></li>
 	<li><a href="@routes.DriveLogController.list(None, None)">ドライブ記録</a></li>
 	<li><a href="#">お茶調達記録</a></li>
-	<li><a href="@routes.DataMgmtController.index()" data-ajax="false">データ管理</a>
-	<li><a href="@routes.AsyncTaskController.list(None, None)" data-ajax="false">タスク管理</a>
-	<li><a href="@routes.ProfileController.edit()">プロファイル</a></li>
 </ul>
-} { }
+} {
+<div data-role="navbar" data-iconpos="left">
+	<ul>
+		<li><a href="@routes.HomeController.index()" data-ajax="false"
+			data-icon="home">ホーム</a></li>
+		<li><a href="@routes.DataMgmtController.index()" data-ajax="false"
+			data-icon="grid">データ管理</a></li>
+		<li><a href="@routes.ProfileController.edit()" data-ajax="false"
+			data-icon="gear">プロファイル</a></li>
+	</ul>
+</div>
+}
