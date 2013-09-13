@@ -32,7 +32,6 @@ import play.api.cache.Cache
 case class DriveLog(dt: Date, tripmeter: BigDecimal, fuelometer: BigDecimal, remaining: BigDecimal, odometer: BigDecimal, note: Option[String]) {
   var id: Pk[Long] = NotAssigned
   var memberId: Pk[Long] = NotAssigned
-  var refuel: Option[Boolean] = None
 }
 
 object DriveLog {
@@ -43,14 +42,6 @@ object DriveLog {
         val entity = DriveLog(dt, BigDecimal(tripmeter), BigDecimal(fuelometer), BigDecimal(remaining), BigDecimal(odometer), note)
         entity.id = Id(id)
         entity.memberId = Id(memberId)
-        entity
-    }
-  }
-
-  val parserWithRefuel: RowParser[DriveLog] = {
-    parser ~ int("refuel") map {
-      case entity ~ refuel =>
-        entity.refuel = Option(refuel > 0)
         entity
     }
   }
@@ -66,21 +57,16 @@ object DriveLog {
 
   def list(memberId: Long, pageNo: Long, pageSize: Long)(implicit c: Connection): Seq[DriveLog] =
     SQL("""
-        SELECT drive_logs.id, drive_logs.member_id, drive_logs.dt, drive_logs.tripmeter, drive_logs.fuelometer, drive_logs.remaining, drive_logs.odometer, drive_logs.note,
-            CASE WHEN refuel_logs.id IS NOT NULL THEN 1 ELSE 0 END AS refuel
-        FROM
-            drive_logs
-            LEFT OUTER JOIN refuel_logs
-            ON
-                refuel_logs.id = drive_logs.id
+        SELECT id, member_id, dt, tripmeter, fuelometer, remaining, odometer, note
+        FROM drive_logs
         WHERE
-            drive_logs.member_id = {memberId}
+            member_id = {memberId}
         ORDER BY
-            drive_logs.dt DESC, drive_logs.id DESC
+            dt DESC, id DESC
         LIMIT {limit} OFFSET {offset}
         """).on(
       'memberId -> memberId,
-      'limit -> pageSize, 'offset -> pageSize * pageNo).list(parserWithRefuel)
+      'limit -> pageSize, 'offset -> pageSize * pageNo).list(parser)
 
   def last(memberId: Long)(implicit c: Connection): Option[DriveLog] =
     SQL("""
