@@ -16,6 +16,8 @@
 
 package utils.filter
 
+import scala.concurrent.Future
+
 import play.api._
 import play.api.mvc._
 
@@ -24,7 +26,7 @@ case class AccessLogFilter(excludes: Seq[String] = Seq()) extends Filter {
   val loggerBegin = Logger("accessLog.begin")
   val loggerEnd = Logger("accessLog.end")
 
-  override def apply(next: RequestHeader => Result)(request: RequestHeader): Result = {
+  override def apply(next: RequestHeader => Future[SimpleResult])(request: RequestHeader): Future[SimpleResult] = {
     val logEnabled = !excludes.exists(request.path.startsWith(_))
     try {
       if (logEnabled) logBegin(request)

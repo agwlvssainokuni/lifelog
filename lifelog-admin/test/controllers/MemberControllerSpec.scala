@@ -199,6 +199,7 @@ class MemberControllerSpec extends Specification {
   }
 
   "MemberController#list()" should {
+    "DUMMY" in new TestApp {}
   }
 
   "MemberController#add()" should {
