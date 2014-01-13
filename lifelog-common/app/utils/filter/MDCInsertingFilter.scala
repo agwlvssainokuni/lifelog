@@ -17,6 +17,7 @@
 package utils.filter
 
 import scala.Array.canBuildFrom
+import scala.concurrent.Future
 
 import org.slf4j.MDC
 
@@ -33,7 +34,7 @@ case class MDCInsertingFilter(header: Seq[String] = Seq("User-Agent", "X-Forward
     (name, mdcName.mkString)
   }
 
-  override def apply(next: RequestHeader => Result)(request: RequestHeader): Result = {
+  override def apply(next: RequestHeader => Future[SimpleResult])(request: RequestHeader): Future[SimpleResult] = {
     try {
       insertMDC(request)
       next(request)

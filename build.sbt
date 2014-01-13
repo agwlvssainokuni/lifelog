@@ -1,4 +1,4 @@
-scalaVersion := "2.10.2"
+scalaVersion := "2.10.3"
 
 scalacOptions ++= Seq(
   "-language:postfixOps",
@@ -22,3 +22,5 @@ shellPrompt := { state =>
       Project.extract(state).currentProject.id)
   }
 }
+
+play.Project.playScalaSettings
