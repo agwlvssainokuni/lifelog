@@ -222,6 +222,7 @@ class AdminControllerSpec extends Specification {
   }
 
   "AdminController#list()" should {
+    "DUMMY" in new TestApp {}
   }
 
   "AdminController#add()" should {

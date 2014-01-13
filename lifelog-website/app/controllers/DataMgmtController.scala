@@ -20,6 +20,7 @@ import java.io.File
 import java.sql.Connection
 
 import scala.Array.canBuildFrom
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
 
 import anorm._
@@ -95,8 +96,8 @@ object DataMgmtController extends Controller with ActionBuilder with TaskUtil {
     }
   }
 
-  private def sendFile(basename: String, content: Enumerator[String]): ChunkedResult[String] =
-    Ok.stream(content).withHeaders(
+  private def sendFile(basename: String, content: Enumerator[String]): SimpleResult =
+    Ok.chunked(content).withHeaders(
       CONTENT_TYPE -> MimeTypes.forExtension("csv").get,
       CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(filename(basename))))
 

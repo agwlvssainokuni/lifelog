@@ -251,18 +251,23 @@ class DietLogControllerSpec extends Specification {
   }
 
   "DietLogController#add()" should {
+    "DUMMY" in new TestApp {}
   }
 
   "DietLogController#create()" should {
+    "DUMMY" in new TestApp {}
   }
 
   "DietLogController#edit(id)" should {
+    "DUMMY" in new TestApp {}
   }
 
   "DietLogController#update(id)" should {
+    "DUMMY" in new TestApp {}
   }
 
   "DietLogController#delete(id)" should {
+    "DUMMY" in new TestApp {}
   }
 
 }
